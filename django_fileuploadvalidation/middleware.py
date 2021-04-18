@@ -32,35 +32,46 @@ class FileUploadValidationMiddleware:
                 f"[Middleware] - detection_data: {pprint.pformat(detection_data)}"
             )
 
-            sanitized_data, sanitized_file_objects = sanitizer.run_sanitization(
-                init_post_request, converted_file_objects, detection_data
-            )
+            one_file_blocked = False
+            for key in detection_data:
+                if detection_data[key]["file"]["block"]:
+                    one_file_blocked = True
+                    break
 
-            logging.debug(
-                f"[Middleware] - sanitized_data: {pprint.pformat(sanitized_data)}"
-            )
-            logging.debug(
-                f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
-            )
+            if not one_file_blocked:
+                sanitized_data, sanitized_file_objects = sanitizer.run_sanitization(
+                    init_post_request, converted_file_objects, detection_data
+                )
 
-            for sanitized_file_object_key in sanitized_file_objects:
-                file_block = sanitized_file_objects[sanitized_file_object_key].block
+                logging.debug(
+                    f"[Middleware] - sanitized_data: {pprint.pformat(sanitized_data)}"
+                )
+                logging.debug(
+                    f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
+                )
 
-                if ALWAYS_ENABLED_UPLOADLOGS or not file_block:
-                    reportbuilder.run_reportbuilder(
-                        sanitized_file_objects,
-                        detection_data,
-                        sanitized_data,
-                    )
+                for sanitized_file_object_key in sanitized_file_objects:
+                    file_block = sanitized_file_objects[sanitized_file_object_key].block
 
-                if file_block:
-                    messages.error(request, "The file couldn't been uplaoded.")
-                    # TODO: Display error message and forward to upload page.
-                    return HttpResponseForbidden()
+                    if ALWAYS_ENABLED_UPLOADLOGS or not file_block:
+                        reportbuilder.run_reportbuilder(
+                            sanitized_file_objects,
+                            detection_data,
+                            sanitized_data,
+                        )
 
-            sanitized_request = converter.file_objects_to_request(
-                request, sanitized_file_objects
-            )
+                    if file_block:
+                        # messages.error(request, "The file couldn't been uploaded.")
+                        # TODO: Display error message and forward to upload page.
+                        return HttpResponseForbidden("The file couldn't been uploaded.")
+
+                sanitized_request = converter.file_objects_to_request(
+                    request, sanitized_file_objects
+                )
+            else:
+                # messages.error(request, "The file couldn't been uploaded.")
+                # TODO: Display error message and forward to upload page.
+                return HttpResponseForbidden("The file couldn't been uploaded.")
         else:
             sanitized_request = request
 

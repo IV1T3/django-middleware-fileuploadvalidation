@@ -1,8 +1,7 @@
-import logging
-
 from io import BytesIO
 
 import exifread
+import logging
 
 
 class File:

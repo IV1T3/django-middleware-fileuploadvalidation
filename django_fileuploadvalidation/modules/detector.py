@@ -2,7 +2,11 @@ import logging
 import operator
 import pprint
 
-from ..config import DETECTOR_SENSITIVITY, UPLOAD_MIME_TYPE_WHITELIST
+from ..config import (
+    DETECTOR_SENSITIVITY,
+    UPLOAD_MIME_TYPE_WHITELIST,
+    MAXIMUM_ALLOWED_FILE_SIZE,
+)
 
 from ..data.filedetectiondata import FILE_DETECTION_DATA_TEMPLATE
 from ..data.filesignatures import FILE_SIGNATURES
@@ -17,6 +21,21 @@ def get_file_size(file_object, detection_data):
     return detection_data
 
 
+def check_file_size_allowed(detection_data):
+    file_size = detection_data["file"]["size"] / 1000
+    if file_size <= MAXIMUM_ALLOWED_FILE_SIZE:
+        detection_data["checks"]["validation_file_size"]["result"] = True
+    else:
+        detection_data["checks"]["validation_file_size"]["result"] = False
+        detection_data["recognized_attacks"]["file_size_large"] = True
+        detection_data["file"]["block"] = True
+        detection_data["file"]["block_reasons"].append("invalid_file_size")
+
+    detection_data["checks"]["validation_file_size"]["done"] = True
+
+    return detection_data
+
+
 def check_mime_against_whitelist(mime_to_check):
     return mime_to_check in UPLOAD_MIME_TYPE_WHITELIST
 
@@ -24,10 +43,18 @@ def check_mime_against_whitelist(mime_to_check):
 def get_request_header_mime(file_object, detection_data):
     logging.info("[Detector module] - Getting request header MIME type")
 
-    detection_data["checks_done"][
-        "whitelisted_request_mime"
-    ] = check_mime_against_whitelist(file_object.content_type)
     detection_data["file"]["request_header_mime"] = file_object.content_type
+
+    mime_whitelist_result = check_mime_against_whitelist(file_object.content_type)
+
+    detection_data["checks"]["whitelisted_request_mime"]["done"] = True
+    detection_data["checks"]["whitelisted_request_mime"][
+        "result"
+    ] = mime_whitelist_result
+
+    if not mime_whitelist_result:
+        detection_data["file"]["block"] = True
+        detection_data["file"]["block_reasons"].append("whitelist_content_type")
 
     return detection_data
 
@@ -61,9 +88,16 @@ def check_filename(file_object, detection_data):
         detection_data["file"]["extensions"]["other"] = file_name_splits[2:]
         detection_data["recognized_attacks"]["additional_file_extensions"] = True
 
-    detection_data["checks_done"][
-        "whitelisted_extensions_mime"
-    ] = check_mime_against_whitelist(main_file_extension_mime)
+    mime_whitelist_result = check_mime_against_whitelist(main_file_extension_mime)
+
+    detection_data["checks"]["whitelisted_extensions_mime"]["done"] = True
+    detection_data["checks"]["whitelisted_extensions_mime"][
+        "result"
+    ] = mime_whitelist_result
+
+    if not mime_whitelist_result:
+        detection_data["file"]["block"] = True
+        detection_data["file"]["block_reasons"].append("whitelist_file_extension")
 
     for file_name_split in file_name_splits:
         if (
@@ -86,9 +120,18 @@ def check_signature_match_main_file_extension(detection_data):
     file_signature_mime = detection_data["file"]["signature_mime"]
 
     if file_extension_mime == file_signature_mime == file_request_mime:
-        detection_data["checks_done"]["extension_signature_request_mime_match"] = True
+        detection_data["checks"]["validation_match_extension_signature_request_mime"][
+            "result"
+        ] = True
     else:
         detection_data["recognized_attacks"]["mime_manipulation"] = True
+        detection_data["checks"]["validation_match_extension_signature_request_mime"][
+            "result"
+        ] = False
+
+    detection_data["checks"]["validation_match_extension_signature_request_mime"][
+        "done"
+    ] = True
     return detection_data
 
 
@@ -120,14 +163,20 @@ def check_media_signature(file_object, detection_data):
     if file_signature_mime != "__unknown":
         logging.debug(f"[Detector module] - Signature correct: {file_signature_mime}")
         detection_data["file"]["signature_mime"] = file_signature_mime
-        detection_data["checks_done"]["signature_valid"] = True
-        detection_data["checks_done"][
-            "whitelisted_signature_mime"
-        ] = check_mime_against_whitelist(file_signature_mime)
+        mime_whitelist_result = check_mime_against_whitelist(file_signature_mime)
+        detection_data["checks"]["whitelisted_signature_mime"][
+            "result"
+        ] = mime_whitelist_result
+        if not mime_whitelist_result:
+            detection_data["file"]["block"] = True
+            detection_data["file"]["block_reasons"].append("whitelist_file_signature")
+        detection_data["checks"]["validation_signature"]["result"] = True
     else:
         logging.debug("[Detector module] - Signature unknown")
         detection_data["file"]["signature_mime"] = "__unknown"
 
+    detection_data["checks"]["whitelisted_signature_mime"]["done"] = True
+    detection_data["checks"]["validation_signature"]["done"] = True
     detection_data["sanitization_tasks"]["clean_structure"] = True
 
     return detection_data
@@ -141,7 +190,7 @@ def guess_mime_type_and_maliciousness(detection_data):
 
     # Adding file signature information
     file_signature_mime = detection_data["file"]["signature_mime"]
-    if file_signature_mime != "__unknown":
+    if file_signature_mime in guessing_scores.keys():
         guessing_scores[file_signature_mime] += 1
     total_points_given += 1
 
@@ -153,8 +202,17 @@ def guess_mime_type_and_maliciousness(detection_data):
         guessing_scores[main_mime_type] += 1
     total_points_given += 1
 
+    # Adding Content-Type header information
+    content_type_mime = detection_data["file"]["request_header_mime"]
+    if content_type_mime in guessing_scores.keys():
+        guessing_scores[content_type_mime] += 1
+    total_points_given += 1
+
     # Evaluating maliciousness
-    logging.debug(f"[Detector module] - {pprint.pformat(guessing_scores)}")
+    sorted_guessing_scores = {
+        k: v for k, v in sorted(guessing_scores.items(), key=lambda item: item[1])
+    }
+    logging.debug(f"[Detector module] - {pprint.pformat(sorted_guessing_scores)}")
     logging.debug(f"[Detector module] - {total_points_given=}")
 
     guessed_mime_type = max(guessing_scores.items(), key=operator.itemgetter(1))[0]
@@ -177,12 +235,13 @@ def run_detection(init_post_request, converted_file_objects):
     files_detection_data = {}
 
     for file_object_key in converted_file_objects:
-        file_detection_data = FILE_DETECTION_DATA_TEMPLATE
+        file_detection_data = FILE_DETECTION_DATA_TEMPLATE.copy()
 
         converted_file_object = converted_file_objects[file_object_key]
 
         # Independent checks
         file_detection_data = get_file_size(converted_file_object, file_detection_data)
+        file_detection_data = check_file_size_allowed(file_detection_data)
         file_detection_data = get_request_header_mime(
             converted_file_object, file_detection_data
         )

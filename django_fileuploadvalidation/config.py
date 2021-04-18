@@ -4,6 +4,9 @@ from .data import whitelists
     DETECTOR_SENSITIVITY
     Threshold from which the detector module denotes file as malicious.
     The higher the sensitivity the more strict the detector module.
+    ---
+    Type: float
+    Default: 0.98
 """
 DETECTOR_SENSITIVITY = 0.98
 
@@ -29,12 +32,27 @@ DETECTOR_SENSITIVITY = 0.98
 
     - whitelists.WHITELIST_MIME_TYPES__ALL
     - whitelists.WHITELIST_MIME_TYPES__RESTRICTIVE
+    ---
+    Type: list
+    Default: whitelists.WHITELIST_MIME_TYPES__RESTRICTIVE
 """
-UPLOAD_MIME_TYPE_WHITELIST = whitelists.WHITELIST_MIME_TYPES__RESTRICTIVE
+UPLOAD_MIME_TYPE_WHITELIST = whitelists.WHITELIST_MIME_TYPES__IMAGE_RESTRICTIVE
 
 """
     ALWAYS_ENABLED_UPLOADLOGS
     Set True, if the ReportBuilder module must log every upload attempt.
-    Set False, if the ReportBuilder module should log successfull uploads. 
+    Set False, if the ReportBuilder module should log successfull uploads.
+    ---
+    Type: boolean
+    Default: True
 """
-ALWAYS_ENABLED_UPLOADLOGS = False
+ALWAYS_ENABLED_UPLOADLOGS = True
+
+"""
+    MAXIMUM_ALLOWED_FILE_SIZE
+    Defines the maximum allowed file size in kilobytes (kB).
+    ---
+    Type: integer
+    Default: 2000
+"""
+MAXIMUM_ALLOWED_FILE_SIZE = 2000
