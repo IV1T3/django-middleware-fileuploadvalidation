@@ -4,7 +4,7 @@
 
 ## Installing
 
-Soo, this package can be installed via pip:
+Soon, this package can be installed via pip:
 
 ```bash
 $ pip install django-middleware-fileuploadvalidation
