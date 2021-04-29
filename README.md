@@ -1,10 +1,10 @@
 # django-middleware-fileuploadvalidation
 
-[![pypi-version]][pypi]
+[comment]: <> ([![pypi-version]][pypi]) 
 
 ## Installing
 
-This package can be installed via pip:
+Soon, this package can be installed via pip:
 
 ```bash
 $ pip install django-middleware-fileuploadvalidation
