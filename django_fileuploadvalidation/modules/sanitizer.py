@@ -30,13 +30,17 @@ def rerender_and_randomize_image_data(file_object, mime_type):
         print(f"{sanitized_image.size=}")
 
         for i in range(sanitized_image.size[0]):
-            for j in range(sanitized_image.size[1]):
-                pixel_list = list(pixels[i, j])
-                for k in range(len(pixel_list)):
-                    noise_offset = random.randrange(2)
-                    pixel_list[k] += (-1 * noise_offset if pixel_list[k] == 255 else noise_offset)
-                pixel_tuple = tuple(pixel_list)
-                pixels[i, j] = pixel_tuple
+            if i % random.randrange(1, 10) == 0:
+                for j in range(sanitized_image.size[1]):
+                    if i * j % random.randrange(1, 10) == 0:
+                        pixel_list = list(pixels[i, j])
+                        for k in range(len(pixel_list)):
+                            noise_offset = random.randrange(2)
+                            pixel_list[k] += (
+                                -1 * noise_offset if pixel_list[k] == 255 else noise_offset
+                            )
+                        pixel_tuple = tuple(pixel_list)
+                        pixels[i, j] = pixel_tuple
 
         sanitized_image_buff.seek(0)
         file_object.content = sanitized_image_buff.read()
@@ -63,21 +67,21 @@ def sanitization_task__clean_exif(file_object, file_detection_data):
 def sanitization_task__clean_structure(file_object, file_detection_data):
     logging.info("[Sanitizer module - Tasks] - Clean structure")
 
-    successfull_cleansing = False
+    successful_cleansing = False
 
     main_mime = file_detection_data["file"]["guessed_mime"].split("/")[0]
 
     if main_mime == "image":
         (
             sanitized_file_object,
-            successfull_cleansing,
+            successful_cleansing,
         ) = rerender_and_randomize_image_data(
             file_object, file_detection_data["file"]["guessed_mime"]
         )
     else:
         sanitized_file_object = file_object
 
-    return sanitized_file_object, successfull_cleansing
+    return sanitized_file_object, successful_cleansing
 
 
 def sanitization_task__create_random_filename_with_guessed_extension(
@@ -106,10 +110,10 @@ def iterate_sanitization_tasks(file_object, file_detection_data):
             file_sanitization_data["cleansed_exif"] = True
 
         if file_sanitization_tasks["clean_structure"]:
-            file_object, successfull_cleansing = sanitization_task__clean_structure(
+            file_object, successful_cleansing = sanitization_task__clean_structure(
                 file_object, file_detection_data
             )
-            file_sanitization_data["cleansed_structure"] = successfull_cleansing
+            file_sanitization_data["cleansed_structure"] = successful_cleansing
 
         if file_sanitization_tasks["create_random_filename_with_guessed_extension"]:
             file_object = (

@@ -10,6 +10,10 @@ FILE_DETECTION_DATA_TEMPLATE = {
         "size": "",
     },
     "checks": {
+        "validation_filename_length": {
+            "done": False,
+            "result": False,
+        },
         "validation_match_extension_signature_request_mime": {
             "done": False,
             "result": False,

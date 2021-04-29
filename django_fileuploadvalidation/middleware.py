@@ -4,7 +4,7 @@ from django.contrib import messages
 import logging
 import pprint
 
-from .config import ALWAYS_ENABLED_UPLOADLOGS
+from .config import UPLOADLOGS_MODE
 from .modules import converter, detector, reportbuilder, sanitizer
 
 logging.basicConfig(level=logging.DEBUG)
@@ -53,16 +53,14 @@ class FileUploadValidationMiddleware:
                 for sanitized_file_object_key in sanitized_file_objects:
                     file_block = sanitized_file_objects[sanitized_file_object_key].block
 
-                    if ALWAYS_ENABLED_UPLOADLOGS or not file_block:
-                        reportbuilder.run_reportbuilder(
-                            sanitized_file_objects,
-                            detection_data,
-                            sanitized_data,
-                        )
-
                     if file_block:
                         # messages.error(request, "The file couldn't been uploaded.")
                         # TODO: Display error message and forward to upload page.
+                        if UPLOADLOGS_MODE == "blocked":
+                            reportbuilder.run_reportbuilder(
+                                converted_file_objects,
+                                detection_data,
+                            )
                         return HttpResponseForbidden("The file couldn't been uploaded.")
 
                 sanitized_request = converter.file_objects_to_request(
@@ -71,10 +69,24 @@ class FileUploadValidationMiddleware:
             else:
                 # messages.error(request, "The file couldn't been uploaded.")
                 # TODO: Display error message and forward to upload page.
+                if UPLOADLOGS_MODE == "blocked":
+                    reportbuilder.run_reportbuilder(
+                        converted_file_objects,
+                        detection_data,
+                    )
                 return HttpResponseForbidden("The file couldn't been uploaded.")
+            
+            if UPLOADLOGS_MODE == "success" or UPLOADLOGS_MODE == "always":
+                reportbuilder.run_reportbuilder(
+                    sanitized_file_objects,
+                    detection_data,
+                    sanitized_data,
+                )
+
         else:
             sanitized_request = request
 
         response = self.get_response(sanitized_request)
+        
 
         return response

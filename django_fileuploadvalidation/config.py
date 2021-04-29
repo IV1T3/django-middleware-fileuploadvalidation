@@ -36,23 +36,33 @@ DETECTOR_SENSITIVITY = 0.98
     Type: list
     Default: whitelists.WHITELIST_MIME_TYPES__RESTRICTIVE
 """
-UPLOAD_MIME_TYPE_WHITELIST = whitelists.WHITELIST_MIME_TYPES__IMAGE_RESTRICTIVE
+UPLOAD_MIME_TYPE_WHITELIST = whitelists.WHITELIST_MIME_TYPES__RESTRICTIVE
 
 """
-    ALWAYS_ENABLED_UPLOADLOGS
-    Set True, if the ReportBuilder module must log every upload attempt.
-    Set False, if the ReportBuilder module should log successfull uploads.
+    UPLOADLOGS_MODE
+    always: Log every upload attempt.
+    success: Log only successful uploads.
+    blocked: Log only blocked uploads.
     ---
-    Type: boolean
-    Default: True
+    Type: str
+    Default: "blocked"
 """
-ALWAYS_ENABLED_UPLOADLOGS = True
+UPLOADLOGS_MODE = "blocked"
 
 """
-    MAXIMUM_ALLOWED_FILE_SIZE
+    FILE_SIZE_LIMIT
     Defines the maximum allowed file size in kilobytes (kB).
     ---
     Type: integer
     Default: 2000
 """
-MAXIMUM_ALLOWED_FILE_SIZE = 2000
+FILE_SIZE_LIMIT = 300000
+
+"""
+    FILENAME_LENGTH_LIMIT
+    Defines the maximum allowed character length of the file name.
+    ---
+    Type: integer
+    Default: 100
+"""
+FILENAME_LENGTH_LIMIT = 10000000

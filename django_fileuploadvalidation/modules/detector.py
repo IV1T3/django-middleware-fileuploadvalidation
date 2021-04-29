@@ -1,3 +1,4 @@
+import copy
 import logging
 import operator
 import pprint
@@ -5,7 +6,8 @@ import pprint
 from ..config import (
     DETECTOR_SENSITIVITY,
     UPLOAD_MIME_TYPE_WHITELIST,
-    MAXIMUM_ALLOWED_FILE_SIZE,
+    FILE_SIZE_LIMIT,
+    FILENAME_LENGTH_LIMIT
 )
 
 from ..data.filedetectiondata import FILE_DETECTION_DATA_TEMPLATE
@@ -23,7 +25,7 @@ def get_file_size(file_object, detection_data):
 
 def check_file_size_allowed(detection_data):
     file_size = detection_data["file"]["size"] / 1000
-    if file_size <= MAXIMUM_ALLOWED_FILE_SIZE:
+    if file_size <= FILE_SIZE_LIMIT:
         detection_data["checks"]["validation_file_size"]["result"] = True
     else:
         detection_data["checks"]["validation_file_size"]["result"] = False
@@ -74,26 +76,36 @@ def check_file_exif_data(file_object, detection_data):
 
 def check_filename(file_object, detection_data):
     logging.info("[Detector module] - Analyzing file extension")
+
+    # Validating file name length
+    if len(file_object.name) < FILENAME_LENGTH_LIMIT:
+        detection_data["checks"]["validation_filename_length"]["result"] = True
+    else:
+        detection_data["file"]["block"] = True
+        detection_data["file"]["block_reasons"].append("validation_filename_length")
+
+    detection_data["checks"]["validation_filename_length"]["done"] = True
+
+
     file_name_splits = list(map(lambda x: x.lower(), file_object.name.split(".")))
 
     # TODO: change from static to dynamic detection of main extension
     # Could result in detecting files as malicious if
     # "." in the file name
-    main_file_extension = file_name_splits[1]
-    detection_data["file"]["extensions"]["main"] = [main_file_extension]
 
-    main_file_extension_mime = file_extension_to_mime_type(main_file_extension)
+    if len(file_name_splits) > 1:
+        main_file_extension = file_name_splits[1]
+        detection_data["file"]["extensions"]["main"] = [main_file_extension]
 
+        main_file_extension_mime = file_extension_to_mime_type(main_file_extension)
+    
     if len(file_name_splits) > 2:
         detection_data["file"]["extensions"]["other"] = file_name_splits[2:]
         detection_data["recognized_attacks"]["additional_file_extensions"] = True
 
     mime_whitelist_result = check_mime_against_whitelist(main_file_extension_mime)
-
     detection_data["checks"]["whitelisted_extensions_mime"]["done"] = True
-    detection_data["checks"]["whitelisted_extensions_mime"][
-        "result"
-    ] = mime_whitelist_result
+    detection_data["checks"]["whitelisted_extensions_mime"]["result"] = mime_whitelist_result
 
     if not mime_whitelist_result:
         detection_data["file"]["block"] = True
@@ -235,7 +247,8 @@ def run_detection(init_post_request, converted_file_objects):
     files_detection_data = {}
 
     for file_object_key in converted_file_objects:
-        file_detection_data = FILE_DETECTION_DATA_TEMPLATE.copy()
+
+        file_detection_data = copy.deepcopy(FILE_DETECTION_DATA_TEMPLATE)
 
         converted_file_object = converted_file_objects[file_object_key]
 
