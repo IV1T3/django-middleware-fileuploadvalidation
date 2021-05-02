@@ -54,27 +54,27 @@ class FileUploadValidationMiddleware:
                     file_block = sanitized_file_objects[sanitized_file_object_key].block
 
                     if file_block:
-                        # messages.error(request, "The file couldn't been uploaded.")
+                        # messages.error(request, "The file could not be uploaded.")
                         # TODO: Display error message and forward to upload page.
                         if UPLOADLOGS_MODE == "blocked":
                             reportbuilder.run_reportbuilder(
                                 converted_file_objects,
                                 detection_data,
                             )
-                        return HttpResponseForbidden("The file couldn't been uploaded.")
+                        return HttpResponseForbidden("The file could not be uploaded.")
 
                 sanitized_request = converter.file_objects_to_request(
                     request, sanitized_file_objects
                 )
             else:
-                # messages.error(request, "The file couldn't been uploaded.")
+                # messages.error(request, "The file could not be uploaded.")
                 # TODO: Display error message and forward to upload page.
                 if UPLOADLOGS_MODE == "blocked":
                     reportbuilder.run_reportbuilder(
                         converted_file_objects,
                         detection_data,
                     )
-                return HttpResponseForbidden("The file couldn't been uploaded.")
+                return HttpResponseForbidden("The file could not be uploaded.")
             
             if UPLOADLOGS_MODE == "success" or UPLOADLOGS_MODE == "always":
                 reportbuilder.run_reportbuilder(

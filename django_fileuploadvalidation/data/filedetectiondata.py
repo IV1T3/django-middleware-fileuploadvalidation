@@ -2,7 +2,7 @@ FILE_DETECTION_DATA_TEMPLATE = {
     "file": {
         "block": False,
         "block_reasons": [],
-        "extensions": {"main": [""], "other": [""]},
+        "extensions": [],
         "guessed_mime": "",
         "malicious": True,
         "request_header_mime": "",

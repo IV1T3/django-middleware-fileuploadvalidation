@@ -93,21 +93,22 @@ def check_filename(file_object, detection_data):
     # Could result in detecting files as malicious if
     # "." in the file name
 
-    if len(file_name_splits) > 1:
-        main_file_extension = file_name_splits[1]
-        detection_data["file"]["extensions"]["main"] = [main_file_extension]
+    file_extensions = file_name_splits[1:]
+    detection_data["file"]["extensions"] = file_extensions
+    mime_whitelist_results = []
+    for single_extension in file_extensions:
+        curr_file_extension_mime = file_extension_to_mime_type(single_extension)
+        mime_whitelist_results.append(check_mime_against_whitelist(curr_file_extension_mime))
 
-        main_file_extension_mime = file_extension_to_mime_type(main_file_extension)
+    all_extensions_whitelisted = all(mime_whitelist_results)
+
+    detection_data["checks"]["whitelisted_extensions_mime"]["done"] = True
+    detection_data["checks"]["whitelisted_extensions_mime"]["result"] = all_extensions_whitelisted
     
     if len(file_name_splits) > 2:
-        detection_data["file"]["extensions"]["other"] = file_name_splits[2:]
         detection_data["recognized_attacks"]["additional_file_extensions"] = True
 
-    mime_whitelist_result = check_mime_against_whitelist(main_file_extension_mime)
-    detection_data["checks"]["whitelisted_extensions_mime"]["done"] = True
-    detection_data["checks"]["whitelisted_extensions_mime"]["result"] = mime_whitelist_result
-
-    if not mime_whitelist_result:
+    if not all_extensions_whitelisted:
         detection_data["file"]["block"] = True
         detection_data["file"]["block_reasons"].append("whitelist_file_extension")
 
@@ -119,19 +120,26 @@ def check_filename(file_object, detection_data):
         ):
             detection_data["recognized_attacks"]["null_byte_injection"] = True
 
-    # TODO: Add detection of alternative media file extensions such as .php5
+    # TODO: Add detection of alternate media file extensions such as .php5
 
     return detection_data
 
 
 def check_signature_match_main_file_extension(detection_data):
-    file_extension_mime = file_extension_to_mime_type(
-        detection_data["file"]["extensions"]["main"][0]
-    )
+
     file_request_mime = detection_data["file"]["request_header_mime"]
     file_signature_mime = detection_data["file"]["signature_mime"]
 
-    if file_extension_mime == file_signature_mime == file_request_mime:
+    extension_matchings = []
+
+    for single_file_extension in detection_data["file"]["extensions"]:
+        file_extension_mime = file_extension_to_mime_type(single_file_extension)
+        extension_matches = file_extension_mime == file_signature_mime == file_request_mime
+        extension_matchings.append(extension_matches)
+    
+    all_extensions_match = all(extension_matchings)
+
+    if all_extensions_match:
         detection_data["checks"]["validation_match_extension_signature_request_mime"][
             "result"
         ] = True
@@ -207,8 +215,7 @@ def guess_mime_type_and_maliciousness(detection_data):
     total_points_given += 1
 
     # Adding file extension information
-    # TODO: Add malicious bonus if invalid extensions in detection_data["file_extensions"]["other"]
-    main_file_extension = detection_data["file"]["extensions"]["main"][0]
+    main_file_extension = detection_data["file"]["extensions"][0]
     main_mime_type = file_extension_to_mime_type(main_file_extension)
     if main_mime_type in guessing_scores.keys():
         guessing_scores[main_mime_type] += 1

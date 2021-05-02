@@ -54,9 +54,9 @@ UPLOADLOGS_MODE = "blocked"
     Defines the maximum allowed file size in kilobytes (kB).
     ---
     Type: integer
-    Default: 2000
+    Default: 5000
 """
-FILE_SIZE_LIMIT = 300000
+FILE_SIZE_LIMIT = 5000
 
 """
     FILENAME_LENGTH_LIMIT
@@ -65,4 +65,4 @@ FILE_SIZE_LIMIT = 300000
     Type: integer
     Default: 100
 """
-FILENAME_LENGTH_LIMIT = 10000000
+FILENAME_LENGTH_LIMIT = 100

@@ -27,7 +27,6 @@ def rerender_and_randomize_image_data(file_object, mime_type):
 
         logging.info("[Sanitizer module - Tasks] - Starting to randomize image")
         pixels = sanitized_image.load()
-        print(f"{sanitized_image.size=}")
 
         for i in range(sanitized_image.size[0]):
             if i % random.randrange(1, 10) == 0:
