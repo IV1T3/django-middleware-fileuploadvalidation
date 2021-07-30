@@ -1,6 +1,7 @@
 from io import BytesIO
 
 import exifread
+import hashlib
 import logging
 
 
@@ -21,11 +22,34 @@ class File:
         self._exif_data = self._retrieve_exif_data()
         self._block = False
 
+        self._hash_md5, self._hash_sha1, self._hash_sha256 = self._get_file_hashes()
+
     def _retrieve_exif_data(self):
         logging.info("[File class] - Retrieving file exif data")
         file_bytes_buffer = BytesIO(self._content)
         exif_data = exifread.process_file(file_bytes_buffer, details=False)
         return exif_data
+
+    def _get_file_hashes(self):
+        logging.info("[File class] - Retrieving file hashes")
+        md5_hash = hashlib.md5()
+        sha1_hash = hashlib.sha1()
+        sha256_hash = hashlib.sha256()
+
+        for chunk in self._uploaded_file.chunks():
+            md5_hash.update(chunk)
+            sha1_hash.update(chunk)
+            sha256_hash.update(chunk)
+
+        hexdigest_md5 = md5_hash.hexdigest()
+        hexdigest_sha1 = sha1_hash.hexdigest()
+        hexdigest_sha256 = sha256_hash.hexdigest()
+
+        logging.info(f"[File class] - MD5: {hexdigest_md5}")
+        logging.info(f"[File class] - SHA1: {hexdigest_sha1}")
+        logging.info(f"[File class] - SHA256: {hexdigest_sha256}")
+
+        return hexdigest_md5, hexdigest_sha1, hexdigest_sha256
 
     @property
     def block(self):
@@ -73,6 +97,9 @@ class File:
             "charset": self._charset,
             "content": self._content,
             "exif_data": self._exif_data,
+            "hash_md5": self._hash_md5,
+            "hash_sha1": self._hash_sha1,
+            "hash_sha256": self._hash_sha256,
         }
         return file_information
 
