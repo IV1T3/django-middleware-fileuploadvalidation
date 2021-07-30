@@ -36,7 +36,9 @@ def rerender_and_randomize_image_data(file_object, mime_type):
                         for k in range(len(pixel_list)):
                             noise_offset = random.randrange(2)
                             pixel_list[k] += (
-                                -1 * noise_offset if pixel_list[k] == 255 else noise_offset
+                                -1 * noise_offset
+                                if pixel_list[k] == 255
+                                else noise_offset
                             )
                         pixel_tuple = tuple(pixel_list)
                         pixels[i, j] = pixel_tuple

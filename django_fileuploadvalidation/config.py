@@ -2,8 +2,8 @@ from .data import whitelists
 
 """
     DETECTOR_SENSITIVITY
-    Threshold from which the detector module denotes file as malicious.
-    The higher the sensitivity the more strict the detector module.
+    Threshold from which the Detector module denotes file as malicious.
+    The higher the sensitivity the more strict the Detector module.
     ---
     Type: float
     Default: 0.98
@@ -36,7 +36,7 @@ DETECTOR_SENSITIVITY = 0.98
     Type: list
     Default: whitelists.WHITELIST_MIME_TYPES__RESTRICTIVE
 """
-UPLOAD_MIME_TYPE_WHITELIST = whitelists.WHITELIST_MIME_TYPES__RESTRICTIVE
+UPLOAD_MIME_TYPE_WHITELIST = whitelists.WHITELIST_MIME_TYPES__ALL
 
 """
     UPLOADLOGS_MODE

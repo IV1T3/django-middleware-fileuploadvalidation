@@ -7,7 +7,7 @@ from ..config import (
     DETECTOR_SENSITIVITY,
     UPLOAD_MIME_TYPE_WHITELIST,
     FILE_SIZE_LIMIT,
-    FILENAME_LENGTH_LIMIT
+    FILENAME_LENGTH_LIMIT,
 )
 
 from ..data.filedetectiondata import FILE_DETECTION_DATA_TEMPLATE
@@ -66,7 +66,11 @@ def check_file_exif_data(file_object, detection_data):
     exif_data = file_object.exif_data
     # logging.debug(f"[Detector module] - {exif_data=}")
     # TODO: Add detection of exif injection
-    malicious_injections = ["<?", "<script>"]
+    malicious_injections = ["<?", "<script>", "$_", "base64", "eval"]
+    for malicious_injection in malicious_injections:
+        if malicious_injection in exif_data:
+            detection_data["recognized_attacks"]["exif_injection"] = True
+            break
 
     if len(exif_data) > 0:
         detection_data["sanitization_tasks"]["clean_exif"] = True
@@ -86,7 +90,6 @@ def check_filename(file_object, detection_data):
 
     detection_data["checks"]["validation_filename_length"]["done"] = True
 
-
     file_name_splits = list(map(lambda x: x.lower(), file_object.name.split(".")))
 
     # TODO: change from static to dynamic detection of main extension
@@ -98,13 +101,17 @@ def check_filename(file_object, detection_data):
     mime_whitelist_results = []
     for single_extension in file_extensions:
         curr_file_extension_mime = file_extension_to_mime_type(single_extension)
-        mime_whitelist_results.append(check_mime_against_whitelist(curr_file_extension_mime))
+        mime_whitelist_results.append(
+            check_mime_against_whitelist(curr_file_extension_mime)
+        )
 
     all_extensions_whitelisted = all(mime_whitelist_results)
 
     detection_data["checks"]["whitelisted_extensions_mime"]["done"] = True
-    detection_data["checks"]["whitelisted_extensions_mime"]["result"] = all_extensions_whitelisted
-    
+    detection_data["checks"]["whitelisted_extensions_mime"][
+        "result"
+    ] = all_extensions_whitelisted
+
     if len(file_name_splits) > 2:
         detection_data["recognized_attacks"]["additional_file_extensions"] = True
 
@@ -134,9 +141,11 @@ def check_signature_match_main_file_extension(detection_data):
 
     for single_file_extension in detection_data["file"]["extensions"]:
         file_extension_mime = file_extension_to_mime_type(single_file_extension)
-        extension_matches = file_extension_mime == file_signature_mime == file_request_mime
+        extension_matches = (
+            file_extension_mime == file_signature_mime == file_request_mime
+        )
         extension_matchings.append(extension_matches)
-    
+
     all_extensions_match = all(extension_matchings)
 
     if all_extensions_match:
@@ -229,7 +238,9 @@ def guess_mime_type_and_maliciousness(detection_data):
 
     # Evaluating maliciousness
     sorted_guessing_scores = {
-        k: v for k, v in sorted(guessing_scores.items(), key=lambda item: item[1])
+        k: v
+        for k, v in sorted(guessing_scores.items(), key=lambda item: item[1])
+        if v > 0
     }
     logging.debug(f"[Detector module] - {pprint.pformat(sorted_guessing_scores)}")
     logging.debug(f"[Detector module] - {total_points_given=}")
