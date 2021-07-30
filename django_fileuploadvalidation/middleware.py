@@ -1,5 +1,4 @@
 from django.http import HttpResponseForbidden
-from django.contrib import messages
 
 import logging
 import pprint
@@ -7,8 +6,11 @@ import sys
 import time
 
 from .config import UPLOADLOGS_MODE
-from .modules import converter, reportbuilder, sanitizer
-from .modules.detector import general
+from .modules.converter import basic_conversion, image_conversion
+from .modules.detector import basic_detection, image_detection
+from .modules.reportbuilder import basic_reportbuilding
+from .modules.sanitizer import basic_sanitization
+from .modules.validator import basic_validation
 
 logging.basicConfig(level=logging.DEBUG)
 pp = pprint.PrettyPrinter(indent=4)
@@ -22,77 +24,99 @@ class FileUploadValidationMiddleware:
 
     def __call__(self, request):
 
+        # Start the middleware timer
         request.start_time = time.time()
 
+        # If files have been found, activate the middleware
         if len(request.FILES) > 0:
             init_post_request = request.POST
             init_files_request = request.FILES
 
-            converted_file_objects = converter.request_to_file_objects(
+            # Convert uploaded files into BaseFile class instances
+            converted_base_file_objects = basic_conversion.request_to_base_file_objects(
                 init_files_request
             )
-            detection_data = general.run_detection(
-                init_post_request, converted_file_objects
+
+            # Detect basic file information
+            basic_detection_data = basic_detection.run_detection(
+                converted_base_file_objects
             )
+
+            # Validate basic file information according to upload restrictions
+            (
+                basic_validation_successful,
+                basic_detection_data__VALIDATED,
+            ) = basic_validation.run_validation(basic_detection_data)
 
             logging.debug(
-                f"[Middleware] - detection_data: {pprint.pformat(detection_data)}"
+                f"[Middleware] - basic_detection_data__VALIDATED: {pprint.pformat(basic_detection_data__VALIDATED)}"
             )
+            logging.debug(f"[Middleware] - {basic_validation_successful=}")
 
-            one_file_blocked = False
-            for key in detection_data:
-                if detection_data[key]["file"]["block"]:
-                    one_file_blocked = True
-                    break
+            # If basic files information are valid
+            if basic_validation_successful:
 
-            if not one_file_blocked:
-                sanitized_data, sanitized_file_objects = sanitizer.run_sanitization(
-                    init_post_request, converted_file_objects, detection_data
-                )
-
-                logging.debug(
-                    f"[Middleware] - sanitized_data: {pprint.pformat(sanitized_data)}"
-                )
-                logging.debug(
-                    f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
-                )
-
-                for sanitized_file_object_key in sanitized_file_objects:
-                    file_block = sanitized_file_objects[sanitized_file_object_key].block
-
-                    if file_block:
-                        # messages.error(request, "The file could not be uploaded.")
-                        # TODO: Display error message and forward to upload page.
-                        if UPLOADLOGS_MODE == "blocked":
-                            reportbuilder.run_reportbuilder(
-                                converted_file_objects,
-                                detection_data,
-                            )
-                        execution_time = time.time() - request.start_time
-                        logging.info(f"DMF Execution time: {execution_time*1000}ms")
-                        return HttpResponseForbidden("The file could not be uploaded.")
-
-                sanitized_request = converter.file_objects_to_request(
-                    request, sanitized_file_objects
-                )
-            else:
-                # messages.error(request, "The file could not be uploaded.")
-                # TODO: Display error message and forward to upload page.
-                if UPLOADLOGS_MODE == "blocked":
-                    reportbuilder.run_reportbuilder(
-                        converted_file_objects,
-                        detection_data,
+                # Convert into specific file objects.
+                # TODO: Add if statement to check if base_obj is an image. Add for all file types.
+                specific_file_objects = (
+                    image_conversion.base_file_objects_to_image_file_objects(
+                        converted_base_file_objects
                     )
-                execution_time = time.time() - request.start_time
-                logging.info(f"DMF Execution time: {execution_time*1000}ms")
-                return HttpResponseForbidden("The file could not be uploaded.")
+                )
+
+                # Perform file type specific detection mechanisms
+                specific_detection_data = image_detection.run_image_detection(
+                    specific_file_objects, basic_detection_data__VALIDATED
+                )
+
+                # TODO: Validate file type specific information according to upload restrictions
+                specific_validation_successful = True
+
+                # If specific files information are valid
+                if specific_validation_successful:
+                    
+                    # Sanitize files
+                    (
+                        sanitized_data,
+                        sanitized_file_objects,
+                    ) = basic_sanitization.run_sanitization(
+                        init_post_request, converted_base_file_objects, detection_data
+                    )
+
+                    logging.debug(
+                        f"[Middleware] - sanitized_data: {pprint.pformat(sanitized_data)}"
+                    )
+                    logging.debug(
+                        f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
+                    )
+
+                # Build Report
+
+                # If request is still valid, continue with the request.
+            
 
             if UPLOADLOGS_MODE == "success" or UPLOADLOGS_MODE == "always":
-                reportbuilder.run_reportbuilder(
+                basic_reportbuilding.run_reportbuilder(
                     sanitized_file_objects,
                     detection_data,
                     sanitized_data,
                 )
+
+            execution_time = time.time() - request.start_time
+            logging.info(f"DMF Execution time: {execution_time*1000}ms")
+
+            if not (basic_validation_successful and specific_validation_successful):
+                if UPLOADLOGS_MODE == "blocked":
+                    basic_reportbuilding.run_reportbuilder(
+                        converted_base_file_objects,
+                        detection_data,
+                    )
+                return HttpResponseForbidden("The file could not be uploaded.")
+                    
+
+            sanitized_request = basic_conversion.file_objects_to_request(
+                request, sanitized_file_objects
+            )
 
         else:
             sanitized_request = request

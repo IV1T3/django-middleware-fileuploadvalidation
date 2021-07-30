@@ -1,13 +1,12 @@
 import io
 import random
 import logging
-import uuid
 
 from PIL import Image, UnidentifiedImageError
 
-from .helper import mime_type_to_file_extension
+from ..helper import mime_type_to_file_extension
 
-from ..data.filesanitizationdata import FILE_SANITITAZION_DATA_TEMPLATE
+from ...data.filesanitizationdata import FILE_SANITITAZION_DATA_TEMPLATE
 
 
 def rerender_and_randomize_image_data(file_object, mime_type):
@@ -83,19 +82,6 @@ def sanitization_task__clean_structure(file_object, file_detection_data):
         sanitized_file_object = file_object
 
     return sanitized_file_object, successful_cleansing
-
-
-def sanitization_task__create_random_filename_with_guessed_extension(
-    file_object, file_detection_data
-):
-    logging.info("[Sanitizer module - Tasks] - Creating random file name")
-    file_extension = mime_type_to_file_extension(
-        file_detection_data["file"]["guessed_mime"]
-    )
-    unique_file_name = str(uuid.uuid4()) + file_extension
-    file_object.name = unique_file_name
-
-    return file_object
 
 
 def iterate_sanitization_tasks(file_object, file_detection_data):
