@@ -3,12 +3,17 @@ from django.contrib import messages
 
 import logging
 import pprint
+import sys
+import time
 
 from .config import UPLOADLOGS_MODE
-from .modules import converter, detector, reportbuilder, sanitizer
+from .modules import converter, reportbuilder, sanitizer
+from .modules.detector import general
 
 logging.basicConfig(level=logging.DEBUG)
 pp = pprint.PrettyPrinter(indent=4)
+
+sys.dont_write_bytecode = True
 
 
 class FileUploadValidationMiddleware:
@@ -17,6 +22,8 @@ class FileUploadValidationMiddleware:
 
     def __call__(self, request):
 
+        request.start_time = time.time()
+
         if len(request.FILES) > 0:
             init_post_request = request.POST
             init_files_request = request.FILES
@@ -24,7 +31,7 @@ class FileUploadValidationMiddleware:
             converted_file_objects = converter.request_to_file_objects(
                 init_files_request
             )
-            detection_data = detector.run_detection(
+            detection_data = general.run_detection(
                 init_post_request, converted_file_objects
             )
 
@@ -61,6 +68,8 @@ class FileUploadValidationMiddleware:
                                 converted_file_objects,
                                 detection_data,
                             )
+                        execution_time = time.time() - request.start_time
+                        logging.info(f"DMF Execution time: {execution_time*1000}ms")
                         return HttpResponseForbidden("The file could not be uploaded.")
 
                 sanitized_request = converter.file_objects_to_request(
@@ -74,8 +83,10 @@ class FileUploadValidationMiddleware:
                         converted_file_objects,
                         detection_data,
                     )
+                execution_time = time.time() - request.start_time
+                logging.info(f"DMF Execution time: {execution_time*1000}ms")
                 return HttpResponseForbidden("The file could not be uploaded.")
-            
+
             if UPLOADLOGS_MODE == "success" or UPLOADLOGS_MODE == "always":
                 reportbuilder.run_reportbuilder(
                     sanitized_file_objects,
@@ -86,7 +97,9 @@ class FileUploadValidationMiddleware:
         else:
             sanitized_request = request
 
+        execution_time = time.time() - request.start_time
+        logging.info(f"DMF Execution time: {execution_time*1000}ms")
+
         response = self.get_response(sanitized_request)
-        
 
         return response

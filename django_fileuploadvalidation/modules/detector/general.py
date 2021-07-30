@@ -3,18 +3,18 @@ import logging
 import operator
 import pprint
 
-from ..config import (
+from ...config import (
     DETECTOR_SENSITIVITY,
     UPLOAD_MIME_TYPE_WHITELIST,
     FILE_SIZE_LIMIT,
     FILENAME_LENGTH_LIMIT,
 )
 
-from ..data.filedetectiondata import FILE_DETECTION_DATA_TEMPLATE
-from ..data.filesignatures import FILE_SIGNATURES
-from ..data.mimetypes import MIME_TYPES
+from ...data.filedetectiondata import FILE_DETECTION_DATA_TEMPLATE
+from ...data.filesignatures import FILE_SIGNATURES
+from ...data.mimetypes import MIME_TYPES
 
-from .helper import file_extension_to_mime_type
+from ..helper import file_extension_to_mime_type
 
 
 def get_file_size(file_object, detection_data):
@@ -276,9 +276,10 @@ def run_detection(init_post_request, converted_file_objects):
         file_detection_data = get_request_header_mime(
             converted_file_object, file_detection_data
         )
-        file_detection_data = check_file_exif_data(
-            converted_file_object, file_detection_data
-        )
+        # Only for image files => put in image detector
+        # file_detection_data = check_file_exif_data(
+        #    converted_file_object, file_detection_data
+        # )
         file_detection_data = check_filename(converted_file_object, file_detection_data)
         file_detection_data = check_media_signature(
             converted_file_object, file_detection_data
