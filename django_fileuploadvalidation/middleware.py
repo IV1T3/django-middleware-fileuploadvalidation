@@ -111,7 +111,7 @@ class FileUploadValidationMiddleware:
                     sanitized_data,
                 )
 
-            execution_time = time.time() - request.start_time
+            execution_time = time.time() - request_start_time
             logging.info(f"DMF Execution time: {execution_time*1000}ms")
 
             if not (basic_validation_successful and specific_validation_successful):
