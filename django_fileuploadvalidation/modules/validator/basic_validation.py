@@ -46,7 +46,9 @@ def check_request_header_mime(detection_data):
     """
     Check if the request header mime is whitelisted.
     """
-    logging.info("[Validator module - Basic] - Getting request header MIME type")
+    logging.info(
+        "[Validator module - Basic] - Validating request header MIME type against whitelist"
+    )
 
     mime_whitelist_result = check_mime_against_whitelist(
         detection_data["file"]["request_header_mime"]

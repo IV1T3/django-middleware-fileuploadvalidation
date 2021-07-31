@@ -10,7 +10,7 @@ from ...data.filesanitizationdata import FILE_SANITITAZION_DATA_TEMPLATE
 
 
 def rerender_and_randomize_image_data(file_object, mime_type):
-    logging.info("[Sanitizer module - Tasks] - Rerendering and randomizing image")
+    logging.info("[Sanitizer module - Image] - Rerendering and randomizing image")
     image_buff = io.BytesIO(file_object.content)
     sanitized_image_buff = io.BytesIO()
 
@@ -20,11 +20,11 @@ def rerender_and_randomize_image_data(file_object, mime_type):
     success = False
 
     try:
-        logging.info("[Sanitizer module - Tasks] - Starting to rerender image")
+        logging.info("[Sanitizer module - Image] - Starting to rerender image")
         sanitized_image = Image.open(image_buff).convert(conversion)
         sanitized_image.save(sanitized_image_buff, format)
 
-        logging.info("[Sanitizer module - Tasks] - Starting to randomize image")
+        logging.info("[Sanitizer module - Image] - Starting to randomize image")
         pixels = sanitized_image.load()
 
         for i in range(sanitized_image.size[0]):
@@ -47,7 +47,7 @@ def rerender_and_randomize_image_data(file_object, mime_type):
         success = True
 
     except UnidentifiedImageError:
-        logging.info("[Sanitizer module - Tasks] - Image couldn't been rerendered.")
+        logging.info("[Sanitizer module - Image] - Image couldn't been rerendered.")
         file_object.content = b""
         file_object.block = True
 
@@ -59,13 +59,13 @@ def rerender_and_randomize_image_data(file_object, mime_type):
 
 
 def sanitization_task__clean_exif(file_object, file_detection_data):
-    logging.info("[Sanitizer module - Tasks] - Clean EXIF")
+    logging.info("[Sanitizer module - Image] - TASK: Clean EXIF")
     file_object.exif_data = ""
     return file_object
 
 
 def sanitization_task__clean_structure(file_object, file_detection_data):
-    logging.info("[Sanitizer module - Tasks] - Clean structure")
+    logging.info("[Sanitizer module - Image] - TASK: Clean structure")
 
     successful_cleansing = False
 
@@ -102,20 +102,10 @@ def iterate_sanitization_tasks(file_object, file_detection_data):
             )
             file_sanitization_data["cleansed_structure"] = successful_cleansing
 
-        if file_sanitization_tasks["create_random_filename_with_guessed_extension"]:
-            file_object = (
-                sanitization_task__create_random_filename_with_guessed_extension(
-                    file_object, file_detection_data
-                )
-            )
-            file_sanitization_data[
-                "created_random_filename_with_guessed_extension"
-            ] = True
-
     return file_sanitization_data, file_object
 
 
-def run_sanitization(init_post_request, converted_file_objects, detection_data):
+def run_sanitization(converted_file_objects, detection_data):
     logging.info("[Sanitizer module] - Starting sanitization")
 
     all_sanitized_data = {}

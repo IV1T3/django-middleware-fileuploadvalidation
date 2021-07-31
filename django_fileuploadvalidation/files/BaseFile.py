@@ -45,17 +45,17 @@ class BaseFile:
     def uploaded_file(self):
         logging.info("[File class] - Getting uploaded file")
         return self._uploaded_file
-    
+
     @property
     def name(self):
         logging.info("[File class] - Getting file name")
         return self._name
-    
+
     @property
     def size(self):
         logging.info("[File class] - Getting file size")
         return self._size
-    
+
     @property
     def content_type(self):
         logging.info("[File class] - Getting file content type")
@@ -65,12 +65,12 @@ class BaseFile:
     def content_type_extra(self):
         logging.info("[File class] - Getting file content type extra")
         return self._content_type_extra
-    
+
     @property
     def charset(self):
         logging.info("[File class] - Getting file charset")
         return self._charset
-    
+
     @property
     def content(self):
         logging.info("[File class] - Getting file content")
@@ -80,7 +80,7 @@ class BaseFile:
     def block(self):
         logging.info("[File class] - Getting block status")
         return self._block
-    
+
     @property
     def file_data(self):
         logging.info("[File class] - Getting complete file data")
@@ -97,12 +97,11 @@ class BaseFile:
         }
         return file_information
 
-
     @name.setter
     def name(self, new_name):
         logging.info("[File class] - Setting new file name")
         self._name = new_name
-    
+
     @content.setter
     def content(self, new_content):
         logging.info("[File class] - Setting new file content")
@@ -112,7 +111,3 @@ class BaseFile:
     def block(self, new_block_status):
         logging.info("[File class] - Setting new block status")
         self._block = new_block_status
-
-    
-
-    

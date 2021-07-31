@@ -29,7 +29,7 @@ class FileUploadValidationMiddleware:
 
         # If files have been found, activate the middleware
         if len(request.FILES) > 0:
-            init_post_request = request.POST
+            # init_post_request = request.POST
             init_files_request = request.FILES
 
             # Convert uploaded files into BaseFile class instances
@@ -74,13 +74,14 @@ class FileUploadValidationMiddleware:
 
                 # If specific files information are valid
                 if specific_validation_successful:
-                    
+
                     # Sanitize files
                     (
                         sanitized_data,
                         sanitized_file_objects,
                     ) = basic_sanitization.run_sanitization(
-                        init_post_request, converted_base_file_objects, detection_data
+                        converted_base_file_objects,
+                        specific_detection_data,
                     )
 
                     logging.debug(
@@ -93,12 +94,11 @@ class FileUploadValidationMiddleware:
                 # Build Report
 
                 # If request is still valid, continue with the request.
-            
 
             if UPLOADLOGS_MODE == "success" or UPLOADLOGS_MODE == "always":
                 basic_reportbuilding.run_reportbuilder(
                     sanitized_file_objects,
-                    detection_data,
+                    specific_detection_data,
                     sanitized_data,
                 )
 
@@ -109,10 +109,9 @@ class FileUploadValidationMiddleware:
                 if UPLOADLOGS_MODE == "blocked":
                     basic_reportbuilding.run_reportbuilder(
                         converted_base_file_objects,
-                        detection_data,
+                        specific_detection_data,
                     )
                 return HttpResponseForbidden("The file could not be uploaded.")
-                    
 
             sanitized_request = basic_conversion.file_objects_to_request(
                 request, sanitized_file_objects

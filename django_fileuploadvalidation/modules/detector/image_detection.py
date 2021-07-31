@@ -2,7 +2,7 @@ import logging
 
 
 def check_file_exif_data(file_object, detection_data):
-    logging.info("[Detector module] - Getting exif data")
+    logging.info("[Image Detector module] - Getting exif data")
     exif_data = file_object.exif_data
     # logging.debug(f"[Detector module] - {exif_data=}")
     # TODO: Add detection of exif injection
@@ -19,7 +19,7 @@ def check_file_exif_data(file_object, detection_data):
 
 
 def run_image_detection(image_file_objects, images_detection_data):
-    logging.info("[Image Detector module] - Starting imge detection")
+    logging.info("[Image Detector module] - Starting image detection")
 
     for file_obj_key, file_obj in image_file_objects.items():
 
@@ -28,7 +28,5 @@ def run_image_detection(image_file_objects, images_detection_data):
         image_detection_data["file"]["exif"] = check_file_exif_data(
             file_obj, image_detection_data
         )
-
-
 
     return images_detection_data
