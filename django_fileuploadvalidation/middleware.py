@@ -9,7 +9,7 @@ from .config import UPLOADLOGS_MODE
 from .modules.converter import basic_conversion, image_conversion
 from .modules.detector import basic_detection, image_detection
 from .modules.reportbuilder import basic_reportbuilding
-from .modules.sanitizer import basic_sanitization
+from .modules.sanitizer import basic_sanitization, image_sanitization
 from .modules.validator import basic_validation
 
 logging.basicConfig(level=logging.DEBUG)
@@ -75,13 +75,23 @@ class FileUploadValidationMiddleware:
                 # If specific files information are valid
                 if specific_validation_successful:
 
-                    # Sanitize files
+                    # Basic sanitization of files
                     (
                         sanitized_data,
                         sanitized_file_objects,
                     ) = basic_sanitization.run_sanitization(
                         converted_base_file_objects,
                         specific_detection_data,
+                    )
+
+                    # Specific sanitization of files
+                    # TODO: Add file type selector to distinguish between different file types
+
+                    (
+                        sanitized_data,
+                        sanitized_file_objects,
+                    ) = image_sanitization.run_sanitization(
+                        converted_base_file_objects, specific_detection_data
                     )
 
                     logging.debug(

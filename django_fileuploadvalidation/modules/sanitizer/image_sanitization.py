@@ -85,7 +85,7 @@ def sanitization_task__clean_structure(file_object, file_detection_data):
 
 
 def iterate_sanitization_tasks(file_object, file_detection_data):
-    logging.info("[Sanitizer module] - Starting sanitization tasks")
+    logging.info("[Sanitizer module - Image] - Starting sanitization tasks")
     file_sanitization_data = FILE_SANITITAZION_DATA_TEMPLATE
     file_sanitization_tasks = file_detection_data["sanitization_tasks"]
 
@@ -106,7 +106,7 @@ def iterate_sanitization_tasks(file_object, file_detection_data):
 
 
 def run_sanitization(converted_file_objects, detection_data):
-    logging.info("[Sanitizer module] - Starting sanitization")
+    logging.info("[Sanitizer module - Image] - Starting sanitization")
 
     all_sanitized_data = {}
     all_sanitized_file_objects = {}
