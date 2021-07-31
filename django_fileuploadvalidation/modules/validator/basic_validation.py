@@ -276,12 +276,12 @@ def run_validation(files_basic_detection_data):
             file_basic_detection_data
         )
 
-        if basic_detection_data__VAL["file"]["block"]:
-            basic_validation_successful = False
-            break
-
         files_basic_detection_data__VALIDATED[
             conv_file_obj_key
         ] = basic_detection_data__VAL
+
+        if basic_detection_data__VAL["file"]["block"]:
+            basic_validation_successful = False
+            break
 
     return basic_validation_successful, files_basic_detection_data__VALIDATED

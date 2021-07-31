@@ -30,6 +30,7 @@ class FileUploadValidationMiddleware:
 
         # If files have been found, activate the middleware
         if len(request.FILES) > 0:
+
             init_files_request = request.FILES
 
             # Convert uploaded files into BaseFile class instances
@@ -112,6 +113,10 @@ class FileUploadValidationMiddleware:
                         specific_detection_data,
                         sanitized_data,
                     )
+                sanitized_request = basic_conversion.file_objects_to_request(
+                    request, sanitized_file_objects
+                )
+                response = self.get_response(sanitized_request)
             else:
                 if UPLOADLOGS_MODE == "blocked":
                     if basic_validation_successful:
@@ -124,16 +129,12 @@ class FileUploadValidationMiddleware:
                             converted_base_file_objects,
                             basic_detection_data__VALIDATED,
                         )
-                mw_return_val = HttpResponseForbidden("The file could not be uploaded.")
+                response = HttpResponseForbidden("The file could not be uploaded.")
 
-            if basic_validation_successful and specific_validation_successful:
-                mw_return_val = basic_conversion.file_objects_to_request(
-                    request, sanitized_file_objects
-                )
+        else:
+            response = self.get_response(request)
 
-        execution_time = time.time() - request_start_time
-        logging.info(f"DMF Execution time: {execution_time*1000}ms")
-
-        response = self.get_response(mw_return_val)
+        execution_time_in_ms = (time.time() - request_start_time) * 1000
+        logging.info(f"DMF Execution time: {execution_time_in_ms}ms")
 
         return response
