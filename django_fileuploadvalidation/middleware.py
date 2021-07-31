@@ -26,6 +26,7 @@ class FileUploadValidationMiddleware:
 
         # Start the middleware timer
         request_start_time = time.time()
+        mw_return_val = request
 
         # If files have been found, activate the middleware
         if len(request.FILES) > 0:
@@ -104,31 +105,35 @@ class FileUploadValidationMiddleware:
 
                 # If request is still valid, continue with the request.
 
-            if UPLOADLOGS_MODE == "success" or UPLOADLOGS_MODE == "always":
-                basic_reportbuilding.run_reportbuilder(
-                    sanitized_file_objects,
-                    specific_detection_data,
-                    sanitized_data,
-                )
-
-            execution_time = time.time() - request_start_time
-            logging.info(f"DMF Execution time: {execution_time*1000}ms")
-
-            if not (basic_validation_successful and specific_validation_successful):
-                if UPLOADLOGS_MODE == "blocked":
+            if basic_validation_successful and specific_validation_successful:
+                if UPLOADLOGS_MODE == "success" or UPLOADLOGS_MODE == "always":
                     basic_reportbuilding.run_reportbuilder(
-                        converted_base_file_objects,
+                        sanitized_file_objects,
                         specific_detection_data,
+                        sanitized_data,
                     )
-                return HttpResponseForbidden("The file could not be uploaded.")
+            else:
+                if UPLOADLOGS_MODE == "blocked":
+                    if basic_validation_successful:
+                        basic_reportbuilding.run_reportbuilder(
+                            converted_base_file_objects,
+                            specific_detection_data,
+                        )
+                    else:
+                        basic_reportbuilding.run_reportbuilder(
+                            converted_base_file_objects,
+                            basic_detection_data__VALIDATED,
+                        )
+                mw_return_val = HttpResponseForbidden("The file could not be uploaded.")
 
-            request = basic_conversion.file_objects_to_request(
-                request, sanitized_file_objects
-            )
+            if basic_validation_successful and specific_validation_successful:
+                mw_return_val = basic_conversion.file_objects_to_request(
+                    request, sanitized_file_objects
+                )
 
         execution_time = time.time() - request_start_time
         logging.info(f"DMF Execution time: {execution_time*1000}ms")
 
-        response = self.get_response(request)
+        response = self.get_response(mw_return_val)
 
         return response

@@ -105,7 +105,7 @@ def check_media_signature(detection_data):
     """
     Check if the media signature is whitelisted.
     """
-    logging.info("[Validator module - Basic] - Checking media signature")
+    logging.info("[Validator module - Basic] - Validating media signature")
 
     file_signature_mime = detection_data["file"]["signature_mime"]
     mime_whitelist_result = check_mime_against_whitelist(file_signature_mime)
