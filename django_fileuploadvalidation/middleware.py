@@ -25,11 +25,10 @@ class FileUploadValidationMiddleware:
     def __call__(self, request):
 
         # Start the middleware timer
-        request.start_time = time.time()
+        request_start_time = time.time()
 
         # If files have been found, activate the middleware
         if len(request.FILES) > 0:
-            # init_post_request = request.POST
             init_files_request = request.FILES
 
             # Convert uploaded files into BaseFile class instances
@@ -123,16 +122,13 @@ class FileUploadValidationMiddleware:
                     )
                 return HttpResponseForbidden("The file could not be uploaded.")
 
-            sanitized_request = basic_conversion.file_objects_to_request(
+            request = basic_conversion.file_objects_to_request(
                 request, sanitized_file_objects
             )
 
-        else:
-            sanitized_request = request
-
-        execution_time = time.time() - request.start_time
+        execution_time = time.time() - request_start_time
         logging.info(f"DMF Execution time: {execution_time*1000}ms")
 
-        response = self.get_response(sanitized_request)
+        response = self.get_response(request)
 
         return response
