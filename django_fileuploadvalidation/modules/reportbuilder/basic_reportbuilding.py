@@ -25,7 +25,7 @@ def run_reportbuilder(file_objects, detection_data, sanitized_data=None):
                 "Content-Type Extra:" + str(file_data["content_type_extra"]) + "\n"
             )
             report.write("Charset:" + str(file_data["charset"]) + "\n")
-            report.write("EXIF:" + str(file_data["exif_data"]) + "\n")
+            # report.write("EXIF:" + str(file_data["exif_data"]) + "\n")
             report.write("================================\n")
             report.write("Detection data\n")
             report.write("--------------------------------\n")

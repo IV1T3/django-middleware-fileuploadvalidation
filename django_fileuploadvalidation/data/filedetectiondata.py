@@ -8,6 +8,7 @@ FILE_DETECTION_DATA_TEMPLATE = {
         "request_header_mime": "",
         "signature_mime": "",
         "size": "",
+        "filename_length": 0,
     },
     "checks": {
         "validation_filename_length": {

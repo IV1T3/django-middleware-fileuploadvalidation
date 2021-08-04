@@ -1,11 +1,8 @@
-from io import BytesIO
-
-import exifread
 import hashlib
 import logging
 
 
-class File:
+class BaseFile:
     """
     Common base class for all files.
     """
@@ -19,16 +16,9 @@ class File:
         self._content_type_extra = file.content_type_extra
         self._charset = file.charset
         self._content = b"".join([chunk for chunk in file.chunks()])
-        self._exif_data = self._retrieve_exif_data()
         self._block = False
 
         self._hash_md5, self._hash_sha1, self._hash_sha256 = self._get_file_hashes()
-
-    def _retrieve_exif_data(self):
-        logging.info("[File class] - Retrieving file exif data")
-        file_bytes_buffer = BytesIO(self._content)
-        exif_data = exifread.process_file(file_bytes_buffer, details=False)
-        return exif_data
 
     def _get_file_hashes(self):
         logging.info("[File class] - Retrieving file hashes")
@@ -52,24 +42,19 @@ class File:
         return hexdigest_md5, hexdigest_sha1, hexdigest_sha256
 
     @property
-    def block(self):
-        logging.info("[File class] - Getting block status")
-        return self._block
-
-    @block.setter
-    def block(self, new_block_status):
-        logging.info("[File class] - Setting new block status")
-        self._block = new_block_status
+    def uploaded_file(self):
+        logging.info("[File class] - Getting uploaded file")
+        return self._uploaded_file
 
     @property
-    def content(self):
-        logging.info("[File class] - Getting file content")
-        return self._content
+    def name(self):
+        logging.info("[File class] - Getting file name")
+        return self._name
 
-    @content.setter
-    def content(self, new_content):
-        logging.info("[File class] - Setting new file content")
-        self._content = new_content
+    @property
+    def size(self):
+        logging.info("[File class] - Getting file size")
+        return self._size
 
     @property
     def content_type(self):
@@ -77,14 +62,24 @@ class File:
         return self._content_type
 
     @property
-    def exif_data(self):
-        logging.info("[File class] - Getting file exif data")
-        return self._exif_data
+    def content_type_extra(self):
+        logging.info("[File class] - Getting file content type extra")
+        return self._content_type_extra
 
-    @exif_data.setter
-    def exif_data(self, new_exif_data):
-        logging.info("[File class] - Setting new exif data")
-        self._exif_data = new_exif_data
+    @property
+    def charset(self):
+        logging.info("[File class] - Getting file charset")
+        return self._charset
+
+    @property
+    def content(self):
+        logging.info("[File class] - Getting file content")
+        return self._content
+
+    @property
+    def block(self):
+        logging.info("[File class] - Getting block status")
+        return self._block
 
     @property
     def file_data(self):
@@ -96,24 +91,23 @@ class File:
             "content_type_extra": self._content_type_extra,
             "charset": self._charset,
             "content": self._content,
-            "exif_data": self._exif_data,
             "hash_md5": self._hash_md5,
             "hash_sha1": self._hash_sha1,
             "hash_sha256": self._hash_sha256,
         }
         return file_information
 
-    @property
-    def name(self):
-        logging.info("[File class] - Getting file name")
-        return self._name
-
     @name.setter
     def name(self, new_name):
         logging.info("[File class] - Setting new file name")
         self._name = new_name
 
-    @property
-    def size(self):
-        logging.info("[File class] - Getting file size")
-        return self._size
+    @content.setter
+    def content(self, new_content):
+        logging.info("[File class] - Setting new file content")
+        self._content = new_content
+
+    @block.setter
+    def block(self, new_block_status):
+        logging.info("[File class] - Setting new block status")
+        self._block = new_block_status
