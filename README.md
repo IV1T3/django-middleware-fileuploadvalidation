@@ -4,7 +4,7 @@
 
 ## Installing
 
-Soon, this package can be installed via pip:
+This package can be installed via pip:
 
 ```bash
 $ pip install django-middleware-fileuploadvalidation
@@ -14,12 +14,12 @@ Then add `django_fileuploadvalidation.middleware.FileUploadValidationMiddleware`
 
 ```python
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     ...,
-    "django_fileuploadvalidation.middleware.FileUploadValidationMiddleware",
+    'django_fileuploadvalidation.middleware.FileUploadValidationMiddleware',
 ]
 ```
 
