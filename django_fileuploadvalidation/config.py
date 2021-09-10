@@ -45,9 +45,9 @@ UPLOAD_MIME_TYPE_WHITELIST = whitelists.WHITELIST_MIME_TYPES__ALL
     blocked: Log only blocked uploads.
     ---
     Type: str
-    Default: "blocked"
+    Default: 'blocked'
 """
-UPLOADLOGS_MODE = "blocked"
+UPLOADLOGS_MODE = 'blocked'
 
 """
     FILE_SIZE_LIMIT

@@ -1,5 +1,5 @@
-django
+Django
 python-dotenv
 python-decouple
-exifread
-pillow
+ExifRead
+Pillow
