@@ -78,8 +78,8 @@ CLAMAV_USAGE = False
 ```
 
 ### Detection sensitivity
-Threshold from which the Detector module denotes files as malicious.
-The higher the sensitivity the more strict the Detector module.
+Threshold from which DMF denotes files as malicious.
+The higher the sensitivity the more strict the detection.
 By default, the sensitivity is set to 0.99.
 ```python
 DETECTOR_SENSITIVITY = 0.99
