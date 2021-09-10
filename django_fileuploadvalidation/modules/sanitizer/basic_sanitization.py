@@ -10,9 +10,6 @@ def sanitization_task__create_random_filename_with_guessed_extension(
 ):
     logging.info("[Sanitizer module - Basic] - TASK: Creating random file name")
     file_extension = mimetypes.guess_extension(file_detection_data["file"]["guessed_mime"])
-    #file_extension = mime_type_to_file_extension(
-    #    file_detection_data["file"]["guessed_mime"]
-    #)
     unique_file_name = str(uuid.uuid4()) + file_extension
     file_object.name = unique_file_name
 
