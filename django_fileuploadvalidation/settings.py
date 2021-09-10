@@ -34,5 +34,7 @@ elif whitelist_type == "VIDEO_RESTRICTIVE":
     UPLOAD_MIME_TYPE_WHITELIST = whitelists.WHITELIST_MIME_TYPES__VIDEO_RESTRICTIVE
 elif whitelist_type == "ALL":
     UPLOAD_MIME_TYPE_WHITELIST = whitelists.WHITELIST_MIME_TYPES__ALL
+elif whitelist_type == "CUSTOM":
+    UPLOAD_MIME_TYPE_WHITELIST = getattr(settings, "CUSTOM_WHITELIST", None)
 else:  # RESTRICTIVE or other
     UPLOAD_MIME_TYPE_WHITELIST = whitelists.WHITELIST_MIME_TYPES__RESTRICTIVE

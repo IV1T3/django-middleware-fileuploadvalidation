@@ -126,9 +126,17 @@ DMF provides pre-defined whitelists. These can be used to prevent certain files 
   - IMAGE_RESTRICTIVE: image/gif, image/jpeg, image/png, image/tiff
   - TEXT_RESTRICTIVE: text/plain
   - VIDEO_RESTRICTIVE: video/mp4, video/mpeg
+- CUSTOM: Define your own whitelist
 
 By default, the whitelist is set to 'RESTRICTIVE'.
 
 ```python
 UPLOAD_MIME_TYPE_WHITELIST = 'RESTRICTIVE'
 ```
+
+You can also define whitelists by yourself by creating a custom whitelist in your settings file. For this, set the `UPLOAD_MIME_TYPE_WHITELIST` setting to `CUSTOM` and define a list of mime types called `CUSTOM_WHITELIST`. See the following example:
+```python
+UPLOAD_MIME_TYPE_WHITELIST = 'CUSTOM'
+CUSTOM_WHITELIST = ['image/png', 'video/mp4']
+```
+
