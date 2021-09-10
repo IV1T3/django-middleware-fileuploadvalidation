@@ -101,9 +101,9 @@ FILENAME_LENGTH_LIMIT = 100
 ### Logging upload requests
 Uploads can also be logged, to better analyze attempts afterwards.
 There are three different stages, which can be logged:
-- 'always': logs every upload attempt
-- 'success': logs only successful uploads
-- 'blocked': logs only blocked uploads
+- always: logs every upload attempt
+- success: logs only successful uploads
+- blocked: logs only blocked uploads
 By default, this setting is set to 'blocked'.
 ```python
 UPLOADLOGS_MODE = 'blocked'
