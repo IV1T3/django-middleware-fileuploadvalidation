@@ -112,18 +112,20 @@ UPLOADLOGS_MODE = 'blocked'
 
 ### Whitelists
 DMF provides pre-defined whitelists. These can be used to prevent certain files from being uploaded. The following whitelists are available:
-- AUDIO_ALL: All audio files
-- APPLICATION_ALL: All application files
-- IMAGE_ALL: All image files
-- TEXT_ALL: All text files
-- VIDEO_ALL: All video files
-- AUDIO_RESTRICTIVE: audio/mpeg
-- APPLICATION_RESTRICTIVE: application/pdf
-- IMAGE_RESTRICTIVE: image/gif, image/jpeg, image/png, image/tiff
-- TEXT_RESTRICTIVE: text/plain
-- VIDEO_RESTRICTIVE: video/mp4, video/mpeg
+
+
 - ALL: All files
+  - AUDIO_ALL: All audio files
+  - APPLICATION_ALL: All application files
+  - IMAGE_ALL: All image files
+  - TEXT_ALL: All text files
+  - VIDEO_ALL: All video files
 - RESTRICTIVE: All restricted whitelists combined
+  - AUDIO_RESTRICTIVE: audio/mpeg
+  - APPLICATION_RESTRICTIVE: application/pdf
+  - IMAGE_RESTRICTIVE: image/gif, image/jpeg, image/png, image/tiff
+  - TEXT_RESTRICTIVE: text/plain
+  - VIDEO_RESTRICTIVE: video/mp4, video/mpeg
 
 By default, the whitelist is set to 'RESTRICTIVE'.
 
