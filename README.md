@@ -62,7 +62,7 @@ $ sudo freshclam
 $ sudo systemctl clamav-daemon start
 ```
 
-To further configure your ClamAV daemon, modify either '/etc/clamav/clamd.conf' or '/etc/clamav/freshclam.conf'
+To further configure your ClamAV daemon, modify either `/etc/clamav/clamd.conf` or `/etc/clamav/freshclam.conf`.
 
 
 [pypi]: https://pypi.org/project/django-cprofile-middleware/
