@@ -34,9 +34,12 @@ def match_file_signature(file_object):
 
 
 def get_filename_splits(file_object):
-    file_name_splits = list(map(lambda x: x.lower(), file_object.name.split(".")))
+    file_name_splits = list(
+        map(lambda x: x.lower(), file_object.basic_information.name.split("."))
+    )
 
     return file_name_splits
+
 
 def get_clamAV_results(file_object):
     # Connects to UNIX socket on /var/run/clamav/clamd.ctl
@@ -56,9 +59,9 @@ def run_detection(converted_file_objects):
 
         file_detection_data = copy.deepcopy(FILE_DETECTION_DATA_TEMPLATE)
 
-        file_detection_data["file"]["size"] = conv_file_obj.size
-        file_detection_data["file"]["request_header_mime"] = conv_file_obj.content_type
-        file_detection_data["file"]["filename_length"] = len(conv_file_obj.name)
+        # file_detection_data["file"]["size"] = conv_file_obj.size
+        # file_detection_data["file"]["request_header_mime"] = conv_file_obj.content_type
+        # file_detection_data["file"]["filename_length"] = len(conv_file_obj.name)
         file_detection_data["file"]["filename_splits"] = get_filename_splits(
             conv_file_obj
         )

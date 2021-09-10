@@ -1,5 +1,28 @@
+import dataclasses
 import hashlib
 import logging
+
+from dataclasses import dataclass
+
+
+@dataclass
+class BasicFileInformation:
+    name: str
+    size: int
+    content_type: str
+    content_type_extra: str
+    charset: str
+    md5: str
+    sha1: str
+    sha256: str
+    filename_length: int = 0
+
+
+@dataclass
+class SanitizationResults:
+    cleansed_exif: bool = False
+    cleansed_structure: bool = False
+    created_random_filename_with_guessed_extension: bool = False
 
 
 class BaseFile:
@@ -10,15 +33,27 @@ class BaseFile:
     def __init__(self, file):
         logging.info("[File class] - Initializing file object")
         self._uploaded_file = file
-        self._name = file.name
-        self._size = file.size
-        self._content_type = file.content_type
-        self._content_type_extra = file.content_type_extra
-        self._charset = file.charset
+        # self._name = file.name
+        # self._size = file.size
+        # self._content_type = file.content_type
+        # self._content_type_extra = file.content_type_extra
+        # self._charset = file.charset
         self._content = b"".join([chunk for chunk in file.chunks()])
         self._block = False
 
-        self._hash_md5, self._hash_sha1, self._hash_sha256 = self._get_file_hashes()
+        hash_md5, hash_sha1, hash_sha256 = self._get_file_hashes()
+        self.basic_information = BasicFileInformation(
+            file.name,
+            file.size,
+            file.content_type,
+            file.content_type_extra,
+            file.charset,
+            hash_md5,
+            hash_sha1,
+            hash_sha256,
+        )
+
+        self.sanitization_results = SanitizationResults()
 
     def _get_file_hashes(self):
         logging.info("[File class] - Retrieving file hashes")
@@ -46,30 +81,30 @@ class BaseFile:
         logging.info("[File class] - Getting uploaded file")
         return self._uploaded_file
 
-    @property
-    def name(self):
-        logging.info("[File class] - Getting file name")
-        return self._name
+    # @property
+    # def name(self):
+    #     logging.info("[File class] - Getting file name")
+    #     return self._name
 
-    @property
-    def size(self):
-        logging.info("[File class] - Getting file size")
-        return self._size
+    # @property
+    # def size(self):
+    #     logging.info("[File class] - Getting file size")
+    #     return self._size
 
-    @property
-    def content_type(self):
-        logging.info("[File class] - Getting file content type")
-        return self._content_type
+    # @property
+    # def content_type(self):
+    #     logging.info("[File class] - Getting file content type")
+    #     return self._content_type
 
-    @property
-    def content_type_extra(self):
-        logging.info("[File class] - Getting file content type extra")
-        return self._content_type_extra
+    # @property
+    # def content_type_extra(self):
+    #     logging.info("[File class] - Getting file content type extra")
+    #     return self._content_type_extra
 
-    @property
-    def charset(self):
-        logging.info("[File class] - Getting file charset")
-        return self._charset
+    # @property
+    # def charset(self):
+    #     logging.info("[File class] - Getting file charset")
+    #     return self._charset
 
     @property
     def content(self):
@@ -81,26 +116,26 @@ class BaseFile:
         logging.info("[File class] - Getting block status")
         return self._block
 
-    @property
-    def file_data(self):
-        logging.info("[File class] - Getting complete file data")
-        file_information = {
-            "name": self._name,
-            "size": self._size,
-            "content_type": self._content_type,
-            "content_type_extra": self._content_type_extra,
-            "charset": self._charset,
-            "content": self._content,
-            "hash_md5": self._hash_md5,
-            "hash_sha1": self._hash_sha1,
-            "hash_sha256": self._hash_sha256,
-        }
-        return file_information
+    # @property
+    # def file_data(self):
+    #     logging.info("[File class] - Getting complete file data")
+    #     file_information = {
+    #         "name": self._name,
+    #         "size": self._size,
+    #         "content_type": self._content_type,
+    #         "content_type_extra": self._content_type_extra,
+    #         "charset": self._charset,
+    #         "content": self._content,
+    #         "hash_md5": self._hash_md5,
+    #         "hash_sha1": self._hash_sha1,
+    #         "hash_sha256": self._hash_sha256,
+    #     }
+    #     return file_information
 
-    @name.setter
-    def name(self, new_name):
-        logging.info("[File class] - Setting new file name")
-        self._name = new_name
+    # @name.setter
+    # def name(self, new_name):
+    #     logging.info("[File class] - Setting new file name")
+    #     self._name = new_name
 
     @content.setter
     def content(self, new_content):
