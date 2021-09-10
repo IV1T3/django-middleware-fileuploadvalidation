@@ -104,6 +104,7 @@ There are three different stages, which can be logged:
 - always: logs every upload attempt
 - success: logs only successful uploads
 - blocked: logs only blocked uploads
+  
 By default, this setting is set to 'blocked'.
 ```python
 UPLOADLOGS_MODE = 'blocked'
