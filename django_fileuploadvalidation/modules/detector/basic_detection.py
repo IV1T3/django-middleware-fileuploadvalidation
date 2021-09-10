@@ -1,6 +1,8 @@
+import clamd
 import copy
 import logging
 
+from io import BytesIO
 
 from ...data.filedetectiondata import FILE_DETECTION_DATA_TEMPLATE
 from ...data.filesignatures import FILE_SIGNATURES
@@ -35,6 +37,14 @@ def get_filename_splits(file_object):
 
     return file_name_splits
 
+def get_clamAV_results(file_object):
+    # Connects to UNIX socket on /var/run/clamav/clamd.ctl
+    clam_daemon = clamd.ClamdUnixSocket()
+
+    clamd_res = clam_daemon.instream(BytesIO(file_object.content))
+
+    return clamd_res["stream"][0]
+
 
 def run_detection(converted_file_objects):
     logging.info("[Detector module] - Starting detection")
@@ -57,6 +67,11 @@ def run_detection(converted_file_objects):
         file_detection_data["file"]["signature_mime"] = match_file_signature(
             conv_file_obj
         )
+
+        clamav_res = get_clamAV_results(conv_file_obj)
+        if clamav_res == "FOUND":
+            file_detection_data["file"]["block"] = True
+            file_detection_data["file"]["block_reasons"].append("ClamAV detection")
 
         files_detection_data[conv_file_obj_key] = file_detection_data
 
