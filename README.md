@@ -72,7 +72,7 @@ To further configure your ClamAV daemon, modify either `/etc/clamav/clamd.conf` 
 DMF can also be customized by modifying the Django project's settings file.
 
 ### ClamAV Usage
-ClamAV is an open source antivirus engine. It is used to scan uploaded files for viruses. By default, ClamAV is enabled. However, if you want to disable it, you can do so by setting the `CLAMAV_USAGE` setting to `False`.
+ClamAV is an open source antivirus engine for detecting trojans, viruses, malware & other malicious threats. By default, ClamAV is enabled. However, if you want to disable it, you can do so by setting the `CLAMAV_USAGE` setting to `False`.
 ```python
 CLAMAV_USAGE = False
 ```
