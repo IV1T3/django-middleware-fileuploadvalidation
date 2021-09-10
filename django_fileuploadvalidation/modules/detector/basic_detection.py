@@ -6,6 +6,7 @@ from io import BytesIO
 
 from ...data.filedetectiondata import FILE_DETECTION_DATA_TEMPLATE
 from ...data.filesignatures import FILE_SIGNATURES
+from ...settings import CLAMAV_USAGE
 
 
 def match_file_signature(file_object):
@@ -68,10 +69,11 @@ def run_detection(converted_file_objects):
             conv_file_obj
         )
 
-        clamav_res = get_clamAV_results(conv_file_obj)
-        if clamav_res == "FOUND":
-            file_detection_data["file"]["block"] = True
-            file_detection_data["file"]["block_reasons"].append("ClamAV detection")
+        if CLAMAV_USAGE:
+            clamav_res = get_clamAV_results(conv_file_obj)
+            if clamav_res == "FOUND":
+                file_detection_data["file"]["block"] = True
+                file_detection_data["file"]["block_reasons"].append("ClamAV detection")
 
         files_detection_data[conv_file_obj_key] = file_detection_data
 
