@@ -53,6 +53,6 @@ setup(
         "python-decouple",
         "exifread",
         "pillow",
-        "python-clamd",
+        "clamd",
     ],
 )
