@@ -39,18 +39,21 @@ class FileUploadValidationMiddleware:
             )
 
             # Detect basic file information
-            basic_detection_data = basic_detection.run_detection(
+            # basic_detection_data = basic_detection.run_detection(
+            #     converted_base_file_objects
+            # )
+            basic_detection_objects = basic_detection.run_detection(
                 converted_base_file_objects
             )
 
             # Validate basic file information according to upload restrictions
             (
                 basic_validation_successful,
-                basic_detection_data__VALIDATED,
-            ) = basic_validation.run_validation(basic_detection_data)
+                basic_validation_objects,
+            ) = basic_validation.run_validation(basic_detection_objects)
 
             logging.debug(
-                f"[Middleware] - basic_detection_data__VALIDATED: {pprint.pformat(basic_detection_data__VALIDATED)}"
+                f"[Middleware] - basic_validation_objects: {pprint.pformat(basic_validation_objects)}"
             )
             logging.debug(f"[Middleware] - {basic_validation_successful=}")
 
@@ -59,15 +62,15 @@ class FileUploadValidationMiddleware:
 
                 # Convert into specific file objects.
                 # TODO: Add if statement to check if base_obj is an image. Add for all file types.
-                specific_file_objects = (
-                    image_conversion.base_file_objects_to_image_file_objects(
-                        converted_base_file_objects
-                    )
-                )
+                # specific_file_objects = (
+                #     image_conversion.base_file_objects_to_image_file_objects(
+                #         converted_base_file_objects
+                #     )
+                # )
 
                 # Perform file type specific detection mechanisms
-                specific_detection_data = image_detection.run_image_detection(
-                    specific_file_objects, basic_detection_data__VALIDATED
+                converted_base_file_objects = image_detection.run_image_detection(
+                    converted_base_file_objects
                 )
 
                 # TODO: Validate file type specific information according to upload restrictions
@@ -87,7 +90,6 @@ class FileUploadValidationMiddleware:
                     # )
                     sanitized_file_objects = basic_sanitization.run_sanitization(
                         converted_base_file_objects,
-                        specific_detection_data,
                     )
 
                     # Specific sanitization of files
@@ -101,7 +103,7 @@ class FileUploadValidationMiddleware:
                     # )
 
                     sanitized_file_objects = image_sanitization.run_sanitization(
-                        converted_base_file_objects, specific_detection_data
+                        sanitized_file_objects
                     )
 
                     logging.debug(
@@ -123,9 +125,7 @@ class FileUploadValidationMiddleware:
                     #     sanitized_data,
                     # )
 
-                    basic_reportbuilding.run_reportbuilder(
-                        sanitized_file_objects, specific_detection_data
-                    )
+                    basic_reportbuilding.run_reportbuilder(sanitized_file_objects)
 
                 sanitized_request = basic_conversion.file_objects_to_request(
                     request, sanitized_file_objects
@@ -136,12 +136,10 @@ class FileUploadValidationMiddleware:
                     if basic_validation_successful:
                         basic_reportbuilding.run_reportbuilder(
                             converted_base_file_objects,
-                            specific_detection_data,
                         )
                     else:
                         basic_reportbuilding.run_reportbuilder(
                             converted_base_file_objects,
-                            basic_detection_data__VALIDATED,
                         )
                 response = HttpResponseForbidden("The file could not be uploaded.")
 

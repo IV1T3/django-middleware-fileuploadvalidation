@@ -1,8 +1,9 @@
-import dataclasses
+import exifread
 import hashlib
 import logging
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from io import BytesIO
 
 
 @dataclass
@@ -15,7 +16,25 @@ class BasicFileInformation:
     md5: str
     sha1: str
     sha256: str
+    exif_data: dict = field(default_factory=dict)
     filename_length: int = 0
+
+
+@dataclass
+class DetectionResults:
+    filename_splits: list = field(default_factory=list)
+    extensions: list = field(default_factory=list)
+    signature_mime: str = ""
+
+
+@dataclass
+class ValidationResults:
+    file_size_ok: bool = False
+
+
+@dataclass
+class PossibleAttacks:
+    file_size_too_big: bool = False
 
 
 @dataclass
@@ -40,8 +59,11 @@ class BaseFile:
         # self._charset = file.charset
         self._content = b"".join([chunk for chunk in file.chunks()])
         self._block = False
+        self._block_reasons = []
 
         hash_md5, hash_sha1, hash_sha256 = self._get_file_hashes()
+        exif_data = self._retrieve_exif_data()
+
         self.basic_information = BasicFileInformation(
             file.name,
             file.size,
@@ -51,8 +73,12 @@ class BaseFile:
             hash_md5,
             hash_sha1,
             hash_sha256,
+            exif_data,
         )
 
+        self.validation_results = ValidationResults()
+        self.attack_results = PossibleAttacks()
+        self.detection_results = DetectionResults()
         self.sanitization_results = SanitizationResults()
 
     def _get_file_hashes(self):
@@ -75,6 +101,12 @@ class BaseFile:
         logging.info(f"[File class] - SHA256: {hexdigest_sha256}")
 
         return hexdigest_md5, hexdigest_sha1, hexdigest_sha256
+
+    def _retrieve_exif_data(self):
+        logging.info("[File class] - Retrieving file exif data")
+        file_bytes_buffer = BytesIO(self._content)
+        exif_data = exifread.process_file(file_bytes_buffer, details=False)
+        return exif_data
 
     @property
     def uploaded_file(self):

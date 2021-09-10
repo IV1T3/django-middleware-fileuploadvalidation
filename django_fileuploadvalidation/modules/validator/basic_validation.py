@@ -20,26 +20,34 @@ def check_mime_against_whitelist(mime_to_check):
 #######################################
 
 
-def check_file_size_allowed(detection_data):
+def check_file_size_allowed(file_obj):
     """
     Check if the file size is within the allowed limits.
     """
     logging.info("[Validator module - Basic] - Validating file size")
-    file_size = detection_data["file"]["size"] / 1000
-    if file_size <= FILE_SIZE_LIMIT:
-        detection_data["checks"]["validation_file_size"]["result"] = True
+    # file_size = detection_data["file"]["size"] / 1000
+    if file_obj.basic_information.size / 1000 <= FILE_SIZE_LIMIT:
+        file_obj.validation_results.file_size_ok = True
+        # detection_data["checks"]["validation_file_size"]["result"] = True
     else:
-        detection_data["checks"]["validation_file_size"]["result"] = False
-        detection_data["recognized_attacks"]["file_size_large"] = True
-        detection_data["file"]["block"] = True
-        detection_data["file"]["block_reasons"].append("invalid_file_size")
+        file_obj.validation_results.file_size_ok = False
+        # detection_data["checks"]["validation_file_size"]["result"] = False
 
-    detection_data["checks"]["validation_file_size"]["done"] = True
+        file_obj.attack_results.file_size_too_big = True
+        # detection_data["recognized_attacks"]["file_size_large"] = True
 
-    return detection_data
+        file_obj.block = True
+        # detection_data["file"]["block"] = True
+
+        file_obj.block_reasons.append("file_size_too_big")
+        # detection_data["file"]["block_reasons"].append("invalid_file_size")
+
+    # detection_data["checks"]["validation_file_size"]["done"] = True
+
+    return file_obj
 
 
-def check_request_header_mime(detection_data):
+def check_request_header_mime(file_obj):
     """
     Check if the request header mime is whitelisted.
     """
@@ -63,7 +71,7 @@ def check_request_header_mime(detection_data):
     return detection_data
 
 
-def check_signature_and_request_mime_match_file_extensions(detection_data):
+def check_signature_and_request_mime_match_file_extensions(file_obj):
     """
     Check if the signature and request mime match the file extensions.
     """
@@ -98,7 +106,7 @@ def check_signature_and_request_mime_match_file_extensions(detection_data):
     return detection_data
 
 
-def check_media_signature(detection_data):
+def check_media_signature(file_obj):
     """
     Check if the media signature is whitelisted.
     """
@@ -122,7 +130,7 @@ def check_media_signature(detection_data):
     return detection_data
 
 
-def check_filename_length(detection_data):
+def check_filename_length(file_obj):
     """
     Check if the filename length is within the allowed limits.
     """
@@ -138,7 +146,7 @@ def check_filename_length(detection_data):
     return detection_data
 
 
-def check_filename_extensions(detection_data):
+def check_filename_extensions(file_obj):
     """
     Check if all filename extensions are whitelisted.
     """
@@ -171,7 +179,7 @@ def check_filename_extensions(detection_data):
     return detection_data
 
 
-def check_filename_for_null_byte_injections(detection_data):
+def check_filename_for_null_byte_injections(file_obj):
     logging.info("[Validator module - Basic] - Validating for null byte injections")
 
     for file_name_split in detection_data["file"]["filename_splits"]:
@@ -185,7 +193,7 @@ def check_filename_for_null_byte_injections(detection_data):
     return detection_data
 
 
-def guess_mime_type_and_maliciousness(detection_data):
+def guess_mime_type_and_maliciousness(file_obj):
     logging.info("[Validator module - Basic] - Guessing MIME type")
 
     guessing_scores = {mime_type: 0 for mime_type in list(mimetypes.types_map.values())}
@@ -245,40 +253,42 @@ def guess_mime_type_and_maliciousness(detection_data):
     return detection_data
 
 
-def run_validation(files_basic_detection_data):
+def run_validation(file_objects):
     logging.info("[Validator module - Basic] - Starting basic validation")
 
     basic_validation_successful = True
-    files_basic_detection_data__VALIDATED = {}
+    # files_basic_detection_data__VALIDATED = {}
 
     for (
         conv_file_obj_key,
-        file_basic_detection_data,
-    ) in files_basic_detection_data.items():
+        conv_file_object,
+    ) in file_objects.items():
 
-        basic_detection_data__VAL = check_file_size_allowed(file_basic_detection_data)
-        basic_detection_data__VAL = check_request_header_mime(file_basic_detection_data)
-        basic_detection_data__VAL = (
-            check_signature_and_request_mime_match_file_extensions(
-                file_basic_detection_data
-            )
-        )
-        basic_detection_data__VAL = check_media_signature(file_basic_detection_data)
-        basic_detection_data__VAL = check_filename_length(file_basic_detection_data)
-        basic_detection_data__VAL = check_filename_extensions(file_basic_detection_data)
-        basic_detection_data__VAL = check_filename_for_null_byte_injections(
-            file_basic_detection_data
-        )
-        basic_detection_data__VAL = guess_mime_type_and_maliciousness(
-            file_basic_detection_data
-        )
-
-        files_basic_detection_data__VALIDATED[
+        file_objects[conv_file_obj_key] = check_file_size_allowed(conv_file_object)
+        file_objects[conv_file_obj_key] = check_request_header_mime(conv_file_object)
+        file_objects[
             conv_file_obj_key
-        ] = basic_detection_data__VAL
+        ] = check_signature_and_request_mime_match_file_extensions(conv_file_object)
+        file_objects[conv_file_obj_key] = check_media_signature(conv_file_object)
+        file_objects[conv_file_obj_key] = check_filename_length(conv_file_object)
+        file_objects[conv_file_obj_key] = check_filename_extensions(conv_file_object)
+        file_objects[conv_file_obj_key] = check_filename_for_null_byte_injections(
+            conv_file_object
+        )
+        file_objects[conv_file_obj_key] = guess_mime_type_and_maliciousness(
+            conv_file_object
+        )
 
-        if basic_detection_data__VAL["file"]["block"]:
+        # files_basic_detection_data__VALIDATED[
+        #    conv_file_obj_key
+        # ] = basic_detection_data__VAL
+
+        if conv_file_object.block:
             basic_validation_successful = False
             break
 
-    return basic_validation_successful, files_basic_detection_data__VALIDATED
+        # if basic_detection_data__VAL["file"]["block"]:
+        #    basic_validation_successful = False
+        #    break
+
+    return basic_validation_successful, file_objects
