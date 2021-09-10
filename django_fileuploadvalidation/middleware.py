@@ -5,7 +5,7 @@ import pprint
 import sys
 import time
 
-from .config import UPLOADLOGS_MODE
+from .settings import UPLOADLOGS_MODE
 from .modules.converter import basic_conversion, image_conversion
 from .modules.detector import basic_detection, image_detection
 from .modules.reportbuilder import basic_reportbuilding

@@ -2,7 +2,7 @@ import logging
 import operator
 import pprint
 
-from ...config import (
+from ...settings import (
     DETECTOR_SENSITIVITY,
     UPLOAD_MIME_TYPE_WHITELIST,
     FILE_SIZE_LIMIT,
