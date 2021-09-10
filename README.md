@@ -25,7 +25,8 @@ MIDDLEWARE = [
 
 This package also utilizes the ClamAV anti-virus engine. For this, it is required to have a running instance of the ClamAV daemon.
 
-To install a ClamAV daemon on macOS using Homebrew:
+
+### Installing ClamAV on macOS
 
 ```bash
 $ brew install clamav
@@ -51,12 +52,10 @@ Afterwards, update the local ClamAV database.
 $ freshclam
 ```
 
-And restart the ClamAV daemon (Linux):
-```bash
-$ sudo service clamav-daemon restart
-```
+Restart the clamAV daemon.
 
-Installing ClamAV daemon under Ubuntu (not tested):
+### Installing ClamAV on Ubuntu
+
 ```bash
 $ sudo apt-get install clamav-daemon clamav-freshclam clamav-unofficial-sigs
 $ sudo freshclam
