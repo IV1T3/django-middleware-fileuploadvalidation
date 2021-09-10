@@ -124,6 +124,7 @@ DMF provides pre-defined whitelists. These can be used to prevent certain files 
 - VIDEO_RESTRICTIVE: video/mp4, video/mpeg
 - ALL: All files
 - RESTRICTIVE: All restricted whitelists combined
+
 By default, the whitelist is set to 'RESTRICTIVE'.
 
 ```python
