@@ -1,4 +1,5 @@
 import logging
+import mimetypes
 import operator
 import pprint
 
@@ -8,10 +9,6 @@ from ...settings import (
     FILE_SIZE_LIMIT,
     FILENAME_LENGTH_LIMIT,
 )
-
-from ...data.mimetypes import MIME_TYPES
-
-from ..helper import file_extension_to_mime_type
 
 
 def check_mime_against_whitelist(mime_to_check):
@@ -76,7 +73,7 @@ def check_signature_and_request_mime_match_file_extensions(detection_data):
     extension_matchings = []
 
     for single_file_extension in detection_data["file"]["extensions"]:
-        file_extension_mime = file_extension_to_mime_type(single_file_extension)
+        file_extension_mime = mimetypes.guess_type("name." + single_file_extension)[0]
         extension_matches = (
             file_extension_mime == file_signature_mime == file_request_mime
         )
@@ -153,7 +150,7 @@ def check_filename_extensions(detection_data):
 
     mime_whitelist_results = []
     for single_extension in file_extensions:
-        curr_file_extension_mime = file_extension_to_mime_type(single_extension)
+        curr_file_extension_mime = mimetypes.guess_type("name." + single_extension)[0]
         mime_whitelist_results.append(
             check_mime_against_whitelist(curr_file_extension_mime)
         )
@@ -191,7 +188,7 @@ def check_filename_for_null_byte_injections(detection_data):
 def guess_mime_type_and_maliciousness(detection_data):
     logging.info("[Validator module - Basic] - Guessing MIME type")
 
-    guessing_scores = {mime_type: 0 for mime_type in list(MIME_TYPES.keys())}
+    guessing_scores = {mime_type: 0 for mime_type in list(mimetypes.types_map.values())}
     total_points_given = 0
     total_points_overall = 0
 
@@ -204,7 +201,7 @@ def guess_mime_type_and_maliciousness(detection_data):
 
     # Adding file extension information
     main_file_extension = detection_data["file"]["extensions"][0]
-    main_mime_type = file_extension_to_mime_type(main_file_extension)
+    main_mime_type = mimetypes.guess_type("name." + main_file_extension)[0]
     if main_mime_type in guessing_scores.keys():
         guessing_scores[main_mime_type] += 1
         total_points_given += 1

@@ -1,10 +1,11 @@
 import io
-import random
 import logging
+import mimetypes
+import random
+
 
 from PIL import Image, UnidentifiedImageError
 
-from ..helper import mime_type_to_file_extension
 
 from ...data.filesanitizationdata import FILE_SANITITAZION_DATA_TEMPLATE
 
@@ -15,7 +16,7 @@ def rerender_and_randomize_image_data(file_object, mime_type):
     sanitized_image_buff = io.BytesIO()
 
     conversion = "RGBA" if mime_type == "image/png" else "RGB"
-    format = mime_type_to_file_extension(mime_type)[1:].upper()
+    format = mimetypes.guess_extension(mime_type)[1:].upper()
 
     success = False
 
