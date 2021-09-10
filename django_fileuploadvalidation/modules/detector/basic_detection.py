@@ -1,6 +1,8 @@
+import clamd
 import copy
 import logging
 
+from io import BytesIO
 
 from ...data.filedetectiondata import FILE_DETECTION_DATA_TEMPLATE
 from ...data.filesignatures import FILE_SIGNATURES
@@ -41,7 +43,14 @@ def run_detection(converted_file_objects):
 
     files_detection_data = {}
 
+    # Connects to UNIX socket on /var/run/clamav/clamd.ctl
+    clam_daemon = clamd.ClamdUnixSocket()
+
     for conv_file_obj_key, conv_file_obj in converted_file_objects.items():
+
+        clamd_res = clam_daemon.instream(BytesIO(conv_file_obj.content))
+
+        print(f"{clamd_res=}")
 
         file_detection_data = copy.deepcopy(FILE_DETECTION_DATA_TEMPLATE)
 

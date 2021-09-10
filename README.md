@@ -23,5 +23,46 @@ MIDDLEWARE = [
 ]
 ```
 
+This package also utilizes the ClamAV anti-virus engine. For this, it is required to have a running instance of the ClamAV daemon.
+
+To install a ClamAV daemon on macOS using Homebrew:
+
+```bash
+$ brew install clamav
+$ cd /usr/local/etc/clamav
+$ cp freshclam.conf.sample freshclam.conf
+$ cp clamd.conf.sample clamd.conf
+```
+
+Open `freshclam.conf` and either comment or remove the "Example" line:
+```bash
+# Comment or remove the line below.
+# Example
+```
+
+In `clamd.conf`, uncomment the line "LocalSocket" and set it to the path of the socket file:
+```bash
+LocalSocket /var/run/clamav/clamd.ctl
+LocalSocketGroup clamav
+```
+
+Afterwards, update the local ClamAV database.
+```bash
+$ freshclam
+```
+
+And restart the ClamAV daemon (Linux):
+```bash
+$ sudo service clamav-daemon restart
+```
+
+Installing ClamAV daemon under Ubuntu (not tested):
+```bash
+$ sudo apt-get install clamav-daemon clamav-freshclam clamav-unofficial-sigs
+$ sudo freshclam
+$ sudo service clamav-daemon start
+```
+
+
 [pypi]: https://pypi.org/project/django-cprofile-middleware/
 [pypi-version]: https://img.shields.io/pypi/v/django-cprofile-middleware.svg

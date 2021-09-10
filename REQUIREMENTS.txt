@@ -3,3 +3,4 @@ python-dotenv
 python-decouple
 exifread
 pillow
+clamd
