@@ -25,16 +25,25 @@ class DetectionResults:
     filename_splits: list = field(default_factory=list)
     extensions: list = field(default_factory=list)
     signature_mime: str = ""
+    guessed_mime: str = ""
 
 
 @dataclass
 class ValidationResults:
     file_size_ok: bool = False
+    request_mime_ok: bool = False
+    signature_mime_ok: bool = False
+    matching_extension_signature_request_ok: bool = False
+    filename_length_ok: bool = False
+    extensions_whitelist_ok: bool = False
+    malicious: bool = False
 
 
 @dataclass
 class PossibleAttacks:
-    file_size_too_big: bool = False
+    mime_manipulation: bool = False
+    null_byte_injection: bool = False
+    exif_injection: bool = False
 
 
 @dataclass
@@ -148,6 +157,11 @@ class BaseFile:
         logging.info("[File class] - Getting block status")
         return self._block
 
+    @property
+    def block_reasons(self):
+        logging.info("[File class] - Getting block reasons")
+        return self._block_reasons
+
     # @property
     # def file_data(self):
     #     logging.info("[File class] - Getting complete file data")
@@ -178,3 +192,7 @@ class BaseFile:
     def block(self, new_block_status):
         logging.info("[File class] - Setting new block status")
         self._block = new_block_status
+
+    def append_block_reason(self, block_reason):
+        logging.info("[File class] - Appending new block reason")
+        self._block_reasons.append(block_reason)
