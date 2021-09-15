@@ -4,7 +4,6 @@ import logging
 
 from io import BytesIO
 
-from ...data.filedetectiondata import FILE_DETECTION_DATA_TEMPLATE
 from ...data.filesignatures import FILE_SIGNATURES
 from ...settings import CLAMAV_USAGE
 
@@ -34,9 +33,12 @@ def match_file_signature(file_object):
 
 
 def get_filename_splits(file_object):
-    file_name_splits = list(map(lambda x: x.lower(), file_object.name.split(".")))
+    file_name_splits = list(
+        map(lambda x: x.lower(), file_object.basic_information.name.split("."))
+    )
 
     return file_name_splits
+
 
 def get_clamAV_results(file_object):
     # Connects to UNIX socket on /var/run/clamav/clamd.ctl
@@ -50,31 +52,27 @@ def get_clamAV_results(file_object):
 def run_detection(converted_file_objects):
     logging.info("[Detector module] - Starting detection")
 
-    files_detection_data = {}
-
     for conv_file_obj_key, conv_file_obj in converted_file_objects.items():
 
-        file_detection_data = copy.deepcopy(FILE_DETECTION_DATA_TEMPLATE)
+        filename_splits = get_filename_splits(conv_file_obj)
+        converted_file_objects[
+            conv_file_obj_key
+        ].detection_results.filename_splits = filename_splits
 
-        file_detection_data["file"]["size"] = conv_file_obj.size
-        file_detection_data["file"]["request_header_mime"] = conv_file_obj.content_type
-        file_detection_data["file"]["filename_length"] = len(conv_file_obj.name)
-        file_detection_data["file"]["filename_splits"] = get_filename_splits(
-            conv_file_obj
-        )
-        file_detection_data["file"]["extensions"] = file_detection_data["file"][
-            "filename_splits"
-        ][1:]
-        file_detection_data["file"]["signature_mime"] = match_file_signature(
-            conv_file_obj
-        )
+        converted_file_objects[
+            conv_file_obj_key
+        ].detection_results.extensions = filename_splits[1:]
+
+        converted_file_objects[
+            conv_file_obj_key
+        ].detection_results.signature_mime = match_file_signature(conv_file_obj)
 
         if CLAMAV_USAGE:
             clamav_res = get_clamAV_results(conv_file_obj)
             if clamav_res == "FOUND":
-                file_detection_data["file"]["block"] = True
-                file_detection_data["file"]["block_reasons"].append("ClamAV detection")
+                converted_file_objects[conv_file_obj_key].block = True
+                converted_file_objects[conv_file_obj_key]._block_reasons.append(
+                    "ClamAV detection"
+                )
 
-        files_detection_data[conv_file_obj_key] = file_detection_data
-
-    return files_detection_data
+    return converted_file_objects

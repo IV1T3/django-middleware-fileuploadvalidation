@@ -7,9 +7,6 @@ import random
 from PIL import Image, UnidentifiedImageError
 
 
-from ...data.filesanitizationdata import FILE_SANITITAZION_DATA_TEMPLATE
-
-
 def rerender_and_randomize_image_data(file_object, mime_type):
     logging.info("[Sanitizer module - Image] - Rerendering and randomizing image")
     image_buff = io.BytesIO(file_object.content)
@@ -17,6 +14,8 @@ def rerender_and_randomize_image_data(file_object, mime_type):
 
     conversion = "RGBA" if mime_type == "image/png" else "RGB"
     format = mimetypes.guess_extension(mime_type)[1:].upper()
+    if format == "JPG":
+        format = "JPEG"
 
     success = False
 
@@ -59,25 +58,25 @@ def rerender_and_randomize_image_data(file_object, mime_type):
     return file_object, success
 
 
-def sanitization_task__clean_exif(file_object, file_detection_data):
+def sanitization_task__clean_exif(file_object):
     logging.info("[Sanitizer module - Image] - TASK: Clean EXIF")
     file_object.exif_data = ""
     return file_object
 
 
-def sanitization_task__clean_structure(file_object, file_detection_data):
+def sanitization_task__clean_structure(file_object):
     logging.info("[Sanitizer module - Image] - TASK: Clean structure")
 
     successful_cleansing = False
 
-    main_mime = file_detection_data["file"]["guessed_mime"].split("/")[0]
+    main_mime = file_object.detection_results.guessed_mime.split("/")[0]
 
     if main_mime == "image":
         (
             sanitized_file_object,
             successful_cleansing,
         ) = rerender_and_randomize_image_data(
-            file_object, file_detection_data["file"]["guessed_mime"]
+            file_object, file_object.detection_results.guessed_mime
         )
     else:
         sanitized_file_object = file_object
@@ -85,40 +84,27 @@ def sanitization_task__clean_structure(file_object, file_detection_data):
     return sanitized_file_object, successful_cleansing
 
 
-def iterate_sanitization_tasks(file_object, file_detection_data):
+def iterate_sanitization_tasks(file_object):
     logging.info("[Sanitizer module - Image] - Starting sanitization tasks")
-    file_sanitization_data = FILE_SANITITAZION_DATA_TEMPLATE
-    file_sanitization_tasks = file_detection_data["sanitization_tasks"]
+    file_object = sanitization_task__clean_exif(file_object)
+    file_object.sanitization_results.cleansed_exif = True
 
-    if file_sanitization_tasks["start_sanitization"]:
-        if file_sanitization_tasks["clean_exif"]:
-            file_object = sanitization_task__clean_exif(
-                file_object, file_detection_data
-            )
-            file_sanitization_data["cleansed_exif"] = True
+    file_object, successful_cleansing = sanitization_task__clean_structure(file_object)
+    file_object.sanitization_results.cleansed_structure = successful_cleansing
 
-        if file_sanitization_tasks["clean_structure"]:
-            file_object, successful_cleansing = sanitization_task__clean_structure(
-                file_object, file_detection_data
-            )
-            file_sanitization_data["cleansed_structure"] = successful_cleansing
-
-    return file_sanitization_data, file_object
+    return file_object
 
 
-def run_sanitization(converted_file_objects, detection_data):
+def run_sanitization(converted_file_objects):
     logging.info("[Sanitizer module - Image] - Starting sanitization")
 
-    all_sanitized_data = {}
     all_sanitized_file_objects = {}
 
     for file_object in converted_file_objects:
-        file_sanitization_data, sanitized_file_object = iterate_sanitization_tasks(
-            converted_file_objects[file_object],
-            detection_data[file_object],
+        sanitized_file_object = iterate_sanitization_tasks(
+            converted_file_objects[file_object]
         )
 
-        all_sanitized_data[file_object] = file_sanitization_data
         all_sanitized_file_objects[file_object] = sanitized_file_object
 
-    return all_sanitized_data, all_sanitized_file_objects
+    return all_sanitized_file_objects
