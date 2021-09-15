@@ -6,7 +6,7 @@ from django.utils.datastructures import MultiValueDict
 import logging
 from io import BytesIO
 
-from ...files import BaseFile
+from ...files import File
 
 
 def build_post(original_post):
@@ -47,11 +47,11 @@ def build_InMemoryUploadedFile(sanitized_file_object):
 
 
 def request_to_base_file_objects(request_files):
-    logging.info("[Converter module - Basic] - Starting request to BaseFile objects")
+    logging.info("[Converter module - Basic] - Starting request to File objects")
     file_objects = {}
     for file_key in request_files:
         request_file = request_files[file_key]
-        file_objects[request_file.name] = BaseFile.BaseFile(request_file)
+        file_objects[request_file.name] = File.File(request_file)
     return file_objects
 
 

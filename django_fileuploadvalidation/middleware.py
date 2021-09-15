@@ -6,7 +6,7 @@ import sys
 import time
 
 from .settings import UPLOADLOGS_MODE
-from .modules.converter import basic_conversion, image_conversion
+from .modules.converter import conversion
 from .modules.detector import basic_detection, image_detection
 from .modules.reportbuilder import basic_reportbuilding
 from .modules.sanitizer import basic_sanitization, image_sanitization
@@ -33,8 +33,8 @@ class FileUploadValidationMiddleware:
 
             init_files_request = request.FILES
 
-            # Convert uploaded files into BaseFile class instances
-            converted_base_file_objects = basic_conversion.request_to_base_file_objects(
+            # Convert uploaded files into File class instances
+            converted_base_file_objects = conversion.request_to_base_file_objects(
                 init_files_request
             )
 
@@ -56,14 +56,6 @@ class FileUploadValidationMiddleware:
 
             # If basic files information are valid
             if basic_validation_successful:
-
-                # Convert into specific file objects.
-                # TODO: Add if statement to check if base_obj is an image. Add for all file types.
-                # specific_file_objects = (
-                #     image_conversion.base_file_objects_to_image_file_objects(
-                #         converted_base_file_objects
-                #     )
-                # )
 
                 # Perform file type specific detection mechanisms
                 converted_base_file_objects = image_detection.run_image_detection(
@@ -103,7 +95,7 @@ class FileUploadValidationMiddleware:
                 if UPLOADLOGS_MODE == "success" or UPLOADLOGS_MODE == "always":
                     basic_reportbuilding.run_reportbuilder(sanitized_file_objects)
 
-                sanitized_request = basic_conversion.file_objects_to_request(
+                sanitized_request = conversion.file_objects_to_request(
                     request, sanitized_file_objects
                 )
                 response = self.get_response(sanitized_request)

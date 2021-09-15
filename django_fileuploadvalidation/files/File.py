@@ -55,9 +55,9 @@ class SanitizationResults:
     created_random_filename_with_guessed_extension: bool = False
 
 
-class BaseFile:
+class File:
     """
-    Common base class for all files.
+    Common class for all files.
     """
 
     def __init__(self, file):
