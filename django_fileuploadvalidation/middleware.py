@@ -39,9 +39,6 @@ class FileUploadValidationMiddleware:
             )
 
             # Detect basic file information
-            # basic_detection_data = basic_detection.run_detection(
-            #     converted_base_file_objects
-            # )
             basic_detection_objects = basic_detection.run_detection(
                 converted_base_file_objects
             )
@@ -80,27 +77,12 @@ class FileUploadValidationMiddleware:
                 if specific_validation_successful:
 
                     # Basic sanitization of files
-
-                    # (
-                    #     sanitized_data,
-                    #     sanitized_file_objects,
-                    # ) = basic_sanitization.run_sanitization(
-                    #     converted_base_file_objects,
-                    #     specific_detection_data,
-                    # )
                     sanitized_file_objects = basic_sanitization.run_sanitization(
                         converted_base_file_objects
                     )
 
                     # Specific sanitization of files
                     # TODO: Add file type selector to distinguish between different file types
-
-                    # (
-                    #     sanitized_data,
-                    #     sanitized_file_objects,
-                    # ) = image_sanitization.run_sanitization(
-                    #     converted_base_file_objects, specific_detection_data
-                    # )
 
                     sanitized_file_objects = image_sanitization.run_sanitization(
                         sanitized_file_objects
@@ -119,12 +101,6 @@ class FileUploadValidationMiddleware:
 
             if basic_validation_successful and specific_validation_successful:
                 if UPLOADLOGS_MODE == "success" or UPLOADLOGS_MODE == "always":
-                    # basic_reportbuilding.run_reportbuilder(
-                    #     sanitized_file_objects,
-                    #     specific_detection_data,
-                    #     sanitized_data,
-                    # )
-
                     basic_reportbuilding.run_reportbuilder(sanitized_file_objects)
 
                 sanitized_request = basic_conversion.file_objects_to_request(

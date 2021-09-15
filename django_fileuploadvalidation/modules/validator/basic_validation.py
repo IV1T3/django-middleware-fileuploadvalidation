@@ -254,7 +254,6 @@ def guess_mime_type_and_maliciousness(file_obj):
 
     # Adding file signature information
     file_signature_mime = file_obj.detection_results.signature_mime
-    # file_signature_mime = detection_data["file"]["signature_mime"]
     if file_signature_mime in guessing_scores.keys():
         guessing_scores[file_signature_mime] += 1
         total_points_given += 1
@@ -262,7 +261,6 @@ def guess_mime_type_and_maliciousness(file_obj):
 
     # Adding file extension information
     main_file_extension = file_obj.detection_results.extensions[0]
-    # main_file_extension = detection_data["file"]["extensions"][0]
     main_mime_type = mimetypes.guess_type("name." + main_file_extension)[0]
     if main_mime_type in guessing_scores.keys():
         guessing_scores[main_mime_type] += 1
@@ -271,7 +269,6 @@ def guess_mime_type_and_maliciousness(file_obj):
 
     # Adding Content-Type header information
     content_type_mime = file_obj.basic_information.content_type
-    # content_type_mime = detection_data["file"]["request_header_mime"]
     if content_type_mime in guessing_scores.keys():
         guessing_scores[content_type_mime] += 1
         total_points_given += 1
@@ -307,21 +304,11 @@ def guess_mime_type_and_maliciousness(file_obj):
 
     return file_obj
 
-    # detection_data["file"]["guessed_mime"] = guessed_mime_type
-    # detection_data["file"]["malicious"] = malicious
-
-    # if malicious:
-    #     detection_data["file"]["block"] = True
-    #     detection_data["file"]["block_reasons"].append("Malicious")
-
-    # return detection_data
-
 
 def run_validation(file_objects):
     logging.info("[Validator module - Basic] - Starting basic validation")
 
     basic_validation_successful = True
-    # files_basic_detection_data__VALIDATED = {}
 
     for (
         conv_file_obj_key,
@@ -343,16 +330,8 @@ def run_validation(file_objects):
             conv_file_object
         )
 
-        # files_basic_detection_data__VALIDATED[
-        #    conv_file_obj_key
-        # ] = basic_detection_data__VAL
-
         if conv_file_object.block:
             basic_validation_successful = False
             break
-
-        # if basic_detection_data__VAL["file"]["block"]:
-        #    basic_validation_successful = False
-        #    break
 
     return basic_validation_successful, file_objects

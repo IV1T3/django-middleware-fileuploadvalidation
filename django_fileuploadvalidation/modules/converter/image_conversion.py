@@ -1,7 +1,5 @@
 import logging
 
-from django.core.files import base
-
 from ...files import ImageFile
 
 

@@ -7,9 +7,7 @@ from datetime import datetime
 def run_reportbuilder(file_objects, sanitized_data=None):
     logging.info("[ReportBuilder module] - Building report")
     for file_obj_key, file_obj in file_objects.items():
-        # for key in file_objects:
         now = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
-        # file_data = file_objects[key].file_data
         report_name = file_obj.basic_information.name + ".log"
         file_path = f"./uploadlogs/{report_name}"
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
