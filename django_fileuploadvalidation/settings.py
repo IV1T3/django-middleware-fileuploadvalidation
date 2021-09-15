@@ -1,4 +1,4 @@
-from .data import whitelists
+from django_fileuploadvalidation.data import whitelists
 
 from django.conf import settings
 
