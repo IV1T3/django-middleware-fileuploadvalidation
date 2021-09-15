@@ -17,6 +17,8 @@ def rerender_and_randomize_image_data(file_object, mime_type):
 
     conversion = "RGBA" if mime_type == "image/png" else "RGB"
     format = mimetypes.guess_extension(mime_type)[1:].upper()
+    if format == "JPG":
+        format = "JPEG"
 
     success = False
 

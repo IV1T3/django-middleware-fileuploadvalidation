@@ -32,16 +32,15 @@ def build_files(sanitized_file_objects):
 
 def build_InMemoryUploadedFile(sanitized_file_object):
     logging.info("[Converter module] - Building InMemoryUploadedFile")
-    sanitized_file_data = sanitized_file_object.file_data
 
     file_imuf = InMemoryUploadedFile(
-        BytesIO(sanitized_file_data["content"]),
+        BytesIO(sanitized_file_object.content),
         "file",
-        sanitized_file_data["name"],
-        sanitized_file_data["content_type"],
-        sanitized_file_data["size"],
-        sanitized_file_data["charset"],
-        sanitized_file_data["content_type_extra"],
+        sanitized_file_object.basic_information.name,
+        sanitized_file_object.basic_information.content_type,
+        sanitized_file_object.basic_information.size,
+        sanitized_file_object.basic_information.charset,
+        sanitized_file_object.basic_information.content_type_extra,
     )
 
     return file_imuf

@@ -89,7 +89,7 @@ class FileUploadValidationMiddleware:
                     #     specific_detection_data,
                     # )
                     sanitized_file_objects = basic_sanitization.run_sanitization(
-                        converted_base_file_objects,
+                        converted_base_file_objects
                     )
 
                     # Specific sanitization of files
