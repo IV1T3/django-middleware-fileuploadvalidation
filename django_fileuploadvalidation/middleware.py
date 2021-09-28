@@ -38,30 +38,33 @@ class FileUploadValidationMiddleware:
             files = converter.request_to_base_file_objects(init_files_request)
 
             # Detect file information
-            # TODO: Integrate block_upload
             detected_files, block_upload = detector.detect(files)
 
-            # Validate file information according to upload restrictions
-            val_files, val_success = validator.validate(detected_files)
+            val_success = False
 
-            # If basic files information are valid
-            if val_success:
+            if not block_upload:
 
-                # Sanitize uploaded files
-                sanitized_file_objects = sanitizer.sanitize(val_files)
+                # Validate file information according to upload restrictions
+                val_files, val_success = validator.validate(detected_files)
 
-                logging.debug(
-                    f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
-                )
-                logging.debug(
-                    f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
-                )
+                # If basic files information are valid
+                if val_success:
 
-                # Build Report
+                    # Sanitize uploaded files
+                    sanitized_file_objects = sanitizer.sanitize(val_files)
 
-                # If request is still valid, continue with the request.
+                    logging.debug(
+                        f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
+                    )
+                    logging.debug(
+                        f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
+                    )
 
-            if val_success:
+            # Build Report
+
+            # If request is still valid, continue with the request.
+
+            if not block_upload and val_success:
                 if UPLOADLOGS_MODE == "success" or UPLOADLOGS_MODE == "always":
                     basic_reportbuilding.build_report(sanitized_file_objects)
 
@@ -77,7 +80,7 @@ class FileUploadValidationMiddleware:
                         )
                     else:
                         basic_reportbuilding.build_report(
-                            val_files,
+                            detected_files,
                         )
                 response = HttpResponseForbidden("The file could not be uploaded.")
 

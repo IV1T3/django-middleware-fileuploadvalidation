@@ -22,6 +22,7 @@ class BasicFileInformation:
 
 @dataclass
 class DetectionResults:
+    file_integrity: bool = False
     filename_splits: list = field(default_factory=list)
     extensions: list = field(default_factory=list)
     signature_mime: str = ""

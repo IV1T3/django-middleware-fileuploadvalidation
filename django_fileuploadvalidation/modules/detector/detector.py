@@ -53,4 +53,7 @@ def detect(files):
             else:
                 file = image.detect_file(file)
 
+            if file.block:
+                block_upload = True
+
     return files, block_upload
