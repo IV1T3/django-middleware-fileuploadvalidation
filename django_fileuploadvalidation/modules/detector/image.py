@@ -20,11 +20,9 @@ def check_file_exif_data(file_obj):
     return file_obj
 
 
-def run_image_detection(image_file_objects):
-    logging.info("[Image Detector module] - Starting image detection")
+def detect_file(file):
+    logging.info("[Detector module] - Starting image detection")
 
-    for file_obj_key, file_obj in image_file_objects.items():
+    file = check_file_exif_data(file)
 
-        image_file_objects[file_obj_key] = check_file_exif_data(file_obj)
-
-    return image_file_objects
+    return file

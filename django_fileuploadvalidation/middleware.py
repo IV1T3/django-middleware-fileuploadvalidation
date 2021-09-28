@@ -6,11 +6,9 @@ import sys
 import time
 
 from .modules.converter import conversion
-from .modules.detector import basic_detection, image_detection
+from .modules.detector import detector
 from .modules.reportbuilder import basic_reportbuilding
-
 from .modules.sanitizer import sanitizer
-
 from .modules.validator import basic_validation
 
 from .settings import UPLOADLOGS_MODE
@@ -41,16 +39,15 @@ class FileUploadValidationMiddleware:
                 init_files_request
             )
 
-            # Detect basic file information
-            basic_detection_objects = basic_detection.run_detection(
-                base_file_objects
-            )
+            # Detect file information
+            # TODO: Integrate block_upload
+            detected_files, block_upload = detector.detect(base_file_objects)
 
             # Validate basic file information according to upload restrictions
             (
                 basic_validation_successful,
                 basic_validation_objects,
-            ) = basic_validation.run_validation(basic_detection_objects)
+            ) = basic_validation.run_validation(detected_files)
 
             logging.debug(
                 f"[Middleware] - basic_validation_objects: {pprint.pformat(basic_validation_objects)}"
@@ -60,20 +57,15 @@ class FileUploadValidationMiddleware:
             # If basic files information are valid
             if basic_validation_successful:
 
-                print(basic_validation_objects)
-
-                # Perform file type specific detection mechanisms
-                specific_validation_objects = image_detection.run_image_detection(
-                    basic_validation_objects
-                )
-
                 # TODO: Validate file type specific information according to upload restrictions
                 specific_validation_successful = True
 
                 # If specific files information are valid
                 if specific_validation_successful:
 
-                    sanitized_file_objects = sanitizer.sanitize(specific_validation_objects)
+                    sanitized_file_objects = sanitizer.sanitize(
+                        basic_validation_objects
+                    )
 
                     logging.debug(
                         f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"

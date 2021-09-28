@@ -3,7 +3,7 @@ import logging
 from . import basic, image
 
 def sanitize(files):
-    logging.info("[Sanitizer module] - Starting new sanitization")
+    logging.info("[Sanitizer module] - Starting sanitization")
 
     sanitized_files = {}
 
