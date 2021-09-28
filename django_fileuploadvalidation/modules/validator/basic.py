@@ -221,33 +221,48 @@ def guess_mime_type_and_maliciousness(file_obj):
     return file_obj
 
 
-def run_validation(file_objects):
-    logging.info("[Validator module - Basic] - Starting basic validation")
+def validate_file(file):
+    logging.info("[Validator module] - Starting basic validation")
 
-    basic_validation_successful = True
+    file = check_file_size_allowed(file)
+    file = check_request_header_mime(file)
+    file = check_signature_and_request_mime_match_file_extensions(file)
+    file = check_file_signature(file)
+    file = check_filename_length(file)
+    file = check_filename_extensions(file)
+    file = check_filename_for_null_byte_injections(file)
+    file = guess_mime_type_and_maliciousness(file)
 
-    for (
-        conv_file_obj_key,
-        conv_file_object,
-    ) in file_objects.items():
+    return file
 
-        file_objects[conv_file_obj_key] = check_file_size_allowed(conv_file_object)
-        file_objects[conv_file_obj_key] = check_request_header_mime(conv_file_object)
-        file_objects[
-            conv_file_obj_key
-        ] = check_signature_and_request_mime_match_file_extensions(conv_file_object)
-        file_objects[conv_file_obj_key] = check_file_signature(conv_file_object)
-        file_objects[conv_file_obj_key] = check_filename_length(conv_file_object)
-        file_objects[conv_file_obj_key] = check_filename_extensions(conv_file_object)
-        file_objects[conv_file_obj_key] = check_filename_for_null_byte_injections(
-            conv_file_object
-        )
-        file_objects[conv_file_obj_key] = guess_mime_type_and_maliciousness(
-            conv_file_object
-        )
 
-        if conv_file_object.block:
-            basic_validation_successful = False
-            break
+# def run_validation(file_objects):
+#     logging.info("[Validator module - Basic] - Starting basic validation")
 
-    return basic_validation_successful, file_objects
+#     basic_validation_successful = True
+
+#     for (
+#         conv_file_obj_key,
+#         conv_file_object,
+#     ) in file_objects.items():
+
+#         file_objects[conv_file_obj_key] = check_file_size_allowed(conv_file_object)
+#         file_objects[conv_file_obj_key] = check_request_header_mime(conv_file_object)
+#         file_objects[
+#             conv_file_obj_key
+#         ] = check_signature_and_request_mime_match_file_extensions(conv_file_object)
+#         file_objects[conv_file_obj_key] = check_file_signature(conv_file_object)
+#         file_objects[conv_file_obj_key] = check_filename_length(conv_file_object)
+#         file_objects[conv_file_obj_key] = check_filename_extensions(conv_file_object)
+#         file_objects[conv_file_obj_key] = check_filename_for_null_byte_injections(
+#             conv_file_object
+#         )
+#         file_objects[conv_file_obj_key] = guess_mime_type_and_maliciousness(
+#             conv_file_object
+#         )
+
+#         if conv_file_object.block:
+#             basic_validation_successful = False
+#             break
+
+#     return basic_validation_successful, file_objects

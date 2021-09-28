@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 
 
-def run_reportbuilder(file_objects, sanitized_data=None):
+def build_report(file_objects, sanitized_data=None):
     logging.info("[ReportBuilder module] - Building report")
     for file_obj_key, file_obj in file_objects.items():
         now = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")

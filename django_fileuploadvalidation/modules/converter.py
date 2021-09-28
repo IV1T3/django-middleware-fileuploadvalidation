@@ -7,7 +7,7 @@ from io import BytesIO
 
 import logging
 
-from ...files import File
+from ..files import File
 
 
 def build_post(original_post):

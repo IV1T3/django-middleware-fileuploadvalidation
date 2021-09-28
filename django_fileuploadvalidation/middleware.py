@@ -5,11 +5,11 @@ import pprint
 import sys
 import time
 
-from .modules.converter import conversion
+from .modules import converter
 from .modules.detector import detector
 from .modules.reportbuilder import basic_reportbuilding
 from .modules.sanitizer import sanitizer
-from .modules.validator import basic_validation
+from .modules.validator import validator
 
 from .settings import UPLOADLOGS_MODE
 
@@ -35,66 +35,49 @@ class FileUploadValidationMiddleware:
             init_files_request = request.FILES
 
             # Convert uploaded files into File class instances
-            base_file_objects = conversion.request_to_base_file_objects(
-                init_files_request
-            )
+            files = converter.request_to_base_file_objects(init_files_request)
 
             # Detect file information
             # TODO: Integrate block_upload
-            detected_files, block_upload = detector.detect(base_file_objects)
+            detected_files, block_upload = detector.detect(files)
 
-            # Validate basic file information according to upload restrictions
-            (
-                basic_validation_successful,
-                basic_validation_objects,
-            ) = basic_validation.run_validation(detected_files)
-
-            logging.debug(
-                f"[Middleware] - basic_validation_objects: {pprint.pformat(basic_validation_objects)}"
-            )
-            logging.debug(f"[Middleware] - {basic_validation_successful=}")
+            # Validate file information according to upload restrictions
+            val_files, val_success = validator.validate(detected_files)
 
             # If basic files information are valid
-            if basic_validation_successful:
+            if val_success:
 
-                # TODO: Validate file type specific information according to upload restrictions
-                specific_validation_successful = True
+                # Sanitize uploaded files
+                sanitized_file_objects = sanitizer.sanitize(val_files)
 
-                # If specific files information are valid
-                if specific_validation_successful:
-
-                    sanitized_file_objects = sanitizer.sanitize(
-                        basic_validation_objects
-                    )
-
-                    logging.debug(
-                        f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
-                    )
-                    logging.debug(
-                        f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
-                    )
+                logging.debug(
+                    f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
+                )
+                logging.debug(
+                    f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
+                )
 
                 # Build Report
 
                 # If request is still valid, continue with the request.
 
-            if basic_validation_successful and specific_validation_successful:
+            if val_success:
                 if UPLOADLOGS_MODE == "success" or UPLOADLOGS_MODE == "always":
-                    basic_reportbuilding.run_reportbuilder(sanitized_file_objects)
+                    basic_reportbuilding.build_report(sanitized_file_objects)
 
-                sanitized_request = conversion.file_objects_to_request(
+                sanitized_request = converter.file_objects_to_request(
                     request, sanitized_file_objects
                 )
                 response = self.get_response(sanitized_request)
             else:
                 if UPLOADLOGS_MODE == "blocked":
-                    if basic_validation_successful:
-                        basic_reportbuilding.run_reportbuilder(
-                            basic_validation_objects,
+                    if val_success:
+                        basic_reportbuilding.build_report(
+                            val_files,
                         )
                     else:
-                        basic_reportbuilding.run_reportbuilder(
-                            basic_validation_objects,
+                        basic_reportbuilding.build_report(
+                            val_files,
                         )
                 response = HttpResponseForbidden("The file could not be uploaded.")
 

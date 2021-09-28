@@ -2,6 +2,7 @@ import logging
 
 from . import basic, image
 
+
 def sanitize(files):
     logging.info("[Sanitizer module] - Starting sanitization")
 
@@ -28,7 +29,7 @@ def sanitize(files):
             pass
         else:
             file = image.sanitize_file(file)
-        
+
         sanitized_files[file_name] = file
-    
+
     return sanitized_files
