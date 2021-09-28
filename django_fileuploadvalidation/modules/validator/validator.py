@@ -12,6 +12,8 @@ def validate(files):
 
         file = basic.validate_file(file)
 
+        # TODO: Add file type specific validation
+
         if not file.block:
             validated_files[file_name] = file
         else:

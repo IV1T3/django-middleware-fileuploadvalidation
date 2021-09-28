@@ -17,15 +17,15 @@ def sanitize(files):
         file_type = file.detection_results.guessed_mime
 
         # Perform file type specific sanitization
-        if file_type.startswith("image/"):
+        if file_type.startswith("application"):
+            pass
+        elif file_type.startswith("audio"):
+            pass
+        elif file_type.startswith("image"):
             file = image.sanitize_file(file)
-        elif file_type.startswith("audio/"):
+        elif file_type.startswith("text"):
             pass
-        elif file_type.startswith("video/"):
-            pass
-        elif file_type.startswith("text/"):
-            pass
-        elif file_type.startswith("application/"):
+        elif file_type.startswith("video"):
             pass
         else:
             file = image.sanitize_file(file)
