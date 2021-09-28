@@ -33,25 +33,6 @@ def check_file_size_allowed(file_obj):
         file_obj.block = True
         file_obj.append_block_reason("file_size_too_big")
 
-    # # file_size = detection_data["file"]["size"] / 1000
-    # if file_obj.basic_information.size / 1000 <= FILE_SIZE_LIMIT:
-    #     file_obj.validation_results.file_size_ok = True
-    #     # detection_data["checks"]["validation_file_size"]["result"] = True
-    # else:
-    #     file_obj.validation_results.file_size_ok = False
-    #     # detection_data["checks"]["validation_file_size"]["result"] = False
-
-    #     # file_obj.attack_results.file_size_too_big = True
-    #     # detection_data["recognized_attacks"]["file_size_large"] = True
-
-    #     file_obj.block = True
-    #     # detection_data["file"]["block"] = True
-
-    #     file_obj.append_block_reason("file_size_too_big")
-    #     # detection_data["file"]["block_reasons"].append("invalid_file_size")
-
-    # # detection_data["checks"]["validation_file_size"]["done"] = True
-
     return file_obj
 
 
@@ -72,18 +53,6 @@ def check_request_header_mime(file_obj):
         file_obj.block = True
         file_obj.append_block_reason("request_mime_not_whitelisted")
 
-    # detection_data["checks"]["whitelisted_request_mime"]["done"] = True
-    # detection_data["checks"]["whitelisted_request_mime"][
-    #    "result"
-    # ] = mime_whitelist_result
-
-    # if not mime_whitelist_result:
-    #     file_obj.block = True
-    #     file_obj.append_block_reason("request_mime_not_whitelisted")
-    # detection_data["file"]["block"] = True
-    # detection_data["file"]["block_reasons"].append("whitelist_request_header")
-
-    # return detection_data
     return file_obj
 
 
@@ -91,12 +60,9 @@ def check_signature_and_request_mime_match_file_extensions(file_obj):
     """
     Check if the signature and request mime match the file extensions.
     """
-    # file_request_mime = detection_data["file"]["request_header_mime"]
-    # file_signature_mime = detection_data["file"]["signature_mime"]
 
     extension_matchings = []
 
-    # for single_file_extension in detection_data["file"]["extensions"]:
     for single_file_extension in file_obj.detection_results.extensions:
         file_extension_mime = mimetypes.guess_type("name." + single_file_extension)[0]
         extension_matches = (
@@ -117,21 +83,6 @@ def check_signature_and_request_mime_match_file_extensions(file_obj):
         file_obj.block = True
         file_obj.append_block_reason("mime_manipulation")
 
-    # if all_extensions_match:
-    #    file_obj.validation_results.extension_match_ok = True
-    #    detection_data["checks"]["validation_match_extension_signature_request_mime"][
-    #        "result"
-    #    ] = True
-    # else:
-    #    detection_data["recognized_attacks"]["mime_manipulation"] = True
-    #    detection_data["checks"]["validation_match_extension_signature_request_mime"][
-    #        "result"
-    #    ] = False
-
-    # detection_data["checks"]["validation_match_extension_signature_request_mime"][
-    #    "done"
-    # ] = True
-
     return file_obj
 
 
@@ -141,7 +92,6 @@ def check_file_signature(file_obj):
     """
     logging.info("[Validator module - Basic] - Validating file signature")
 
-    # file_signature_mime = detection_data["file"]["signature_mime"]
     mime_whitelist_result = check_mime_against_whitelist(
         file_obj.detection_results.signature_mime
     )
@@ -149,19 +99,6 @@ def check_file_signature(file_obj):
     if not mime_whitelist_result:
         file_obj.block = True
         file_obj.append_block_reason("signature_mime_not_whitelisted")
-
-    # detection_data["checks"]["whitelisted_signature_mime"][
-    #     "result"
-    # ] = mime_whitelist_result
-
-    # if not mime_whitelist_result:
-    #     detection_data["file"]["block"] = True
-    #     detection_data["file"]["block_reasons"].append("whitelist_file_signature")
-    # detection_data["checks"]["validation_signature"]["result"] = True
-
-    # detection_data["checks"]["whitelisted_signature_mime"]["done"] = True
-    # detection_data["checks"]["validation_signature"]["done"] = True
-    # detection_data["sanitization_tasks"]["clean_structure"] = True
 
     return file_obj
 
@@ -179,14 +116,6 @@ def check_filename_length(file_obj):
         file_obj.block = True
         file_obj.append_block_reason("filename_length_too_long")
 
-    # if detection_data["file"]["filename_length"] < FILENAME_LENGTH_LIMIT:
-    #     detection_data["checks"]["validation_filename_length"]["result"] = True
-    # else:
-    #     detection_data["file"]["block"] = True
-    #     detection_data["file"]["block_reasons"].append("validation_filename_length")
-
-    # detection_data["checks"]["validation_filename_length"]["done"] = True
-
     return file_obj
 
 
@@ -195,10 +124,6 @@ def check_filename_extensions(file_obj):
     Check if all filename extensions are whitelisted.
     """
     logging.info("[Validator module - Basic] - Validating all filename extensions")
-    # file_extensions = detection_data["file"]["extensions"]
-
-    # if len(file_obj.detection_results.extensions) > 1:
-    #    detection_data["recognized_attacks"]["additional_file_extensions"] = True
 
     mime_whitelist_results = []
     for single_extension in file_obj.detection_results.extensions:
@@ -213,15 +138,6 @@ def check_filename_extensions(file_obj):
     if not all_extensions_whitelisted:
         file_obj.block = True
         file_obj.append_block_reason("extension_not_whitelisted")
-
-    # detection_data["checks"]["whitelisted_extensions_mime"]["done"] = True
-    # detection_data["checks"]["whitelisted_extensions_mime"][
-    #     "result"
-    # ] = all_extensions_whitelisted
-
-    # if not all_extensions_whitelisted:
-    #     detection_data["file"]["block"] = True
-    #     detection_data["file"]["block_reasons"].append("whitelist_file_extension")
 
     # TODO: Add detection of alternate media file extensions such as .php5
 
