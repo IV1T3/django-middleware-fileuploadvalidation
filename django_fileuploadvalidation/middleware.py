@@ -5,12 +5,15 @@ import pprint
 import sys
 import time
 
-from .settings import UPLOADLOGS_MODE
 from .modules.converter import conversion
 from .modules.detector import basic_detection, image_detection
 from .modules.reportbuilder import basic_reportbuilding
-from .modules.sanitizer import basic_sanitization, image_sanitization
+
+from .modules.sanitizer import sanitizer
+
 from .modules.validator import basic_validation
+
+from .settings import UPLOADLOGS_MODE
 
 logging.basicConfig(level=logging.DEBUG)
 pp = pprint.PrettyPrinter(indent=4)
@@ -34,13 +37,13 @@ class FileUploadValidationMiddleware:
             init_files_request = request.FILES
 
             # Convert uploaded files into File class instances
-            converted_base_file_objects = conversion.request_to_base_file_objects(
+            base_file_objects = conversion.request_to_base_file_objects(
                 init_files_request
             )
 
             # Detect basic file information
             basic_detection_objects = basic_detection.run_detection(
-                converted_base_file_objects
+                base_file_objects
             )
 
             # Validate basic file information according to upload restrictions
@@ -57,9 +60,11 @@ class FileUploadValidationMiddleware:
             # If basic files information are valid
             if basic_validation_successful:
 
+                print(basic_validation_objects)
+
                 # Perform file type specific detection mechanisms
-                converted_base_file_objects = image_detection.run_image_detection(
-                    converted_base_file_objects
+                specific_validation_objects = image_detection.run_image_detection(
+                    basic_validation_objects
                 )
 
                 # TODO: Validate file type specific information according to upload restrictions
@@ -68,17 +73,7 @@ class FileUploadValidationMiddleware:
                 # If specific files information are valid
                 if specific_validation_successful:
 
-                    # Basic sanitization of files
-                    sanitized_file_objects = basic_sanitization.run_sanitization(
-                        converted_base_file_objects
-                    )
-
-                    # Specific sanitization of files
-                    # TODO: Add file type selector to distinguish between different file types
-
-                    sanitized_file_objects = image_sanitization.run_sanitization(
-                        sanitized_file_objects
-                    )
+                    sanitized_file_objects = sanitizer.sanitize(specific_validation_objects)
 
                     logging.debug(
                         f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
@@ -103,11 +98,11 @@ class FileUploadValidationMiddleware:
                 if UPLOADLOGS_MODE == "blocked":
                     if basic_validation_successful:
                         basic_reportbuilding.run_reportbuilder(
-                            converted_base_file_objects,
+                            basic_validation_objects,
                         )
                     else:
                         basic_reportbuilding.run_reportbuilder(
-                            converted_base_file_objects,
+                            basic_validation_objects,
                         )
                 response = HttpResponseForbidden("The file could not be uploaded.")
 

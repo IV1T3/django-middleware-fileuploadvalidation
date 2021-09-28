@@ -3,7 +3,6 @@ import logging
 import mimetypes
 import random
 
-
 from PIL import Image, UnidentifiedImageError
 
 
@@ -84,27 +83,13 @@ def sanitization_task__clean_structure(file_object):
     return sanitized_file_object, successful_cleansing
 
 
-def iterate_sanitization_tasks(file_object):
-    logging.info("[Sanitizer module - Image] - Starting sanitization tasks")
-    file_object = sanitization_task__clean_exif(file_object)
-    file_object.sanitization_results.cleansed_exif = True
+def sanitize_file(file):
+    logging.info("[Sanitizer module] - Starting image sanitization")
 
-    file_object, successful_cleansing = sanitization_task__clean_structure(file_object)
-    file_object.sanitization_results.cleansed_structure = successful_cleansing
+    file = sanitization_task__clean_exif(file)
+    file.sanitization_results.cleansed_exif = True
 
-    return file_object
+    file, successful_cleansing = sanitization_task__clean_structure(file)
+    file.sanitization_results.cleansed_structure = successful_cleansing
 
-
-def run_sanitization(converted_file_objects):
-    logging.info("[Sanitizer module - Image] - Starting sanitization")
-
-    all_sanitized_file_objects = {}
-
-    for file_object in converted_file_objects:
-        sanitized_file_object = iterate_sanitization_tasks(
-            converted_file_objects[file_object]
-        )
-
-        all_sanitized_file_objects[file_object] = sanitized_file_object
-
-    return all_sanitized_file_objects
+    return file

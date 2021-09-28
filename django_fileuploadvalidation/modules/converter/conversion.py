@@ -3,8 +3,9 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import QueryDict
 from django.utils.datastructures import MultiValueDict
 
-import logging
 from io import BytesIO
+
+import logging
 
 from ...files import File
 
