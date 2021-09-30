@@ -1,7 +1,8 @@
 import io
 import logging
 
-from PIL import Image
+from PIL import Image as ImageP
+from wand.image import Image as ImageW
 
 
 def check_file_exif_data(file):
@@ -21,29 +22,42 @@ def check_file_exif_data(file):
             logging.warning(f"[Detector module] - Blocking image file: exif_injection")
 
             break
+    
+    logging.info("[Detector module] - CHECK: Exif data - PASSED")
 
     return file
 
 
 def check_integrity(file):
     logging.debug("[Detector module] - Starting image integrity check")
-    image_buff = io.BytesIO(file.content)
-
+    
     try:
-        image = Image.open(image_buff)
+        image = ImageP.open(io.BytesIO(file.content))
         image.verify()
         image.close()
-
-        image = Image.open(image_buff)
-        image.transpose(Image.FLIP_LEFT_RIGHT)
-        image.close()
-
-        logging.debug("[Detector module] - Image integrity check passed")
-
-        return True
     except Exception as e:
-        logging.warning(f"[Detector module] - Image integrity check failed: {e}")
+        logging.warning(f"[Detector module] - CHECK: Image integrity (1) - FAILED: {e}")
         return False
+
+    try:
+        image = ImageP.open(io.BytesIO(file.content))
+        image.transpose(ImageP.FLIP_LEFT_RIGHT)
+        image.close()
+    except Exception as e:
+        logging.warning(f"[Detector module] - CHECK: Image integrity (2) - FAILED: {e}")
+        return False
+    
+    try:
+        image = ImageW(file=io.BytesIO(file.content))
+        _ = image.flip
+        image.close()
+    except Exception as e:
+        logging.warning(f"[Detector module] - CHECK: Image integrity (3) - FAILED: {e}")
+        return False
+
+    logging.info("[Detector module] - CHECK: Image integrity - PASSED")
+    return True
+    
 
 
 def detect_file(file):

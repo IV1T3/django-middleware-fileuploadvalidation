@@ -45,10 +45,6 @@ def check_file_size_allowed(file):
 
 
 def check_mime_against_whitelist(mime_to_check):
-
-    print(f"{UPLOAD_MIME_TYPE_WHITELIST=}")
-    print(f"{mime_to_check=}")
-
     return mime_to_check in UPLOAD_MIME_TYPE_WHITELIST
 
 
@@ -224,15 +220,15 @@ def guess_mime_type_and_maliciousness(file):
         for k, v in sorted(guessing_scores.items(), key=lambda item: item[1])
         if v > 0
     }
-    logging.debug(f"[Detector module] - {pprint.pformat(sorted_guessing_scores)}")
-    logging.debug(
+    logging.info(f"[Detector module] - {pprint.pformat(sorted_guessing_scores)}")
+    logging.info(
         f"[Detector module] - {total_points_overall=} - {total_points_given=}"
     )
 
     guessed_mime_type = max(guessing_scores.items(), key=operator.itemgetter(1))[0]
     correct_ratio = guessing_scores[guessed_mime_type] / total_points_overall
     malicious = correct_ratio < DETECTOR_SENSITIVITY
-    logging.debug(
+    logging.info(
         f"[Detector module] - Malicious: {malicious} - Score: ({guessing_scores[guessed_mime_type]}/{total_points_overall}) => {correct_ratio*100}%"
     )
 
@@ -242,7 +238,9 @@ def guess_mime_type_and_maliciousness(file):
 
     if malicious:
         file.block = True
-        file.append_block_reason("malicious_mime_type")
+        file.append_block_reason("malicious")
+        logging.warning(f"[Detector module] - Blocking file: malicious")
+
 
     return file
 

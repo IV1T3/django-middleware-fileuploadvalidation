@@ -52,11 +52,10 @@ def detect(files):
                 pass
             elif file_type.startswith("video"):
                 file = video.detect_file(file)
-            else:
-                file = image.detect_file(file)
+            #else:
+            #    file = image.detect_file(file)
 
-            print(file.block)
-            print(file.block_reasons)
+            logging.info(f"[Detector module] - Current block status: {file.block} => {file.block_reasons}")
 
             if file.block:
                 block_upload = True

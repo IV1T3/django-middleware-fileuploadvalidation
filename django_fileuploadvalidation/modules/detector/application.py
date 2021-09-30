@@ -2,6 +2,8 @@ import logging
 import PyPDF2
 import io
 
+from wand.image import Image
+
 
 # def check_pdf_for_data_after_EOD(file_object):
 #     logging.debug("[PDF Detector module] - Starting to check PDF for data after EOD")
@@ -12,21 +14,39 @@ import io
 
 
 def check_pdf_integrity(file):
+    pdf_buff = io.BytesIO(file.content)
     try:
-        pdf_buff = io.BytesIO(file.content)
         pdf_obj = PyPDF2.PdfFileReader(pdf_buff)
         pdf_obj.getDocumentInfo()
     except Exception as e:
+        logging.warning(f"[Detector module] - CHECK: PDF integrity (1) - FAILED: {e}")
         return False
+    
+    # try:
+    #     pdf = Image(file=pdf_buff)
+    #     pdf.make_blob(format='bmp')
+    #     pdf.close()
+    # except Exception as e:
+    #     logging.warning(f"[Detector module] - CHECK: PDF integrity (2) - FAILED: {e}")
+    #     return False
 
+    logging.info("[Detector module] - CHECK: PDF integrity - PASSED")
     return True
 
 
 def detect_file(file):
     logging.debug("[Detector module] - Starting application detection")
 
-    if file.detection_results.guessed_mime == "application/pdf":
+    is_pdf = file.detection_results.guessed_mime == "application/pdf"
+
+    if is_pdf:
         file.detection_results.file_integrity = check_pdf_integrity(file)
+
+    if is_pdf and not file.detection_results.file_integrity:
+        file.block = True
+        file.append_block_reason("integrity_check_failed")
+        logging.warning(f"[Detector module] - Blocking application file: integrity_check_failed")
+
 
     return file
 
