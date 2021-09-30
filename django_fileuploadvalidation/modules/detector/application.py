@@ -4,7 +4,7 @@ import io
 
 
 # def check_pdf_for_data_after_EOD(file_object):
-#     logging.info("[PDF Detector module] - Starting to check PDF for data after EOD")
+#     logging.debug("[PDF Detector module] - Starting to check PDF for data after EOD")
 
 #     # Check PDF for extra data after EOD marker
 
@@ -23,7 +23,7 @@ def check_pdf_integrity(file):
 
 
 def detect_file(file):
-    logging.info("[Detector module] - Starting application detection")
+    logging.debug("[Detector module] - Starting application detection")
 
     if file.detection_results.guessed_mime == "application/pdf":
         file.detection_results.file_integrity = check_pdf_integrity(file)
@@ -32,7 +32,7 @@ def detect_file(file):
 
 
 # def run_pdf_detection(pdf_file_objects):
-#     logging.info("[PDF Detector module] - Starting PDF detection")
+#     logging.debug("[PDF Detector module] - Starting PDF detection")
 
 #     for file_obj_key, file_obj in pdf_file_objects.items():
 

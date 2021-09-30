@@ -62,7 +62,7 @@ class File:
     """
 
     def __init__(self, file):
-        logging.info("[File class] - Initializing file object")
+        logging.debug("[File class] - Initializing file object")
         self._uploaded_file = file
         self._content = b"".join([chunk for chunk in file.chunks()])
         self._block = False
@@ -89,7 +89,7 @@ class File:
         self.sanitization_results = SanitizationResults()
 
     def _get_file_hashes(self):
-        logging.info("[File class] - Retrieving file hashes")
+        logging.debug("[File class] - Retrieving file hashes")
         md5_hash = hashlib.md5()
         sha1_hash = hashlib.sha1()
         sha256_hash = hashlib.sha256()
@@ -103,14 +103,14 @@ class File:
         hexdigest_sha1 = sha1_hash.hexdigest()
         hexdigest_sha256 = sha256_hash.hexdigest()
 
-        logging.info(f"[File class] - MD5: {hexdigest_md5}")
-        logging.info(f"[File class] - SHA1: {hexdigest_sha1}")
-        logging.info(f"[File class] - SHA256: {hexdigest_sha256}")
+        logging.debug(f"[File class] - MD5: {hexdigest_md5}")
+        logging.debug(f"[File class] - SHA1: {hexdigest_sha1}")
+        logging.debug(f"[File class] - SHA256: {hexdigest_sha256}")
 
         return hexdigest_md5, hexdigest_sha1, hexdigest_sha256
 
     def _retrieve_exif_data(self):
-        logging.info("[File class] - Retrieving file exif data")
+        logging.debug("[File class] - Retrieving file exif data")
         file_bytes_buffer = BytesIO(self._content)
         exif_data = exifread.process_file(file_bytes_buffer, details=False)
         return exif_data
@@ -133,14 +133,14 @@ class File:
 
     @content.setter
     def content(self, new_content):
-        logging.info("[File class] - Setting new file content")
+        logging.debug("[File class] - Setting new file content")
         self._content = new_content
 
     @block.setter
     def block(self, new_block_status):
-        logging.info("[File class] - Setting new block status")
+        logging.debug("[File class] - Setting new block status")
         self._block = new_block_status
 
     def append_block_reason(self, block_reason):
-        logging.info("[File class] - Appending new block reason")
+        logging.debug("[File class] - Appending new block reason")
         self._block_reasons.append(block_reason)

@@ -11,7 +11,7 @@ from ..files import File
 
 
 def build_post(original_post):
-    logging.info("[Converter module] - Building POST")
+    logging.debug("[Converter module] - Building POST")
     new_post = QueryDict(mutable=True)
     new_post.update({"csrfmiddlewaretoken": original_post.get("csrfmiddlewaretoken")})
     new_post.update({"title": original_post.get("title")})
@@ -20,7 +20,7 @@ def build_post(original_post):
 
 
 def build_files(sanitized_file_objects):
-    logging.info("[Converter module] - Building FILES")
+    logging.debug("[Converter module] - Building FILES")
     all_files_MultiValueDict = MultiValueDict()
 
     for key in sanitized_file_objects:
@@ -32,7 +32,7 @@ def build_files(sanitized_file_objects):
 
 
 def build_InMemoryUploadedFile(sanitized_file_object):
-    logging.info("[Converter module] - Building InMemoryUploadedFile")
+    logging.debug("[Converter module] - Building InMemoryUploadedFile")
 
     file_imuf = InMemoryUploadedFile(
         BytesIO(sanitized_file_object.content),
@@ -48,7 +48,7 @@ def build_InMemoryUploadedFile(sanitized_file_object):
 
 
 def request_to_base_file_objects(request_files):
-    logging.info("[Converter module - Basic] - Starting request to File objects")
+    logging.debug("[Converter module - Basic] - Starting request to File objects")
     file_objects = {}
     for file_key in request_files:
         request_file = request_files[file_key]
@@ -57,7 +57,7 @@ def request_to_base_file_objects(request_files):
 
 
 def file_objects_to_request(original_request, sanitized_file_objects):
-    logging.info("[Converter module] - Starting file objects to request")
+    logging.debug("[Converter module] - Starting file objects to request")
 
     sanitized_request = WSGIRequest(original_request.environ)
 

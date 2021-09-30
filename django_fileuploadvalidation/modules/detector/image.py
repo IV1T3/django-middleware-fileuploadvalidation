@@ -5,7 +5,7 @@ from PIL import Image
 
 
 def check_file_exif_data(file):
-    logging.info("[Image Detector module] - Getting exif data")
+    logging.debug("[Image Detector module] - Getting exif data")
     exif_data = file.basic_information.exif_data
     # logging.debug(f"[Detector module] - {exif_data=}")
     # TODO: Add detection of exif injection
@@ -18,13 +18,15 @@ def check_file_exif_data(file):
             file.attack_results.exif_injection = True
             file.block = True
             file.append_block_reason("exif_injection")
+            logging.warning(f"[Detector module] - Blocking image file: exif_injection")
+
             break
 
     return file
 
 
 def check_integrity(file):
-    logging.info("[Detector module] - Starting image integrity check")
+    logging.debug("[Detector module] - Starting image integrity check")
     image_buff = io.BytesIO(file.content)
 
     try:
@@ -36,7 +38,7 @@ def check_integrity(file):
         image.transpose(Image.FLIP_LEFT_RIGHT)
         image.close()
 
-        logging.info("[Detector module] - Image integrity check passed")
+        logging.debug("[Detector module] - Image integrity check passed")
 
         return True
     except Exception as e:
@@ -45,7 +47,7 @@ def check_integrity(file):
 
 
 def detect_file(file):
-    logging.info("[Detector module] - Starting image detection")
+    logging.debug("[Detector module] - Starting image detection")
 
     file.detection_results.file_integrity = check_integrity(file)
 
@@ -53,6 +55,7 @@ def detect_file(file):
         file = check_file_exif_data(file)
     else:
         file.block = True
-        file.append_block_reason("File integrity check failed")
+        file.append_block_reason("integrity_check_failed")
+        logging.warning(f"[Detector module] - Blocking image file: integrity_check_failed")
 
     return file

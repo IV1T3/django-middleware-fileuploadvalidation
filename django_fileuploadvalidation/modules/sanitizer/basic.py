@@ -4,7 +4,7 @@ import uuid
 
 
 def sanitization_task__create_random_filename_with_guessed_extension(file_object):
-    logging.info("[Sanitizer module - Basic] - TASK: Creating random file name")
+    logging.debug("[Sanitizer module - Basic] - TASK: Creating random file name")
     file_extension = mimetypes.guess_extension(
         file_object.detection_results.guessed_mime
     )
@@ -14,7 +14,7 @@ def sanitization_task__create_random_filename_with_guessed_extension(file_object
     return file_object
 
 def sanitize_file(file):
-    logging.info("[Sanitizer module] - Starting basic sanitization")
+    logging.debug("[Sanitizer module] - Starting basic sanitization")
 
     file = sanitization_task__create_random_filename_with_guessed_extension(
         file

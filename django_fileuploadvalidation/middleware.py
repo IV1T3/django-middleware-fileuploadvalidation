@@ -72,6 +72,6 @@ class FileUploadValidationMiddleware:
             response = self.get_response(request)
 
         execution_time_in_ms = (time.time() - request_start_time) * 1000
-        logging.info(f"DMF Execution time: {execution_time_in_ms}ms")
+        logging.debug(f"DMF Execution time: {execution_time_in_ms}ms")
 
         return response

@@ -4,7 +4,7 @@ from . import basic, image
 
 
 def sanitize(files):
-    logging.info("[Sanitizer module] - Starting sanitization")
+    logging.debug("[Sanitizer module] - Starting sanitization")
 
     sanitized_files = {}
 

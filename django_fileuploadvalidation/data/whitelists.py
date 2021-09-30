@@ -27,7 +27,7 @@ WHITELIST_MIME_TYPES__IMAGE_RESTRICTIVE = [
     "image/tiff",
 ]
 WHITELIST_MIME_TYPES__TEXT_RESTRICTIVE = ["text/plain"]
-WHITELIST_MIME_TYPES__VIDEO_RESTRICTIVE = ["video/mp4", "video/mpeg"]
+WHITELIST_MIME_TYPES__VIDEO_RESTRICTIVE = ["video/mp4", "video/mpeg", "video/quicktime"]
 
 WHITELIST_MIME_TYPES__ALL = all_mimetypes
 WHITELIST_MIME_TYPES__RESTRICTIVE = (

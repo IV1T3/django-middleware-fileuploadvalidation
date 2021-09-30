@@ -17,7 +17,7 @@ def get_clamAV_results(file_object):
 
 
 def detect(files):
-    logging.info("[Detector module] - Starting detection")
+    logging.debug("[Detector module] - Starting detection")
 
     block_upload = False
 
@@ -30,6 +30,8 @@ def detect(files):
                 block_upload = True
                 file.block = True
                 file.append_block_reason("ClamAV detection")
+                logging.warning(f"[Detector module] - Blocking file: ClamAV detection")
+
 
         if not file.block:
 

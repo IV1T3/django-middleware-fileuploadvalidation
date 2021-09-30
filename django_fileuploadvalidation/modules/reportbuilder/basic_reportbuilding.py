@@ -5,7 +5,7 @@ from datetime import datetime
 
 
 def build_report(file_objects, sanitized_data=None):
-    logging.info("[ReportBuilder module] - Building report")
+    logging.debug("[ReportBuilder module] - Building report")
     for file_obj_key, file_obj in file_objects.items():
         now = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
         report_name = file_obj.basic_information.name + ".log"
