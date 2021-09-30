@@ -54,5 +54,8 @@ setup(
         'exifread',
         'pillow',
         'clamd',
+        'pypdf2',
+        'ffmpeg-python',
+        'python-magic'
     ],
 )

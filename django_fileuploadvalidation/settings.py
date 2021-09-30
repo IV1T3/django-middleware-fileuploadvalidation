@@ -7,7 +7,7 @@ DETECTOR_SENSITIVITY = getattr(settings, "DETECTOR_SENSITIVITY", 0.99)
 FILE_SIZE_LIMIT = getattr(settings, "FILE_SIZE_LIMIT", 5000)
 FILENAME_LENGTH_LIMIT = getattr(settings, "FILENAME_LENGTH_LIMIT", 100)
 UPLOADLOGS_MODE = getattr(settings, "UPLOADLOGS_MODE", "blocked")
-
+SANITIZATION_ACTIVATED = getattr(settings, "SANITIZATION_ACTIVATED", True)
 
 whitelist_type = getattr(settings, "UPLOAD_MIME_TYPE_WHITELIST", None)
 if whitelist_type == "AUDIO_ALL":

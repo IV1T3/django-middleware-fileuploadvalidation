@@ -9,9 +9,8 @@ from .modules import converter
 from .modules.detector import detector
 from .modules.reportbuilder import basic_reportbuilding
 from .modules.sanitizer import sanitizer
-from .modules.validator import validator
 
-from .settings import UPLOADLOGS_MODE
+from .settings import UPLOADLOGS_MODE, SANITIZATION_ACTIVATED
 
 logging.basicConfig(level=logging.DEBUG)
 pp = pprint.PrettyPrinter(indent=4)
@@ -38,50 +37,35 @@ class FileUploadValidationMiddleware:
             files = converter.request_to_base_file_objects(init_files_request)
 
             # Detect file information
-            detected_files, block_upload = detector.detect(files)
+            files, block_upload = detector.detect(files)
 
-            val_success = False
+            # validation_success = False
 
             if not block_upload:
 
-                # Validate file information according to upload restrictions
-                val_files, val_success = validator.validate(detected_files)
-
                 # If basic files information are valid
-                if val_success:
+                if SANITIZATION_ACTIVATED:
 
                     # Sanitize uploaded files
-                    sanitized_file_objects = sanitizer.sanitize(val_files)
+                    files = sanitizer.sanitize(files)
 
                     logging.debug(
-                        f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
-                    )
-                    logging.debug(
-                        f"[Middleware] - sanitized_file_objects: {pprint.pformat(sanitized_file_objects)}"
+                        f"[Middleware] - sanitized files: {pprint.pformat(files)}"
                     )
 
             # Build Report
 
             # If request is still valid, continue with the request.
 
-            if not block_upload and val_success:
+            if not block_upload:
                 if UPLOADLOGS_MODE == "success" or UPLOADLOGS_MODE == "always":
-                    basic_reportbuilding.build_report(sanitized_file_objects)
+                    basic_reportbuilding.build_report(files)
 
-                sanitized_request = converter.file_objects_to_request(
-                    request, sanitized_file_objects
-                )
+                sanitized_request = converter.file_objects_to_request(request, files)
                 response = self.get_response(sanitized_request)
             else:
-                if UPLOADLOGS_MODE == "blocked":
-                    if val_success:
-                        basic_reportbuilding.build_report(
-                            val_files,
-                        )
-                    else:
-                        basic_reportbuilding.build_report(
-                            detected_files,
-                        )
+                if UPLOADLOGS_MODE == "blocked" or UPLOADLOGS_MODE == "always":
+                    basic_reportbuilding.build_report(files)
                 response = HttpResponseForbidden("The file could not be uploaded.")
 
         else:

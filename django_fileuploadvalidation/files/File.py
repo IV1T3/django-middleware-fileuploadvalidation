@@ -117,22 +117,18 @@ class File:
 
     @property
     def uploaded_file(self):
-        logging.info("[File class] - Getting uploaded file")
         return self._uploaded_file
 
     @property
     def content(self):
-        logging.info("[File class] - Getting file content")
         return self._content
 
     @property
     def block(self):
-        logging.info("[File class] - Getting block status")
         return self._block
 
     @property
     def block_reasons(self):
-        logging.info("[File class] - Getting block reasons")
         return self._block_reasons
 
     @content.setter

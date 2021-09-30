@@ -1,32 +1,54 @@
 import logging
+import PyPDF2
+import io
 
 
-def check_pdf_for_data_after_EOD(file_object, detection_data):
-    logging.info("[PDF Detector module] - Starting to check PDF for data after EOD")
+# def check_pdf_for_data_after_EOD(file_object):
+#     logging.info("[PDF Detector module] - Starting to check PDF for data after EOD")
 
-    # Check PDF for extra data after EOD marker
+#     # Check PDF for extra data after EOD marker
 
-    return detection_data
+#     return detection_data
 
 
-def run_pdf_detection(pdf_file_objects, pdf_detection_data):
-    logging.info("[PDF Detector module] - Starting PDF detection")
+def check_pdf_integrity(file):
+    try:
+        pdf_buff = io.BytesIO(file.content)
+        pdf_obj = PyPDF2.PdfFileReader(pdf_buff)
+        pdf_obj.getDocumentInfo()
+    except Exception as e:
+        return False
 
-    for file_obj_key, file_obj in pdf_file_objects.items():
+    return True
 
-        pdf_detection_data = pdf_detection_data[file_obj_key]
 
-        # read bytes of PDF file
-        pdf_bytes = file_obj.read()
-        print(pdf_bytes)
+def detect_file(file):
+    logging.info("[Detector module] - Starting application detection")
 
-        # Invalid PDF section
-        # Check PDF for sections that are neither a comment nor body, cross-reference table, or trailer
+    if file.detection_results.guessed_mime == "application/pdf":
+        file.detection_results.file_integrity = check_pdf_integrity(file)
 
-        # Check PDF for unreferenced objects
+    return file
 
-        # Check PDF for extra data after EOD marker
 
-        pdf_detection_data = check_pdf_for_data_after_EOD(file_obj, pdf_detection_data)
+# def run_pdf_detection(pdf_file_objects):
+#     logging.info("[PDF Detector module] - Starting PDF detection")
 
-    return pdf_detection_data
+#     for file_obj_key, file_obj in pdf_file_objects.items():
+
+#         pdf_detection_data = pdf_detection_data[file_obj_key]
+
+#         # read bytes of PDF file
+#         pdf_bytes = file_obj.read()
+#         print(pdf_bytes)
+
+#         # Invalid PDF section
+#         # Check PDF for sections that are neither a comment nor body, cross-reference table, or trailer
+
+#         # Check PDF for unreferenced objects
+
+#         # Check PDF for extra data after EOD marker
+
+#         # pdf_detection_data = check_pdf_for_data_after_EOD(file_obj)
+
+#     return pdf_detection_data

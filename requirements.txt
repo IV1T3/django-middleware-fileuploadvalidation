@@ -1,6 +1,9 @@
 Django
 python-dotenv
 python-decouple
+python-magic
 ExifRead
 Pillow
 Clamd
+PyPDF2
+Ffmpeg-python

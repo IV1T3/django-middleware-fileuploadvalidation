@@ -24,6 +24,7 @@ def check_file_exif_data(file):
 
 
 def check_integrity(file):
+    logging.info("[Detector module] - Starting image integrity check")
     image_buff = io.BytesIO(file.content)
 
     try:
@@ -35,20 +36,20 @@ def check_integrity(file):
         image.transpose(Image.FLIP_LEFT_RIGHT)
         image.close()
 
-        logging.info("[Detector module] - File integrity check passed")
+        logging.info("[Detector module] - Image integrity check passed")
 
         return True
     except Exception as e:
-        logging.warning(f"[Detector module] - Image integrity check: {e}")
+        logging.warning(f"[Detector module] - Image integrity check failed: {e}")
         return False
 
 
 def detect_file(file):
     logging.info("[Detector module] - Starting image detection")
 
-    file.file_integrity = check_integrity(file)
+    file.detection_results.file_integrity = check_integrity(file)
 
-    if file.file_integrity:
+    if file.detection_results.file_integrity:
         file = check_file_exif_data(file)
     else:
         file.block = True

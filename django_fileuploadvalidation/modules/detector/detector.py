@@ -3,7 +3,7 @@ import logging
 
 from io import BytesIO
 
-from . import basic, image, application
+from . import basic, image, application, video
 from ...settings import CLAMAV_USAGE
 
 
@@ -41,7 +41,7 @@ def detect(files):
 
             # Perform file type specific detection
             if file_type.startswith("application"):
-                pass
+                file = application.detect_file(file)
             elif file_type.startswith("audio"):
                 pass
             elif file_type.startswith("image"):
@@ -49,9 +49,12 @@ def detect(files):
             elif file_type.startswith("text"):
                 pass
             elif file_type.startswith("video"):
-                pass
+                file = video.detect_file(file)
             else:
                 file = image.detect_file(file)
+
+            print(file.block)
+            print(file.block_reasons)
 
             if file.block:
                 block_upload = True

@@ -140,3 +140,8 @@ UPLOAD_MIME_TYPE_WHITELIST = 'CUSTOM'
 CUSTOM_WHITELIST = ['image/png', 'video/mp4']
 ```
 
+### Sanitization mode
+DMF performs basic file sanitization by default. This can be disabled by setting the `SANITIZATION_ACTIVATED` setting to `False`. This will instantly block all upload attempts that seem to be malicious.
+```python
+SANITIZATION_ACTIVATED = 'FALSE'
+```
