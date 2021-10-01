@@ -56,6 +56,7 @@ setup(
         'clamd',
         'pypdf2',
         'ffmpeg-python',
-        'python-magic'
+        'python-magic',
+        'pdfid'
     ],
 )

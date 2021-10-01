@@ -7,3 +7,4 @@ Pillow
 Clamd
 PyPDF2
 Ffmpeg-python
+Pdfid
