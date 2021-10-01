@@ -1,16 +1,11 @@
 import logging
 import PyPDF2
 import io
+import pprint
 
-from wand.image import Image
+from pdfid import pdfid
 
-
-# def check_pdf_for_data_after_EOD(file_object):
-#     logging.debug("[PDF Detector module] - Starting to check PDF for data after EOD")
-
-#     # Check PDF for extra data after EOD marker
-
-#     return detection_data
+pp = pprint.PrettyPrinter(indent=4)
 
 
 def check_pdf_integrity(file):
@@ -21,17 +16,77 @@ def check_pdf_integrity(file):
     except Exception as e:
         logging.warning(f"[Detector module] - CHECK: PDF integrity (1) - FAILED: {e}")
         return False
-    
-    # try:
-    #     pdf = Image(file=pdf_buff)
-    #     pdf.make_blob(format='bmp')
-    #     pdf.close()
-    # except Exception as e:
-    #     logging.warning(f"[Detector module] - CHECK: PDF integrity (2) - FAILED: {e}")
-    #     return False
 
     logging.info("[Detector module] - CHECK: PDF integrity - PASSED")
     return True
+
+
+def get_pdfid_information(file):
+
+    file_buffers = [file.content]
+
+    options = pdfid.get_fake_options()
+    options.json = True
+
+    list_of_dict = pdfid.PDFiDMain(["analyzing.pdf"], options, file_buffers)["reports"][
+        0
+    ]
+
+    pp.pprint(list_of_dict)
+
+    return list_of_dict
+
+
+def is_pdf_malicious(pdfid_data):
+    """
+    Takes a look at various PDFiD data points and calculates
+    whether the PDF is malicious.
+    """
+
+    # The lower the better
+    score = 0
+    js_included = False
+    automatic_action = False
+    malicious_reasons = []
+
+    # 1. Most malicious PDF document have only one page.
+    if pdfid_data["/Page"] == 1:
+        score += 1
+        malicious_reasons.append("PDF_only_one_page")
+
+    # 2. Almost all malicious PDF documents that I’ve found in the wild contain
+    # JavaScript (to exploit a JavaScript vulnerability and/or to execute a heap spray)
+    if pdfid_data["/JS"] > 0 or pdfid_data["/JavaScript"] > 0:
+        score += 1
+        js_included = True
+        malicious_reasons.append("PDF_js_included")
+
+    # 3. All malicious PDF documents with JavaScript I’ve seen in the wild had
+    # an automatic action to launch the JavaScript without user interaction.
+    if pdfid_data["/AA"] > 0 or pdfid_data["/OpenAction"] > 0:
+        score += 1
+        automatic_action = True
+        malicious_reasons.append("PDF_automatic_action")
+
+    if js_included and automatic_action:
+        score += 5
+        malicious_reasons.append("PDF_js_and_automatic_action")
+
+    # 4. JBIG2 compression is not necessarily and indication of a malicious
+    # PDF document, but requires further investigation.
+    if pdfid_data["/JBIG2Decode"] > 0:
+        score += 1
+        malicious_reasons.append("PDF_jbig2_compression")
+
+    if score <= 2:
+        logging.info("[Detector module] - CHECK: PDF maliciousness - PASSED")
+    else:
+        logging.warning(
+            "[Detector module] - CHECK: PDF maliciousness - FAILED - "
+            + " ".join(malicious_reasons)
+        )
+
+    return score > 2, malicious_reasons
 
 
 def detect_file(file):
@@ -41,34 +96,22 @@ def detect_file(file):
 
     if is_pdf:
         file.detection_results.file_integrity = check_pdf_integrity(file)
+        if not file.detection_results.file_integrity:
+            file.block = True
+            file.append_block_reason("integrity_check_failed")
+            logging.warning(
+                f"[Detector module] - Blocking application file: integrity_check_failed"
+            )
 
-    if is_pdf and not file.detection_results.file_integrity:
-        file.block = True
-        file.append_block_reason("integrity_check_failed")
-        logging.warning(f"[Detector module] - Blocking application file: integrity_check_failed")
+        pdfid_data = get_pdfid_information(file)
+        pdf_malicious, malicious_reasons = is_pdf_malicious(pdfid_data)
+        if pdf_malicious:
+            file.block = True
+            file.append_block_reason("pdf_malicious: {}".format(malicious_reasons))
+            logging.warning(
+                f"[Detector module] - Blocking application file: pdf_malicious"
+            )
 
+    logging.info("[Detector module] - Detection: Application - DONE")
 
     return file
-
-
-# def run_pdf_detection(pdf_file_objects):
-#     logging.debug("[PDF Detector module] - Starting PDF detection")
-
-#     for file_obj_key, file_obj in pdf_file_objects.items():
-
-#         pdf_detection_data = pdf_detection_data[file_obj_key]
-
-#         # read bytes of PDF file
-#         pdf_bytes = file_obj.read()
-#         print(pdf_bytes)
-
-#         # Invalid PDF section
-#         # Check PDF for sections that are neither a comment nor body, cross-reference table, or trailer
-
-#         # Check PDF for unreferenced objects
-
-#         # Check PDF for extra data after EOD marker
-
-#         # pdf_detection_data = check_pdf_for_data_after_EOD(file_obj)
-
-#     return pdf_detection_data

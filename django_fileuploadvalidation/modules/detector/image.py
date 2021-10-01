@@ -22,7 +22,7 @@ def check_file_exif_data(file):
             logging.warning(f"[Detector module] - Blocking image file: exif_injection")
 
             break
-    
+
     logging.info("[Detector module] - CHECK: Exif data - PASSED")
 
     return file
@@ -30,7 +30,7 @@ def check_file_exif_data(file):
 
 def check_integrity(file):
     logging.debug("[Detector module] - Starting image integrity check")
-    
+
     try:
         image = ImageP.open(io.BytesIO(file.content))
         image.verify()
@@ -46,7 +46,7 @@ def check_integrity(file):
     except Exception as e:
         logging.warning(f"[Detector module] - CHECK: Image integrity (2) - FAILED: {e}")
         return False
-    
+
     try:
         image = ImageW(file=io.BytesIO(file.content))
         _ = image.flip
@@ -57,7 +57,6 @@ def check_integrity(file):
 
     logging.info("[Detector module] - CHECK: Image integrity - PASSED")
     return True
-    
 
 
 def detect_file(file):
@@ -70,6 +69,10 @@ def detect_file(file):
     else:
         file.block = True
         file.append_block_reason("integrity_check_failed")
-        logging.warning(f"[Detector module] - Blocking image file: integrity_check_failed")
+        logging.warning(
+            f"[Detector module] - Blocking image file: integrity_check_failed"
+        )
+
+    logging.info("[Detector module] - Detection: Image - DONE")
 
     return file
