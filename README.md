@@ -23,10 +23,15 @@ MIDDLEWARE = [
 ]
 ```
 
-This package also utilizes the ClamAV anti-virus engine. For this, it is required to have a running instance of the ClamAV daemon.
+### IMPORTANT: the latest version of pdfid is currently not compatible with this package.
+DMF requires the changes of the pdfid library as of pull request #3: https://github.com/mlodic/pdfid/pull/3.
+After having installed pdfid, please substitute your installed pdfid.py with https://github.com/IV1T3/pdfid/blob/main/pdfid/pdfid.py to maintain compatibility.
 
+We hope, PR #3 will be merged and published as soon as possible such that it is no longer necessary to substitute the pdfid library.
 
 ### Installing ClamAV on macOS
+
+This package also utilizes the ClamAV anti-virus engine. For this, it is required to have a running instance of the ClamAV daemon.
 
 ```bash
 $ brew install clamav
