@@ -14,7 +14,7 @@ from ...settings import (
 
 
 def match_file_signature(file):
-    logging.debug("[Detector module] - Matching file signature")
+    logging.debug("[Validation module] - Matching file signature")
 
     return magic.from_buffer(file.content, mime=True)
 
@@ -31,7 +31,7 @@ def check_file_size_allowed(file):
     """
     Check if the file size is within the allowed limits.
     """
-    logging.debug("[Detector module] - Validating file size")
+    logging.debug("[Validation module] - Validating file size")
 
     file_size_ok = file.basic_information.size / 1000 <= FILE_SIZE_LIMIT
     file.validation_results.file_size_ok = file_size_ok
@@ -39,7 +39,7 @@ def check_file_size_allowed(file):
     if not file_size_ok:
         file.block = True
         file.append_block_reason("file_size_too_big")
-        logging.warning(f"[Detector module] - Blocking file: file_size_too_big")
+        logging.warning(f"[Validation module] - Blocking file: file_size_too_big")
 
     return file
 
@@ -53,7 +53,7 @@ def check_request_header_mime(file):
     Check if the request header mime is whitelisted.
     """
     logging.debug(
-        "[Detector module] - Validating request header MIME type against whitelist"
+        "[Validation module] - Validating request header MIME type against whitelist"
     )
 
     mime_whitelist_result = check_mime_against_whitelist(
@@ -65,7 +65,7 @@ def check_request_header_mime(file):
     if not mime_whitelist_result:
         file.block = True
         file.append_block_reason("request_mime_not_whitelisted")
-        logging.warning(f"[Detector module] - Blocking file: request_mime_not_whitelisted")
+        logging.warning(f"[Validation module] - Blocking file: request_mime_not_whitelisted")
 
     return file
 
@@ -96,7 +96,7 @@ def check_signature_and_request_mime_match_file_extensions(file):
     if not all_extensions_match:
         file.block = True
         file.append_block_reason("mime_manipulation")
-        logging.warning(f"[Detector module] - Blocking file: mime_manipulation")
+        logging.warning(f"[Validation module] - Blocking file: mime_manipulation")
 
 
     return file
@@ -106,7 +106,7 @@ def check_file_signature(file):
     """
     Check if the file signature is whitelisted.
     """
-    logging.debug("[Detector module] - Validating file signature")
+    logging.debug("[Validation module] - Validating file signature")
 
     mime_whitelist_result = check_mime_against_whitelist(
         file.detection_results.signature_mime
@@ -115,7 +115,7 @@ def check_file_signature(file):
     if not mime_whitelist_result:
         file.block = True
         file.append_block_reason("signature_mime_not_whitelisted")
-        logging.warning(f"[Detector module] - Blocking file: signature_mime_not_whitelisted")
+        logging.warning(f"[Validation module] - Blocking file: signature_mime_not_whitelisted")
 
 
     return file
@@ -125,7 +125,7 @@ def check_filename_length(file):
     """
     Check if the filename length is within the allowed limits.
     """
-    logging.debug("[Detector module] - Validating filename length")
+    logging.debug("[Validation module] - Validating filename length")
 
     length_ok = len(file.basic_information.name) <= FILENAME_LENGTH_LIMIT
     file.validation_results.filename_length_ok = length_ok
@@ -133,7 +133,7 @@ def check_filename_length(file):
     if not length_ok:
         file.block = True
         file.append_block_reason("filename_length_too_long")
-        logging.warning(f"[Detector module] - Blocking file: filename_length_too_long")
+        logging.warning(f"[Validation module] - Blocking file: filename_length_too_long")
 
 
     return file
@@ -143,7 +143,7 @@ def check_filename_extensions(file):
     """
     Check if all filename extensions are whitelisted.
     """
-    logging.debug("[Detector module] - Validating all filename extensions")
+    logging.debug("[Validation module] - Validating all filename extensions")
 
     mime_whitelist_results = []
     for single_extension in file.detection_results.extensions:
@@ -158,7 +158,7 @@ def check_filename_extensions(file):
     if not all_extensions_whitelisted:
         file.block = True
         file.append_block_reason("extension_not_whitelisted")
-        logging.warning(f"[Detector module] - Blocking file: extension_not_whitelisted")
+        logging.warning(f"[Validation module] - Blocking file: extension_not_whitelisted")
 
 
     # TODO: Add detection of alternate media file extensions such as .php5
@@ -167,7 +167,7 @@ def check_filename_extensions(file):
 
 
 def check_filename_for_null_byte_injections(file):
-    logging.debug("[Detector module] - Validating for null byte injections")
+    logging.debug("[Validation module] - Validating for null byte injections")
 
     for file_name_split in file.detection_results.filename_splits:
         null_byte_found = (
@@ -179,14 +179,14 @@ def check_filename_for_null_byte_injections(file):
         if null_byte_found:
             file.block = True
             file.append_block_reason("null_byte_injection")
-            logging.warning(f"[Detector module] - Blocking file: null_byte_injection")
+            logging.warning(f"[Validation module] - Blocking file: null_byte_injection")
 
 
     return file
 
 
 def guess_mime_type_and_maliciousness(file):
-    logging.debug("[Detector module] - Guessing MIME type")
+    logging.debug("[Validation module] - Guessing MIME type")
 
     guessing_scores = {mime_type: 0 for mime_type in list(mimetypes.types_map.values())}
     total_points_given = 0
@@ -220,16 +220,16 @@ def guess_mime_type_and_maliciousness(file):
         for k, v in sorted(guessing_scores.items(), key=lambda item: item[1])
         if v > 0
     }
-    logging.info(f"[Detector module] - {pprint.pformat(sorted_guessing_scores)}")
+    logging.info(f"[Validation module] - {pprint.pformat(sorted_guessing_scores)}")
     logging.info(
-        f"[Detector module] - {total_points_overall=} - {total_points_given=}"
+        f"[Validation module] - {total_points_overall=} - {total_points_given=}"
     )
 
     guessed_mime_type = max(guessing_scores.items(), key=operator.itemgetter(1))[0]
     correct_ratio = guessing_scores[guessed_mime_type] / total_points_overall
     malicious = correct_ratio < DETECTOR_SENSITIVITY
     logging.info(
-        f"[Detector module] - Malicious: {malicious} - Score: ({guessing_scores[guessed_mime_type]}/{total_points_overall}) => {correct_ratio*100}%"
+        f"[Validation module] - Malicious: {malicious} - Score: ({guessing_scores[guessed_mime_type]}/{total_points_overall}) => {correct_ratio*100}%"
     )
 
     # Setting detection data
@@ -239,14 +239,14 @@ def guess_mime_type_and_maliciousness(file):
     if malicious:
         file.block = True
         file.append_block_reason("malicious")
-        logging.warning(f"[Detector module] - Blocking file: malicious")
+        logging.warning(f"[Validation module] - Blocking file: malicious")
 
 
     return file
 
 
-def detect_file(file):
-    logging.debug("[Detector module] - Starting basic detection")
+def validate_file(file):
+    logging.debug("[Validation module] - Starting basic detection")
 
     # Retrieve basic file information
     filename_splits = get_filename_splits(file)

@@ -3,7 +3,7 @@ import logging
 
 
 def check_video_integrity(file):
-    logging.debug("[Detector module] - Starting video integrity check")
+    logging.debug("[Validation module] - Starting video integrity check")
 
     """
         src: https://ffmpeg.org/ffplay-all.html
@@ -29,8 +29,8 @@ def check_video_integrity(file):
     return stderr
 
 
-def detect_file(file):
-    logging.debug("[Detector module] - Starting video detection")
+def validate_file(file):
+    logging.debug("[Validation module] - Starting video validation")
 
     # file.detection_results.file_integrity = check_video_integrity(file)
 

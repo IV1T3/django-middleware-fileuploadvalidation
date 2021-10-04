@@ -16,8 +16,8 @@ def get_clamAV_results(file_object):
     return clamd_res["stream"][0]
 
 
-def detect(files):
-    logging.debug("[Detector module] - Starting detection")
+def validate(files):
+    logging.debug("[Validation module] - Starting validation")
 
     block_upload = False
 
@@ -30,32 +30,32 @@ def detect(files):
                 block_upload = True
                 file.block = True
                 file.append_block_reason("ClamAV detection")
-                logging.warning(f"[Detector module] - Blocking file: ClamAV detection")
+                logging.warning(f"[Validation module] - Blocking file: ClamAV detection")
 
 
         if not file.block:
 
-            # Perform basic file detection
-            file = basic.detect_file(file)
+            # Perform basic file validation
+            file = basic.validate_file(file)
 
             # Get guessed file type
             file_type = file.detection_results.guessed_mime
 
-            # Perform file type specific detection
+            # Perform file type specific validation
             if file_type.startswith("application"):
-                file = application.detect_file(file)
+                file = application.validate_file(file)
             elif file_type.startswith("audio"):
                 pass
             elif file_type.startswith("image"):
-                file = image.detect_file(file)
+                file = image.validate_file(file)
             elif file_type.startswith("text"):
                 pass
             elif file_type.startswith("video"):
-                file = video.detect_file(file)
+                file = video.validate_file(file)
             #else:
-            #    file = image.detect_file(file)
+            #    file = image.validate_file(file)
 
-            logging.info(f"[Detector module] - Current block status: {file.block} => {file.block_reasons}")
+            logging.info(f"[Validation module] - Current block status: {file.block} => {file.block_reasons}")
 
             if file.block:
                 block_upload = True

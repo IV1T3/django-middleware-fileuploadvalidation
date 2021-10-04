@@ -5,10 +5,9 @@ import pprint
 import sys
 import time
 
-from .modules import converter
-from .modules.detector import detector
-from .modules.reportbuilder import basic_reportbuilding
-from .modules.sanitizer import sanitizer
+from .modules import converter, reporter
+from .modules.validation import validator
+from .modules.sanitization import sanitizer
 
 from .settings import UPLOADLOGS_MODE, SANITIZATION_ACTIVATED
 
@@ -38,10 +37,10 @@ class FileUploadValidationMiddleware:
             execution_time_until_converter = (time.time() - request_start_time) * 1000
             logging.info(f"[Middleware] - Converter - DONE after {execution_time_until_converter}ms")
 
-            # Detect file information
-            files, block_upload = detector.detect(files)
-            execution_time_until_detector = (time.time() - request_start_time) * 1000
-            logging.info(f"[Middleware] - Detector - DONE after {execution_time_until_detector}ms")
+            # Validate file information
+            files, block_upload = validator.validate(files)
+            execution_time_until_validator = (time.time() - request_start_time) * 1000
+            logging.info(f"[Middleware] - Validator - DONE after {execution_time_until_validator}ms")
 
             # validation_success = False
 
@@ -65,13 +64,13 @@ class FileUploadValidationMiddleware:
 
             if not block_upload:
                 if UPLOADLOGS_MODE == "success" or UPLOADLOGS_MODE == "always":
-                    basic_reportbuilding.build_report(files)
+                    reporter.build_report(files)
 
                 sanitized_request = converter.file_objects_to_request(request, files)
                 response = self.get_response(sanitized_request)
             else:
                 if UPLOADLOGS_MODE == "blocked" or UPLOADLOGS_MODE == "always":
-                    basic_reportbuilding.build_report(files)
+                    reporter.build_report(files)
                 response = HttpResponseForbidden("The file could not be uploaded.")
 
         else:

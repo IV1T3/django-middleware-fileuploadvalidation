@@ -14,10 +14,10 @@ def check_pdf_integrity(file):
         pdf_obj = PyPDF2.PdfFileReader(pdf_buff)
         pdf_obj.getDocumentInfo()
     except Exception as e:
-        logging.warning(f"[Detector module] - CHECK: PDF integrity (1) - FAILED: {e}")
+        logging.warning(f"[Validation module] - CHECK: PDF integrity (1) - FAILED: {e}")
         return False
 
-    logging.info("[Detector module] - CHECK: PDF integrity - PASSED")
+    logging.info("[Validation module] - CHECK: PDF integrity - PASSED")
     return True
 
 
@@ -79,18 +79,18 @@ def is_pdf_malicious(pdfid_data):
         malicious_reasons.append("PDF_jbig2_compression")
 
     if score <= 2:
-        logging.info("[Detector module] - CHECK: PDF maliciousness - PASSED")
+        logging.info("[Validation module] - CHECK: PDF maliciousness - PASSED")
     else:
         logging.warning(
-            "[Detector module] - CHECK: PDF maliciousness - FAILED - "
+            "[Validation module] - CHECK: PDF maliciousness - FAILED - "
             + " ".join(malicious_reasons)
         )
 
     return score > 2, malicious_reasons
 
 
-def detect_file(file):
-    logging.debug("[Detector module] - Starting application detection")
+def validate_file(file):
+    logging.debug("[Validation module] - Starting application detection")
 
     is_pdf = file.detection_results.guessed_mime == "application/pdf"
 
@@ -100,7 +100,7 @@ def detect_file(file):
             file.block = True
             file.append_block_reason("integrity_check_failed")
             logging.warning(
-                f"[Detector module] - Blocking application file: integrity_check_failed"
+                f"[Validation module] - Blocking application file: integrity_check_failed"
             )
 
         pdfid_data = get_pdfid_information(file)
@@ -109,9 +109,9 @@ def detect_file(file):
             file.block = True
             file.append_block_reason("pdf_malicious: {}".format(malicious_reasons))
             logging.warning(
-                f"[Detector module] - Blocking application file: pdf_malicious"
+                f"[Validation module] - Blocking application file: pdf_malicious"
             )
 
-    logging.info("[Detector module] - Detection: Application - DONE")
+    logging.info("[Validation module] - Detection: Application - DONE")
 
     return file
