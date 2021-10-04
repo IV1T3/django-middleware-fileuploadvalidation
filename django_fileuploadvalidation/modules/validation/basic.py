@@ -5,12 +5,74 @@ import pprint
 
 import magic
 
+from ..helper import add_point_to_guessed_file_type
+
 from ...settings import (
     DETECTOR_SENSITIVITY,
     UPLOAD_MIME_TYPE_WHITELIST,
     FILE_SIZE_LIMIT,
     FILENAME_LENGTH_LIMIT,
 )
+
+
+def check_malicious_keywords(file):
+    logging.debug("[Validation module] - Validating keywords")
+    # TODO:
+    # - Implement more efficient way to check for keywords
+    # - Try to avoid using overlapping keywords but keep file
+    #   type distinction for future use
+    keywords = {
+        "<?": 0,
+        "<?=": 0,
+        "<?php": 0,
+        "?> ": 0,
+        "<script>": 0,
+        "#!": 0,
+        "#!/": 0,
+        "#!/bin/sh": 0,
+        "#!/bin/bash": 0,
+        "#!/usr/bin/pwsh": 0,
+        "#!/usr/bin/env python3": 0,
+        "#!/usr/bin/env sh": 0,
+        "$_": 0,
+        "base64": 0,
+        "eval": 0,
+    }
+
+    found = False
+
+    for line in file.content.splitlines():
+        for keyword in keywords:
+            if keyword.encode() in line:
+                pos = line.index(keyword.encode())
+                line_seq_following = line[pos : pos + 20]
+                try:
+                    line_seq_following.decode("ascii")
+                    keywords[keyword] += 1
+                    found = True
+                    logging.warning(
+                        "[Validation module] - ASCII Decoding POSSIBLE: %s",
+                        line_seq_following,
+                    )
+                except UnicodeDecodeError:
+                    logging.info("ASCII Decoding not possible")
+                    continue
+
+    found_keywords = {key: val for key, val in keywords.items() if val > 0}
+
+    print(found_keywords)
+
+    file.validation_results.keyword_search_ok = found
+    file.detection_results.found_keywords = found_keywords
+
+    if found:
+        file.block = True
+        file.append_block_reason("malicious_keywords_found")
+        logging.warning(
+            f"[Validation module] - Blocking file: malicious_keywords_found"
+        )
+
+    return file
 
 
 def match_file_signature(file):
@@ -65,7 +127,9 @@ def check_request_header_mime(file):
     if not mime_whitelist_result:
         file.block = True
         file.append_block_reason("request_mime_not_whitelisted")
-        logging.warning(f"[Validation module] - Blocking file: request_mime_not_whitelisted")
+        logging.warning(
+            f"[Validation module] - Blocking file: request_mime_not_whitelisted"
+        )
 
     return file
 
@@ -98,7 +162,6 @@ def check_signature_and_request_mime_match_file_extensions(file):
         file.append_block_reason("mime_manipulation")
         logging.warning(f"[Validation module] - Blocking file: mime_manipulation")
 
-
     return file
 
 
@@ -115,8 +178,9 @@ def check_file_signature(file):
     if not mime_whitelist_result:
         file.block = True
         file.append_block_reason("signature_mime_not_whitelisted")
-        logging.warning(f"[Validation module] - Blocking file: signature_mime_not_whitelisted")
-
+        logging.warning(
+            f"[Validation module] - Blocking file: signature_mime_not_whitelisted"
+        )
 
     return file
 
@@ -133,8 +197,9 @@ def check_filename_length(file):
     if not length_ok:
         file.block = True
         file.append_block_reason("filename_length_too_long")
-        logging.warning(f"[Validation module] - Blocking file: filename_length_too_long")
-
+        logging.warning(
+            f"[Validation module] - Blocking file: filename_length_too_long"
+        )
 
     return file
 
@@ -158,8 +223,9 @@ def check_filename_extensions(file):
     if not all_extensions_whitelisted:
         file.block = True
         file.append_block_reason("extension_not_whitelisted")
-        logging.warning(f"[Validation module] - Blocking file: extension_not_whitelisted")
-
+        logging.warning(
+            f"[Validation module] - Blocking file: extension_not_whitelisted"
+        )
 
     # TODO: Add detection of alternate media file extensions such as .php5
 
@@ -180,7 +246,6 @@ def check_filename_for_null_byte_injections(file):
             file.block = True
             file.append_block_reason("null_byte_injection")
             logging.warning(f"[Validation module] - Blocking file: null_byte_injection")
-
 
     return file
 
@@ -241,7 +306,6 @@ def guess_mime_type_and_maliciousness(file):
         file.append_block_reason("malicious")
         logging.warning(f"[Validation module] - Blocking file: malicious")
 
-
     return file
 
 
@@ -252,7 +316,14 @@ def validate_file(file):
     filename_splits = get_filename_splits(file)
     file.detection_results.filename_splits = filename_splits
     file.detection_results.extensions = filename_splits[1:]
-    file.detection_results.signature_mime = match_file_signature(file)
+
+    # Detecting file signature
+    signature_mime = match_file_signature(file)
+    file.detection_results.signature_mime = signature_mime
+    file = add_point_to_guessed_file_type(file, signature_mime)
+
+    # Perform generic keyword based search
+    file = check_malicious_keywords(file)
 
     # Validate file information
     file = check_file_size_allowed(file)

@@ -10,3 +10,14 @@ def fill_hex_with_zero(content, start_idx, end_idx):
         content.pop(i)
         content.insert(i, 0)
     return content
+
+
+def add_point_to_guessed_file_type(file, mime):
+    if mime in file.detection_results.guessing_scores:
+        file.detection_results.guessing_scores[mime] += 1
+    else:
+        file.detection_results.guessing_scores[mime] = 1
+
+    file.detection_results.total_points_overall += 1
+
+    return file

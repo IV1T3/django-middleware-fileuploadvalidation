@@ -30,8 +30,9 @@ def validate(files):
                 block_upload = True
                 file.block = True
                 file.append_block_reason("ClamAV detection")
-                logging.warning(f"[Validation module] - Blocking file: ClamAV detection")
-
+                logging.warning(
+                    f"[Validation module] - Blocking file: ClamAV detection"
+                )
 
         if not file.block:
 
@@ -52,10 +53,12 @@ def validate(files):
                 pass
             elif file_type.startswith("video"):
                 file = video.validate_file(file)
-            #else:
+            # else:
             #    file = image.validate_file(file)
 
-            logging.info(f"[Validation module] - Current block status: {file.block} => {file.block_reasons}")
+            logging.info(
+                f"[Validation module] - Current block status: {file.block} => {file.block_reasons}"
+            )
 
             if file.block:
                 block_upload = True

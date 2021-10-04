@@ -1,3 +1,4 @@
+import mimetypes
 import exifread
 import hashlib
 import logging
@@ -27,6 +28,10 @@ class DetectionResults:
     extensions: list = field(default_factory=list)
     signature_mime: str = ""
     guessed_mime: str = ""
+    found_keywords: dict = field(default_factory=dict)
+
+    total_points_overall: int = 0
+    guessing_scores: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -39,6 +44,7 @@ class ValidationResults:
     extensions_whitelist_ok: bool = False
     request_whitelist_ok: bool = False
     signature_whitelist_ok: bool = False
+    keyword_search_ok: bool = False
     malicious: bool = False
 
 
@@ -71,6 +77,10 @@ class File:
         hash_md5, hash_sha1, hash_sha256 = self._get_file_hashes()
         exif_data = self._retrieve_exif_data()
 
+        guessing_scores = {
+            mime_type: 0 for mime_type in list(mimetypes.types_map.values())
+        }
+
         self.basic_information = BasicFileInformation(
             file.name,
             file.size,
@@ -85,7 +95,7 @@ class File:
 
         self.validation_results = ValidationResults()
         self.attack_results = PossibleAttacks()
-        self.detection_results = DetectionResults()
+        self.detection_results = DetectionResults(guessing_scores=guessing_scores)
         self.sanitization_results = SanitizationResults()
 
     def _get_file_hashes(self):
