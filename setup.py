@@ -57,6 +57,6 @@ setup(
         'pypdf2',
         'ffmpeg-python',
         'python-magic',
-        'pdfid'
+        'pdfid>=1.0.5'
     ],
 )
