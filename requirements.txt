@@ -7,5 +7,6 @@ Pillow
 Clamd
 PyPDF2
 Ffmpeg-python
+Oletools
 
 Pdfid >= 1.0.5      # Minimum version since it introduces analyzing PDFs from file-like streams

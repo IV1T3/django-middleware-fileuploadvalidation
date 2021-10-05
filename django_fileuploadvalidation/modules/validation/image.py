@@ -63,7 +63,7 @@ def check_integrity(file):
         )
         return False
 
-    logging.info("[Validation module] - CHECK: Image integrity - PASSED")
+    logging.debug("[Validation module] - CHECK: Image integrity - PASSED")
     return True
 
 
@@ -82,6 +82,6 @@ def validate_file(file):
             f"[Validation module] - Blocking image file: integrity_check_failed"
         )
 
-    logging.info("[Validation module] - Validation: Image - DONE")
+    logging.debug("[Validation module] - Validation: Image - DONE")
 
     return file

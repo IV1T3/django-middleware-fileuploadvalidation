@@ -5,6 +5,10 @@ import pprint
 
 from pdfid import pdfid
 
+from . import ms_office
+
+from ...data import office_mimes
+
 pp = pprint.PrettyPrinter(indent=4)
 
 
@@ -17,7 +21,7 @@ def check_pdf_integrity(file):
         logging.warning(f"[Validation module] - CHECK: PDF integrity (1) - FAILED: {e}")
         return False
 
-    logging.info("[Validation module] - CHECK: PDF integrity - PASSED")
+    logging.debug("[Validation module] - CHECK: PDF integrity - PASSED")
     return True
 
 
@@ -79,7 +83,7 @@ def is_pdf_malicious(pdfid_data):
         malicious_reasons.append("PDF_jbig2_compression")
 
     if score <= 2:
-        logging.info("[Validation module] - CHECK: PDF maliciousness - PASSED")
+        logging.debug("[Validation module] - CHECK: PDF maliciousness - PASSED")
     else:
         logging.warning(
             "[Validation module] - CHECK: PDF maliciousness - FAILED - "
@@ -93,8 +97,12 @@ def validate_file(file):
     logging.debug("[Validation module] - Starting application detection")
 
     is_pdf = file.detection_results.guessed_mime == "application/pdf"
+    is_office_doc = (
+        file.detection_results.guessed_mime in office_mimes.OFFICE_MIME_TYPES
+    )
 
     if is_pdf:
+        logging.debug("[Validation module] - is_pdf")
         file.detection_results.file_integrity = check_pdf_integrity(file)
         if not file.detection_results.file_integrity:
             file.block = True
@@ -112,6 +120,15 @@ def validate_file(file):
                 f"[Validation module] - Blocking application file: pdf_malicious"
             )
 
-    logging.info("[Validation module] - Detection: Application - DONE")
+    if is_office_doc:
+        logging.debug("[Validation module] - is_office_doc")
+        macros_found, malicious_indicators = ms_office.check_vba_macros(file)
+
+        pp.pprint(macros_found)
+        pp.pprint(malicious_indicators)
+
+        # TODO: Handle found macro indicators and specify when to block
+
+    logging.debug("[Validation module] - Detection: Application - DONE")
 
     return file

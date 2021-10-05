@@ -56,7 +56,7 @@ def validate(files):
             # else:
             #    file = image.validate_file(file)
 
-            logging.info(
+            logging.debug(
                 f"[Validation module] - Current block status: {file.block} => {file.block_reasons}"
             )
 

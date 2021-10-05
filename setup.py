@@ -57,6 +57,7 @@ setup(
         'pypdf2',
         'ffmpeg-python',
         'python-magic',
-        'pdfid>=1.0.5'
+        'pdfid>=1.0.5',
+        'oletools'
     ],
 )

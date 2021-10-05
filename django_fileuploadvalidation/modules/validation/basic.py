@@ -55,7 +55,7 @@ def check_malicious_keywords(file):
                         line_seq_following,
                     )
                 except UnicodeDecodeError:
-                    logging.info("ASCII Decoding not possible")
+                    logging.debug("ASCII Decoding not possible")
                     continue
 
     found_keywords = {key: val for key, val in keywords.items() if val > 0}
