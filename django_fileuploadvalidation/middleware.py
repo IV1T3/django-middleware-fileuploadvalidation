@@ -52,7 +52,10 @@ class FileUploadValidationMiddleware:
 
             files = self._convert(request, convert_to="file_objects")
             files, self.block_request = self._validate_files(files)
-            files = self._sanitize_files(files)
+
+            if not self.block_request:
+                files = self._sanitize_files(files)
+
             self._create_upload_log(files)
             request = self._convert(request, files, convert_to="request")
 
