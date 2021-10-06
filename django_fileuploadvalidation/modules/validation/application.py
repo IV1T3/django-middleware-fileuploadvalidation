@@ -86,8 +86,8 @@ def is_pdf_malicious(pdfid_data):
         logging.debug("[Validation module] - CHECK: PDF maliciousness - PASSED")
     else:
         logging.warning(
-            "[Validation module] - CHECK: PDF maliciousness - FAILED - "
-            + " ".join(malicious_reasons)
+            "[Validation module] - CHECK: PDF maliciousness - FAILED: "
+            + ", ".join(malicious_reasons)
         )
 
     return score > 2, malicious_reasons
@@ -124,7 +124,7 @@ def validate_file(file):
         logging.debug("[Validation module] - is_office_doc")
         macros_found, malicious_indicators = ms_office.check_vba_macros(file)
 
-        pp.pprint(macros_found)
+        print(f"{macros_found=}")
         pp.pprint(malicious_indicators)
 
         # TODO: Handle found macro indicators and specify when to block

@@ -45,7 +45,7 @@ def check_malicious_keywords(file):
         for keyword in keywords:
             if keyword.encode() in line:
                 pos = line.index(keyword.encode())
-                line_seq_following = line[pos : pos + 20]
+                line_seq_following = line[pos : pos + 50]
                 try:
                     line_seq_following.decode("ascii")
                     keywords[keyword] += 1
@@ -60,17 +60,18 @@ def check_malicious_keywords(file):
 
     found_keywords = {key: val for key, val in keywords.items() if val > 0}
 
-    print(found_keywords)
+    print(f"{found_keywords=}")
 
-    file.validation_results.keyword_search_ok = found
     file.detection_results.found_keywords = found_keywords
+    file.validation_results.keyword_search_ok = found
 
-    if found:
-        file.block = True
-        file.append_block_reason("malicious_keywords_found")
-        logging.warning(
-            f"[Validation module] - Blocking file: malicious_keywords_found"
-        )
+    # TODO: Currently too restrictive, basically blocks every file
+    # if found:
+    #     file.block = True
+    #     file.append_block_reason("malicious_keywords_found")
+    #     logging.warning(
+    #         f"[Validation module] - Blocking file: malicious_keywords_found"
+    #     )
 
     return file
 

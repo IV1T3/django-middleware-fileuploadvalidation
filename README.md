@@ -68,7 +68,54 @@ To further configure your ClamAV daemon, modify either `/etc/clamav/clamd.conf` 
 [pypi-version]: https://img.shields.io/pypi/v/django-cprofile-middleware.svg
 
 ## Settings
-DMF can also be customized by modifying the Django project's settings file.
+DMF can also be customized by modifying the Django project's settings.py file. 
+Currently, whitelists can be configured for each individiual view. All other settings
+are only configurable globally.
+
+### Whitelists
+DMF provides pre-defined whitelists. These can be used to prevent certain files from being uploaded.
+Each view can use an individual whitelist. This allows to have multiple upload forms with different whitelists. 
+The following whitelists are available:
+
+- ALL: All files
+  - AUDIO_ALL: All audio files
+  - APPLICATION_ALL: All application files
+  - IMAGE_ALL: All image files
+  - TEXT_ALL: All text files
+  - VIDEO_ALL: All video files
+- RESTRICTIVE: All restricted whitelists combined
+  - AUDIO_RESTRICTIVE: audio/mpeg
+  - APPLICATION_RESTRICTIVE: application/pdf
+  - IMAGE_RESTRICTIVE: image/gif, image/jpeg, image/png, image/tiff
+  - TEXT_RESTRICTIVE: text/plain
+  - VIDEO_RESTRICTIVE: video/mp4, video/mpeg
+
+By default, the whitelist is set to 'RESTRICTIVE'.
+
+```python
+VIEW_UPLOAD_CONFIGURATION = {"default": {"whitelist": "RESTRICTIVE"}}
+```
+
+The individual whitelist functionality of DMF makes use of Django URL path names which can be defined in each urls.py file.
+
+```python
+urlpatterns = [
+    ...,
+    path("upload_image/", views.upload_image, name="myapp-filefieldform-upload-image"),
+    path("upload_video/", views.upload_video, name="myapp-filefieldform-upload-video"),
+    ...,
+]
+```
+
+The following example shows how to define a whitelist for the `upload_image` view, which shall only allow image files, as well as the `upload_video` view which shall only allow video files.
+
+```python
+VIEW_UPLOAD_CONFIGURATION = {
+    "myapp-filefieldform-upload": {"whitelist": "IMAGE_ALL"},
+    "myapp-filefieldform-video": {"whitelist": "VIDEO_ALL"},
+}
+```
+
 
 ### ClamAV Usage
 ClamAV is an open source antivirus engine for detecting trojans, viruses, malware & other malicious threats. By default, ClamAV is enabled. However, if you want to disable it, you can do so by setting the `CLAMAV_USAGE` setting to `False`.
@@ -109,35 +156,6 @@ By default, this setting is set to 'blocked'.
 UPLOADLOGS_MODE = 'blocked'
 ```
 
-### Whitelists
-DMF provides pre-defined whitelists. These can be used to prevent certain files from being uploaded. The following whitelists are available:
-
-
-- ALL: All files
-  - AUDIO_ALL: All audio files
-  - APPLICATION_ALL: All application files
-  - IMAGE_ALL: All image files
-  - TEXT_ALL: All text files
-  - VIDEO_ALL: All video files
-- RESTRICTIVE: All restricted whitelists combined
-  - AUDIO_RESTRICTIVE: audio/mpeg
-  - APPLICATION_RESTRICTIVE: application/pdf
-  - IMAGE_RESTRICTIVE: image/gif, image/jpeg, image/png, image/tiff
-  - TEXT_RESTRICTIVE: text/plain
-  - VIDEO_RESTRICTIVE: video/mp4, video/mpeg
-- CUSTOM: Define your own whitelist
-
-By default, the whitelist is set to 'RESTRICTIVE'.
-
-```python
-UPLOAD_MIME_TYPE_WHITELIST = 'RESTRICTIVE'
-```
-
-You can also define whitelists by yourself by creating a custom whitelist in your settings file. For this, set the `UPLOAD_MIME_TYPE_WHITELIST` setting to `CUSTOM` and define a list of mime types called `CUSTOM_WHITELIST`. See the following example:
-```python
-UPLOAD_MIME_TYPE_WHITELIST = 'CUSTOM'
-CUSTOM_WHITELIST = ['image/png', 'video/mp4']
-```
 
 ### Sanitization mode
 DMF performs basic file sanitization by default. This can be disabled by setting the `SANITIZATION_ACTIVATED` setting to `False`. This will instantly block all upload attempts that seem to be malicious.

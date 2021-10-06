@@ -7,7 +7,8 @@ import datetime
 import os
 import subprocess
 
-VERSION = (0, 2, 0, 'final', 0)
+VERSION = (0, 3, 0, "beta", 1)
+
 
 def get_version(version=None):
     """
@@ -17,7 +18,7 @@ def get_version(version=None):
         version = VERSION
     else:
         assert len(version) == 5
-        assert version[3] in ('alpha', 'beta', 'rc', 'final')
+        assert version[3] in ("alpha", "beta", "rc", "final")
 
     # Now build the two parts of the version number:
     # main = X.Y[.Z]
@@ -25,16 +26,16 @@ def get_version(version=None):
     #     | {a|b|c}N - for alpha, beta and rc releases
 
     parts = 2 if version[2] == 0 else 3
-    main = '.'.join(str(x) for x in version[:parts])
+    main = ".".join(str(x) for x in version[:parts])
 
-    sub = ''
-    if version[3] == 'alpha' and version[4] == 0:
+    sub = ""
+    if version[3] == "alpha" and version[4] == 0:
         git_changeset = get_git_changeset()
         if git_changeset:
-            sub = '.dev%s' % git_changeset
+            sub = ".dev%s" % git_changeset
 
-    elif version[3] != 'final':
-        mapping = {'alpha': 'a', 'beta': 'b', 'rc': 'c'}
+    elif version[3] != "final":
+        mapping = {"alpha": "a", "beta": "b", "rc": "c"}
         sub = mapping[version[3]] + str(version[4])
 
     return str(main + sub)
@@ -50,7 +51,7 @@ def get_git_changeset():
     """
     repo_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     git_log = subprocess.Popen(
-        'git log --pretty=format:%ct --quiet -1 HEAD',
+        "git log --pretty=format:%ct --quiet -1 HEAD",
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         shell=True,
@@ -64,4 +65,4 @@ def get_git_changeset():
     except ValueError:
         return None
 
-    return timestamp.strftime('%Y%m%d%H%M%S')
+    return timestamp.strftime("%Y%m%d%H%M%S")

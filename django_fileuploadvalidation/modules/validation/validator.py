@@ -16,7 +16,7 @@ def get_clamAV_results(file_object):
     return clamd_res["stream"][0]
 
 
-def validate(files):
+def validate(files, options):
     logging.debug("[Validation module] - Starting validation")
 
     block_upload = False
