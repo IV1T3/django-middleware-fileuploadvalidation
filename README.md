@@ -111,8 +111,8 @@ The following example shows how to define a whitelist for the `upload_image` vie
 
 ```python
 VIEW_UPLOAD_CONFIGURATION = {
-    "myapp-filefieldform-upload": {"whitelist": "IMAGE_ALL"},
-    "myapp-filefieldform-video": {"whitelist": "VIDEO_ALL"},
+    "myapp-filefieldform-upload-image": {"whitelist": "IMAGE_ALL"},
+    "myapp-filefieldform-upload-video": {"whitelist": "VIDEO_ALL"},
 }
 ```
 
