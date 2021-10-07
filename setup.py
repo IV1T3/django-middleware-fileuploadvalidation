@@ -58,6 +58,7 @@ setup(
         'ffmpeg-python',
         'python-magic',
         'pdfid>=1.0.5',
-        'oletools'
+        'oletools',
+        'pyyaml'
     ],
 )

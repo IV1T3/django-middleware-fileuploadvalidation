@@ -10,7 +10,6 @@ import logging
 import pprint
 import time
 
-from django.conf import settings
 from django.http import HttpResponseForbidden
 
 from .data import whitelists
@@ -18,6 +17,8 @@ from .data import whitelists
 from .modules import converter, reporter
 from .modules.validation import validator
 from .modules.sanitization import sanitizer
+
+from .settings import UPLOAD_CONFIGURATION
 
 logging.basicConfig(level=logging.INFO)
 pp = pprint.PrettyPrinter(indent=4)
@@ -28,24 +29,21 @@ class FileUploadValidationMiddleware:
         # One-time configuration and initialization.
 
         self.get_response = get_response
-        self.options = getattr(
-            settings,
-            "VIEW_UPLOAD_CONFIGURATION",
-            {"default": {"whitelist": "RESTRICTIVE"}},
-        )
 
-        self.view_whitelist_mapping = self._view_upload_confs_to_whitelist_mimes(
-            self.options
-        )
-
-        self.middleware_timers = None
         self.block_request = None
+        self.middleware_timers = None
+        self.upload_config = None
 
     def __call__(self, request):
         # Code to be executed for each request before
         # the view (and later middleware) are called.
 
         if request.method == "POST" and len(request.FILES) > 0:
+
+            self.upload_config = self._extract_single_upload_config(request)
+            # self.path_to_whitelist_mapping = self._extract_whitelists_from_config(
+            #     self.upload_config
+            # )
 
             self.middleware_timers = [time.time()]
             self.block_request = False
@@ -65,6 +63,14 @@ class FileUploadValidationMiddleware:
             for file_name, file in files.items():
                 request.guessed_mimes.append(file.detection_results.guessed_mime)
 
+            if not self.block_request:
+                logging.warning(
+                    "[Middleware] - File not malicious and in whitelist => Forwarding request to view."
+                )
+                response = self.get_response(request)
+            else:
+                return HttpResponseForbidden("The file could not be uploaded.")
+
         response = self.get_response(request)
 
         # Code to be executed for each request/response after
@@ -77,27 +83,27 @@ class FileUploadValidationMiddleware:
         # before get_response(). It finally verifies that the
         # uploaded files are on the specified whitelist.
 
-        if request.method == "POST" and len(request.FILES) > 0:
-            url_name = request.resolver_match.url_name
-            files_whitelisted = self._verify_mime_in_whitelist(
-                url_name, request.guessed_mimes
-            )
+        # if request.method == "POST" and len(request.FILES) > 0:
+        #     url_name = request.resolver_match.url_name
+        #     files_whitelisted = self._verify_mime_in_whitelist(
+        #         url_name, request.guessed_mimes
+        #     )
 
-            if not self.block_request and files_whitelisted:
-                logging.warning(
-                    "[Middleware] - File not malicious and in whitelist => Forwarding request to view."
-                )
-                return None
-            else:
-                if self.block_request:
-                    logging.warning(
-                        "[Middleware] - File might be malicious => Blocking request."
-                    )
-                if not files_whitelisted:
-                    logging.warning(
-                        "[Middleware] - Files not whitelisted => Blocking request."
-                    )
-                return HttpResponseForbidden("The file could not be uploaded.")
+        #     if not self.block_request and files_whitelisted:
+        #         logging.warning(
+        #             "[Middleware] - File not malicious and in whitelist => Forwarding request to view."
+        #         )
+        #         return None
+        #     else:
+        #         if self.block_request:
+        #             logging.warning(
+        #                 "[Middleware] - File might be malicious => Blocking request."
+        #             )
+        #         if not files_whitelisted:
+        #             logging.warning(
+        #                 "[Middleware] - Files not whitelisted => Blocking request."
+        #             )
+        #         return HttpResponseForbidden("The file could not be uploaded.")
 
         return None
 
@@ -114,13 +120,13 @@ class FileUploadValidationMiddleware:
         return conversion
 
     def _validate_files(self, files):
-        files, block_upload = validator.validate(files, self.options)
+        files, block_upload = validator.validate(files, self.upload_config)
         self._print_elapsed_time("Validator")
 
         return files, block_upload
 
     def _sanitize_files(self, files):
-        sanitization_activated = getattr(settings, "SANITIZATION_ACTIVATED", True)
+        sanitization_activated = self.upload_config["sanitization"]
         if not self.block_request and sanitization_activated:
             files = sanitizer.sanitize(files)
 
@@ -144,7 +150,7 @@ class FileUploadValidationMiddleware:
         self.middleware_timers.append(curr_time)
 
     def _create_upload_log(self, files):
-        uploadlogs_mode = getattr(settings, "UPLOADLOGS_MODE", "blocked")
+        uploadlogs_mode = self.upload_config["uploadlogs_mode"]
 
         if not self.block_request:
             if uploadlogs_mode == "success" or uploadlogs_mode == "always":
@@ -153,21 +159,42 @@ class FileUploadValidationMiddleware:
             if uploadlogs_mode == "blocked" or uploadlogs_mode == "always":
                 reporter.build_report(files)
 
-    def _verify_mime_in_whitelist(self, url_name, mime_types):
-        in_whitelist = [
-            1 if mime in self.view_whitelist_mapping[url_name] else 0
-            for mime in mime_types
-        ]
-        return all(in_whitelist)
+    def _extract_single_upload_config(self, request):
 
-    def _view_upload_confs_to_whitelist_mimes(self, view_upload_confs):
-        whitelist_mimes = {}
-        for view_name, upload_conf in view_upload_confs.items():
-            whitelist_mimes[view_name] = self._get_valid_whitelist(
-                upload_conf["whitelist"]
-            )
+        upload_config = UPLOAD_CONFIGURATION
 
-        return whitelist_mimes
+        matching_req_path = request.path[1:-1]
+        if matching_req_path in upload_config:
+            upload_config = upload_config[matching_req_path]
+        else:
+            upload_config = {
+                "clamav": False,
+                "file_size_limit": 500000000,
+                "filename_length_limit": 100,
+                "sanitization": True,
+                "sensitivity": 0.99,
+                "uploadlogs_mode": "blocked",
+                "whitelist_name": "RESTRICTIVE",
+                "whitelist_custom": [],
+                "whitelist": [],
+            }
+
+        upload_config["whitelist"] = self._extract_whitelist_from_config(upload_config)
+
+        return upload_config
+
+    # def _verify_mime_in_whitelist(self, url_name, mime_types):
+    #     in_whitelist = [
+    #         1 if mime in self.path_to_whitelist_mapping[url_name] else 0
+    #         for mime in mime_types
+    #     ]
+    #     return all(in_whitelist)
+
+    def _extract_whitelist_from_config(self, upload_config):
+        if upload_config["whitelist_name"] == "CUSTOM":
+            return upload_config["whitelist_custom"]
+        else:
+            return self._get_valid_whitelist(upload_config["whitelist_name"])
 
     def _get_valid_whitelist(self, whitelist_name):
         if whitelist_name == "AUDIO_ALL":
@@ -192,8 +219,6 @@ class FileUploadValidationMiddleware:
             whitelist = whitelists.WHITELIST_MIME_TYPES__VIDEO_RESTRICTIVE
         elif whitelist_name == "ALL":
             whitelist = whitelists.WHITELIST_MIME_TYPES__ALL
-        # elif whitelist_name == "CUSTOM":
-        #     whitelist = getattr(settings, "CUSTOM_WHITELIST", None)
         else:  # RESTRICTIVE or other
             whitelist = whitelists.WHITELIST_MIME_TYPES__RESTRICTIVE
 

@@ -7,13 +7,6 @@ import magic
 
 from ..helper import add_point_to_guessed_file_type
 
-from ...settings import (
-    DETECTOR_SENSITIVITY,
-    UPLOAD_MIME_TYPE_WHITELIST,
-    FILE_SIZE_LIMIT,
-    FILENAME_LENGTH_LIMIT,
-)
-
 
 def check_malicious_keywords(file):
     logging.debug("[Validation module] - Validating keywords")
@@ -90,13 +83,15 @@ def get_filename_splits(file_object):
     return file_name_splits
 
 
-def check_file_size_allowed(file):
+def check_file_size_allowed(file, upload_config):
     """
     Check if the file size is within the allowed limits.
     """
     logging.debug("[Validation module] - Validating file size")
 
-    file_size_ok = file.basic_information.size / 1000 <= FILE_SIZE_LIMIT
+    file_size_ok = (
+        file.basic_information.size / 1000 <= upload_config["file_size_limit"]
+    )
     file.validation_results.file_size_ok = file_size_ok
 
     if not file_size_ok:
@@ -107,11 +102,11 @@ def check_file_size_allowed(file):
     return file
 
 
-def check_mime_against_whitelist(mime_to_check):
-    return mime_to_check in UPLOAD_MIME_TYPE_WHITELIST
+def check_mime_against_whitelist(mime_to_check, upload_config):
+    return mime_to_check in upload_config["whitelist"]
 
 
-def check_request_header_mime(file):
+def check_request_header_mime(file, upload_config):
     """
     Check if the request header mime is whitelisted.
     """
@@ -120,7 +115,7 @@ def check_request_header_mime(file):
     )
 
     mime_whitelist_result = check_mime_against_whitelist(
-        file.basic_information.content_type
+        file.basic_information.content_type, upload_config
     )
 
     file.validation_results.request_mime_ok = mime_whitelist_result
@@ -166,14 +161,14 @@ def check_signature_and_request_mime_match_file_extensions(file):
     return file
 
 
-def check_file_signature(file):
+def check_file_signature(file, upload_config):
     """
     Check if the file signature is whitelisted.
     """
     logging.debug("[Validation module] - Validating file signature")
 
     mime_whitelist_result = check_mime_against_whitelist(
-        file.detection_results.signature_mime
+        file.detection_results.signature_mime, upload_config
     )
     file.validation_results.signature_mime_ok = mime_whitelist_result
     if not mime_whitelist_result:
@@ -186,13 +181,15 @@ def check_file_signature(file):
     return file
 
 
-def check_filename_length(file):
+def check_filename_length(file, upload_config):
     """
     Check if the filename length is within the allowed limits.
     """
     logging.debug("[Validation module] - Validating filename length")
 
-    length_ok = len(file.basic_information.name) <= FILENAME_LENGTH_LIMIT
+    length_ok = (
+        len(file.basic_information.name) <= upload_config["filename_length_limit"]
+    )
     file.validation_results.filename_length_ok = length_ok
 
     if not length_ok:
@@ -205,7 +202,7 @@ def check_filename_length(file):
     return file
 
 
-def check_filename_extensions(file):
+def check_filename_extensions(file, upload_config):
     """
     Check if all filename extensions are whitelisted.
     """
@@ -215,7 +212,7 @@ def check_filename_extensions(file):
     for single_extension in file.detection_results.extensions:
         curr_file_extension_mime = mimetypes.guess_type("name." + single_extension)[0]
         mime_whitelist_results.append(
-            check_mime_against_whitelist(curr_file_extension_mime)
+            check_mime_against_whitelist(curr_file_extension_mime, upload_config)
         )
 
     all_extensions_whitelisted = all(mime_whitelist_results)
@@ -251,7 +248,7 @@ def check_filename_for_null_byte_injections(file):
     return file
 
 
-def guess_mime_type_and_maliciousness(file):
+def guess_mime_type_and_maliciousness(file, upload_config):
     logging.debug("[Validation module] - Guessing MIME type")
 
     guessing_scores = {mime_type: 0 for mime_type in list(mimetypes.types_map.values())}
@@ -293,7 +290,7 @@ def guess_mime_type_and_maliciousness(file):
 
     guessed_mime_type = max(guessing_scores.items(), key=operator.itemgetter(1))[0]
     correct_ratio = guessing_scores[guessed_mime_type] / total_points_overall
-    malicious = correct_ratio < DETECTOR_SENSITIVITY
+    malicious = correct_ratio < upload_config["sensitivity"]
     logging.info(
         f"[Validation module] - Malicious: {malicious} - Score: ({guessing_scores[guessed_mime_type]}/{total_points_overall}) => {correct_ratio*100}%"
     )
@@ -310,7 +307,7 @@ def guess_mime_type_and_maliciousness(file):
     return file
 
 
-def validate_file(file):
+def validate_file(file, upload_config):
     logging.debug("[Validation module] - Starting basic detection")
 
     # Retrieve basic file information
@@ -327,13 +324,13 @@ def validate_file(file):
     file = check_malicious_keywords(file)
 
     # Validate file information
-    file = check_file_size_allowed(file)
-    file = check_request_header_mime(file)
+    file = check_file_size_allowed(file, upload_config)
+    file = check_request_header_mime(file, upload_config)
     file = check_signature_and_request_mime_match_file_extensions(file)
-    file = check_file_signature(file)
-    file = check_filename_length(file)
-    file = check_filename_extensions(file)
+    file = check_file_signature(file, upload_config)
+    file = check_filename_length(file, upload_config)
+    file = check_filename_extensions(file, upload_config)
     file = check_filename_for_null_byte_injections(file)
-    file = guess_mime_type_and_maliciousness(file)
+    file = guess_mime_type_and_maliciousness(file, upload_config)
 
     return file

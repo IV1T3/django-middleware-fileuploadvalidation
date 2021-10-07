@@ -4,7 +4,6 @@ import logging
 from io import BytesIO
 
 from . import basic, image, application, video
-from ...settings import CLAMAV_USAGE
 
 
 def get_clamAV_results(file_object):
@@ -16,7 +15,7 @@ def get_clamAV_results(file_object):
     return clamd_res["stream"][0]
 
 
-def validate(files, options):
+def validate(files, upload_config):
     logging.debug("[Validation module] - Starting validation")
 
     block_upload = False
@@ -24,7 +23,8 @@ def validate(files, options):
     for file_name, file in files.items():
 
         if not block_upload:
-            if CLAMAV_USAGE:
+            print(upload_config)
+            if upload_config["clamav"]:
                 clamav_res = get_clamAV_results(file)
                 malicious = clamav_res == "FOUND"
                 if malicious:
@@ -38,7 +38,7 @@ def validate(files, options):
             if not file.block:
 
                 # Perform basic file validation
-                file = basic.validate_file(file)
+                file = basic.validate_file(file, upload_config)
 
                 if not file.block:
 

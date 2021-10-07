@@ -2,14 +2,19 @@ import logging
 import PyPDF2
 import io
 import pprint
+import yaml
+
+from pathlib import Path
 
 from pdfid import pdfid
 
 from . import ms_office
 
-from ...data import office_mimes
+# from ...data import office_mimes
 
 pp = pprint.PrettyPrinter(indent=4)
+
+from django.conf import settings
 
 
 def check_pdf_integrity(file):
@@ -97,9 +102,16 @@ def validate_file(file):
     logging.debug("[Validation module] - Starting application detection")
 
     is_pdf = file.detection_results.guessed_mime == "application/pdf"
-    is_office_doc = (
-        file.detection_results.guessed_mime in office_mimes.OFFICE_MIME_TYPES
-    )
+
+    office_yaml_path = Path(__file__).parent.parent.parent / "data" / "office_mimes.yml"
+
+    with open(office_yaml_path, "r") as stream:
+        office_mimes = yaml.safe_load(stream)
+
+    print("Printing office mimes:")
+    pp.pprint(office_mimes)
+
+    is_office_doc = file.detection_results.guessed_mime in office_mimes
 
     if is_pdf:
         logging.debug("[Validation module] - is_pdf")
