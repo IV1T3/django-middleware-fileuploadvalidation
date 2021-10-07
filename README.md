@@ -67,7 +67,7 @@ To further configure your ClamAV daemon, modify either `/etc/clamav/clamd.conf` 
 [pypi]: https://pypi.org/project/django-cprofile-middleware/
 [pypi-version]: https://img.shields.io/pypi/v/django-cprofile-middleware.svg
 
-## Settings
+## Django settings
 DMF can also be customized by modifying the Django project's settings.py file. Different upload restrictions can be applied on a path basis.
 
 This example assumes that an apps urls.py includes the following paths.
@@ -100,7 +100,7 @@ UPLOAD_CONFIGURATION = {
         "sensitivity": 0.99,
         "uploadlogs_mode": "blocked",
         "whitelist_name": "CUSTOM",
-        "whitelist_custom": ["application/pdf"],
+        "whitelist": ["application/pdf"],
     },
 }
 ```
@@ -129,4 +129,4 @@ UPLOAD_CONFIGURATION = {
       - TEXT_RESTRICTIVE: text/plain
       - VIDEO_RESTRICTIVE: video/mp4, video/mpeg
     - CUSTOM: This allows to define a custom whitelist.
-  - `whitelist_custom` (optional): If *CUSTOM* has been specified in the *whitelist_name* field, then this field requires a list of MIME types defining the custom whitelist. 
+  - `whitelist` (optional): If *CUSTOM* has been specified in the *whitelist_name* field, then this field requires a list of MIME types defining the custom whitelist. 

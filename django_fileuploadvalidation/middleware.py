@@ -139,7 +139,6 @@ class FileUploadValidationMiddleware:
                 "sensitivity": 0.99,
                 "uploadlogs_mode": "blocked",
                 "whitelist_name": "RESTRICTIVE",
-                "whitelist_custom": [],
                 "whitelist": [],
             }
 
@@ -149,7 +148,7 @@ class FileUploadValidationMiddleware:
 
     def _extract_whitelist_from_config(self, upload_config):
         if upload_config["whitelist_name"] == "CUSTOM":
-            return upload_config["whitelist_custom"]
+            return upload_config["whitelist"]
         else:
             return self._get_valid_whitelist(upload_config["whitelist_name"])
 
