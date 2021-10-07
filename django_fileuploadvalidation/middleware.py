@@ -15,8 +15,8 @@ from django.http import HttpResponseForbidden
 from .data import whitelists
 
 from .modules import converter, reporter
-from .modules.validation import validator
 from .modules.sanitization import sanitizer
+from .modules.validation import validator
 
 from .settings import UPLOAD_CONFIGURATION
 
@@ -41,9 +41,6 @@ class FileUploadValidationMiddleware:
         if request.method == "POST" and len(request.FILES) > 0:
 
             self.upload_config = self._extract_single_upload_config(request)
-            # self.path_to_whitelist_mapping = self._extract_whitelists_from_config(
-            #     self.upload_config
-            # )
 
             self.middleware_timers = [time.time()]
             self.block_request = False
@@ -59,10 +56,6 @@ class FileUploadValidationMiddleware:
 
             self._print_elapsed_time("COMPLETE")
 
-            request.guessed_mimes = []
-            for file_name, file in files.items():
-                request.guessed_mimes.append(file.detection_results.guessed_mime)
-
             if not self.block_request:
                 logging.warning(
                     "[Middleware] - File not malicious and in whitelist => Forwarding request to view."
@@ -77,35 +70,6 @@ class FileUploadValidationMiddleware:
         # the view is called.
 
         return response
-
-    def process_view(self, request, view_func, view_args, view_kwargs):
-        # Code to be executed after the first step of __call__ and
-        # before get_response(). It finally verifies that the
-        # uploaded files are on the specified whitelist.
-
-        # if request.method == "POST" and len(request.FILES) > 0:
-        #     url_name = request.resolver_match.url_name
-        #     files_whitelisted = self._verify_mime_in_whitelist(
-        #         url_name, request.guessed_mimes
-        #     )
-
-        #     if not self.block_request and files_whitelisted:
-        #         logging.warning(
-        #             "[Middleware] - File not malicious and in whitelist => Forwarding request to view."
-        #         )
-        #         return None
-        #     else:
-        #         if self.block_request:
-        #             logging.warning(
-        #                 "[Middleware] - File might be malicious => Blocking request."
-        #             )
-        #         if not files_whitelisted:
-        #             logging.warning(
-        #                 "[Middleware] - Files not whitelisted => Blocking request."
-        #             )
-        #         return HttpResponseForbidden("The file could not be uploaded.")
-
-        return None
 
     def _convert(self, request, files=None, convert_to=None):
         if convert_to == "file_objects":
@@ -182,13 +146,6 @@ class FileUploadValidationMiddleware:
         upload_config["whitelist"] = self._extract_whitelist_from_config(upload_config)
 
         return upload_config
-
-    # def _verify_mime_in_whitelist(self, url_name, mime_types):
-    #     in_whitelist = [
-    #         1 if mime in self.path_to_whitelist_mapping[url_name] else 0
-    #         for mime in mime_types
-    #     ]
-    #     return all(in_whitelist)
 
     def _extract_whitelist_from_config(self, upload_config):
         if upload_config["whitelist_name"] == "CUSTOM":

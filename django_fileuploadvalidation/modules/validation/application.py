@@ -10,8 +10,6 @@ from pdfid import pdfid
 
 from . import ms_office
 
-# from ...data import office_mimes
-
 pp = pprint.PrettyPrinter(indent=4)
 
 from django.conf import settings
@@ -107,9 +105,6 @@ def validate_file(file):
 
     with open(office_yaml_path, "r") as stream:
         office_mimes = yaml.safe_load(stream)
-
-    print("Printing office mimes:")
-    pp.pprint(office_mimes)
 
     is_office_doc = file.detection_results.guessed_mime in office_mimes
 
