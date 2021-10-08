@@ -27,10 +27,10 @@ MIDDLEWARE = [
 ```
 
 ### ClamAV virus scanning
-This package also utilizes the ClamAV anti-virus engine. If you would like to enable ClamAV through DMF, follow our ClamAV installation instructions: [ClamAV Install Guide](_CLAMAV_INSTALL_GUIDE.md)
+DMF also utilizes the ClamAV anti-virus engine. If you would like to enable ClamAV through DMF, follow our ClamAV installation instructions: [ClamAV Install Guide](_CLAMAV_INSTALL_GUIDE.md)
 
 ## Django settings
-DMF can also be customized by modifying the Django project's settings.py file. Different upload restrictions can be applied on a path basis.
+DMF can be customized by modifying the Django project's settings.py file. Different upload restrictions can be applied on a path basis.
 
 This example assumes that an apps urls.py includes the following paths.
 ```python
