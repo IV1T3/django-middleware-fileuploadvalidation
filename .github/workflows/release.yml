@@ -2,14 +2,8 @@ name: Release package
 
 
 on:
-  push:
-    # Sequence of patterns matched against refs/heads
-    branches:    
-      # Push events on main branch
-      - main
-    # Sequence of patterns matched against refs/tags
-    tags:
-      - v0.*.0   
+  release:
+    types: [created]
 
 jobs:
   deploy:
