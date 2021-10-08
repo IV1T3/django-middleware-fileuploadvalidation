@@ -1,6 +1,9 @@
 # django-middleware-fileuploadvalidation (DMF)
 
-[comment]: <> ([![pypi-version]][pypi]) 
+ A Django middleware to validate user file uploads.
+
+[![PyPI version](https://img.shields.io/pypi/v/django-middleware-fileuploadvalidation.svg?logo=pypi&logoColor=FFE873)](https://pypi.org/project/django-middleware-fileuploadvalidation/)
+[![GitHub](https://img.shields.io/github/license/IV1T3/django-middleware-fileuploadvalidation.svg)](LICENSE)
 
 ## Installing
 
