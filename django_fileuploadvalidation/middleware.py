@@ -127,23 +127,33 @@ class FileUploadValidationMiddleware:
 
         upload_config = UPLOAD_CONFIGURATION
 
+        default_upload_config = {
+            "clamav": False,
+            "keep_original_filename": False,
+            "file_size_limit": 500000000,
+            "filename_length_limit": 100,
+            "sanitization": True,
+            "sensitivity": 0.99,
+            "uploadlogs_mode": "blocked",
+            "whitelist_name": "RESTRICTIVE",
+            "whitelist": [],
+        }
+
         matching_req_path = request.path[1:-1]
         if matching_req_path in upload_config:
             upload_config = upload_config[matching_req_path]
         else:
-            upload_config = {
-                "clamav": False,
-                "keep_original_filename": False,
-                "file_size_limit": 500000000,
-                "filename_length_limit": 100,
-                "sanitization": True,
-                "sensitivity": 0.99,
-                "uploadlogs_mode": "blocked",
-                "whitelist_name": "RESTRICTIVE",
-                "whitelist": [],
-            }
+            upload_config = default_upload_config
 
+        upload_config = self._fill_missing_configs(upload_config, default_upload_config)
         upload_config["whitelist"] = self._extract_whitelist_from_config(upload_config)
+
+        return upload_config
+
+    def _fill_missing_configs(self, upload_config, default_upload_config):
+        for key, value in default_upload_config.items():
+            if key not in upload_config:
+                upload_config[key] = value
 
         return upload_config
 

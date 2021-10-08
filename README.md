@@ -42,27 +42,35 @@ urlpatterns = [
 ]
 ```
 
-Then a default DMF configuration could look like this:
+By default, the DMF upload configuration is set as follows:
+  
+```python
+{
+  "clamav": False,
+  "keep_original_filename": False,
+  "file_size_limit": 500000000,
+  "filename_length_limit": 100,
+  "sanitization": True,
+  "sensitivity": 0.99,
+  "uploadlogs_mode": "blocked",
+  "whitelist_name": "RESTRICTIVE",
+  "whitelist": [],
+}
+```
+
+Each field can be customized on a path basis in the settings.py file overwriting the default configuration.
+These are valid example configurations:
 ```python
 UPLOAD_CONFIGURATION = {
+    # Default DMF configuration. However, only image files are allowed.
     "upload_images": {
-        "clamav": False,
-        "keep_original_filename": False,
-        "file_size_limit": 500000000,
-        "filename_length_limit": 50,
-        "sanitization": True,
-        "sensitivity": 0.99,
-        "uploadlogs_mode": "blocked",
         "whitelist_name": "IMAGES_ALL",
     },
+    # Only PDF files are allowed with a file size limit of 2MB.
+    # The original filename is kept.
     "upload_pdfs": {
-        "clamav": False,
         "keep_original_filename": False,
         "file_size_limit": 200000000,
-        "filename_length_limit": 50,
-        "sanitization": True,
-        "sensitivity": 0.99,
-        "uploadlogs_mode": "blocked",
         "whitelist_name": "CUSTOM",
         "whitelist": ["application/pdf"],
     },
