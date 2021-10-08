@@ -32,7 +32,7 @@ DMF also utilizes the ClamAV anti-virus engine. If you would like to enable Clam
 ## Django settings
 DMF can be customized by modifying the Django project's settings.py file. Different upload restrictions can be applied on a path basis.
 
-This example assumes that an apps urls.py includes the following paths.
+This example assumes that an apps urls.py includes the following paths resolving to `http://127.0.0.1:8000/upload_images/` and `http://127.0.0.1:8000/upload_pdfs/`, respectively.
 ```python
 urlpatterns = [
     ...,
