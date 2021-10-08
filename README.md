@@ -1,6 +1,6 @@
 # django-middleware-fileuploadvalidation (DMF)
 
- A Django middleware to validate user file uploads.
+ A modular Django middleware to validate user file uploads, detect specially crafted media files with malicious intent and either sanitize or block them afterward. 
 
 [![PyPI version](https://img.shields.io/pypi/v/django-middleware-fileuploadvalidation.svg?logo=pypi&logoColor=FFE873)](https://pypi.org/project/django-middleware-fileuploadvalidation/)
 [![GitHub](https://img.shields.io/github/license/IV1T3/django-middleware-fileuploadvalidation.svg)](LICENSE)
