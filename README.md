@@ -68,7 +68,7 @@ UPLOAD_CONFIGURATION = {
 ```
 
 ### Configuration 
-  - `clamav`: ClamAV is an open source antivirus engine for detecting trojans, viruses, malware & other malicious threats. By default, ClamAV is enabled. However, if you want to disable it, you can do so by setting this to *False*.
+  - `clamav`: ClamAV is an open source antivirus engine for detecting trojans, viruses, malware & other malicious threats. By default, ClamAV is disabled. However, if you want to enable it, you can do so by setting this to *True*.
   - `file_size_limit`: Defines the maximum allowed file size in kilobytes (kB). Files larger than this limit will be rejected. By default, the limit is set to *5000* kB.
   - `filename_length_limit`: Defines the maximum allowed character length of the file name. By default, the limit is set to 100 characters.
   - `sanitization`: DMF performs basic file sanitization by default. This can be disabled by setting this to *False*. This will instantly block all upload attempts that seem to be malicious.
