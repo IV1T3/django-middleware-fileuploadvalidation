@@ -69,7 +69,7 @@ UPLOAD_CONFIGURATION = {
     # Only PDF files are allowed with a file size limit of 2MB.
     # The original filename is kept.
     "upload_pdfs": {
-        "keep_original_filename": False,
+        "keep_original_filename": True,
         "file_size_limit": 200000000,
         "whitelist_name": "CUSTOM",
         "whitelist": ["application/pdf"],
