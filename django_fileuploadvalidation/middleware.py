@@ -92,7 +92,7 @@ class FileUploadValidationMiddleware:
     def _sanitize_files(self, files):
         sanitization_activated = self.upload_config["sanitization"]
         if not self.block_request and sanitization_activated:
-            files = sanitizer.sanitize(files)
+            files = sanitizer.sanitize(files, self.upload_config)
 
             self._print_elapsed_time("Sanitizer")
 
@@ -133,6 +133,7 @@ class FileUploadValidationMiddleware:
         else:
             upload_config = {
                 "clamav": False,
+                "keep_original_filename": False,
                 "file_size_limit": 500000000,
                 "filename_length_limit": 100,
                 "sanitization": True,

@@ -3,7 +3,7 @@ import logging
 from . import basic, image
 
 
-def sanitize(files):
+def sanitize(files, upload_config):
     logging.debug("[Sanitizer module] - Starting sanitization")
 
     sanitized_files = {}
@@ -11,7 +11,7 @@ def sanitize(files):
     for file_name, file in files.items():
 
         # Perform basic file sanitization
-        file = basic.sanitize_file(file)
+        file = basic.sanitize_file(file, upload_config)
 
         # Get guessed file type
         file_type = file.detection_results.guessed_mime

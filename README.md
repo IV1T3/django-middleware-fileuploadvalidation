@@ -47,6 +47,7 @@ Then a default DMF configuration could look like this:
 UPLOAD_CONFIGURATION = {
     "upload_images": {
         "clamav": False,
+        "keep_original_filename": False,
         "file_size_limit": 500000000,
         "filename_length_limit": 50,
         "sanitization": True,
@@ -56,6 +57,7 @@ UPLOAD_CONFIGURATION = {
     },
     "upload_pdfs": {
         "clamav": False,
+        "keep_original_filename": False,
         "file_size_limit": 200000000,
         "filename_length_limit": 50,
         "sanitization": True,
@@ -69,6 +71,7 @@ UPLOAD_CONFIGURATION = {
 
 ### Configuration 
   - `clamav`: ClamAV is an open source antivirus engine for detecting trojans, viruses, malware & other malicious threats. By default, ClamAV is disabled. However, if you want to enable it, you can do so by setting this to *True*.
+  - `keep_original_filename`: By default, DMF will rename the uploaded file to a random string. If you would like to keep the original filename, set this to *True*.
   - `file_size_limit`: Defines the maximum allowed file size in kilobytes (kB). Files larger than this limit will be rejected. By default, the limit is set to *5000* kB.
   - `filename_length_limit`: Defines the maximum allowed character length of the file name. By default, the limit is set to 100 characters.
   - `sanitization`: DMF performs basic file sanitization by default. This can be disabled by setting this to *False*. This will instantly block all upload attempts that seem to be malicious.

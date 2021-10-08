@@ -3,8 +3,8 @@ import mimetypes
 import uuid
 
 
-def sanitization_task__create_random_filename_with_guessed_extension(file_object):
-    logging.debug("[Sanitizer module - Basic] - TASK: Creating random file name")
+def create_random_filename_with_guessed_extension(file_object):
+    logging.debug("[Sanitizer module] - Creating random file name")
     file_extension = mimetypes.guess_extension(
         file_object.detection_results.guessed_mime
     )
@@ -13,14 +13,12 @@ def sanitization_task__create_random_filename_with_guessed_extension(file_object
 
     return file_object
 
-def sanitize_file(file):
+
+def sanitize_file(file, upload_config):
     logging.debug("[Sanitizer module] - Starting basic sanitization")
 
-    file = sanitization_task__create_random_filename_with_guessed_extension(
-        file
-    )
-    file.sanitization_results.created_random_filename_with_guessed_extension = (
-        True
-    )
+    if not upload_config["keep_original_filename"]:
+        file = create_random_filename_with_guessed_extension(file)
+        file.sanitization_results.created_random_filename_with_guessed_extension = True
 
     return file
