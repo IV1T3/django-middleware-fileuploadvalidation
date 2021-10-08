@@ -47,9 +47,9 @@ By default, the DMF upload configuration is set as follows:
 ```python
 {
   "clamav": False,
-  "keep_original_filename": False,
   "file_size_limit": 500000000,
   "filename_length_limit": 100,
+  "keep_original_filename": False,
   "sanitization": True,
   "sensitivity": 0.99,
   "uploadlogs_mode": "blocked",
@@ -69,8 +69,8 @@ UPLOAD_CONFIGURATION = {
     # Only PDF files are allowed with a file size limit of 2MB.
     # The original filename is kept.
     "upload_pdfs": {
-        "keep_original_filename": True,
         "file_size_limit": 200000000,
+        "keep_original_filename": True,
         "whitelist_name": "CUSTOM",
         "whitelist": ["application/pdf"],
     },
@@ -79,9 +79,9 @@ UPLOAD_CONFIGURATION = {
 
 ### Configuration 
   - `clamav`: ClamAV is an open source antivirus engine for detecting trojans, viruses, malware & other malicious threats. By default, ClamAV is disabled. However, if you want to enable it, you can do so by setting this to *True*.
-  - `keep_original_filename`: By default, DMF will rename the uploaded file to a random string. If you would like to keep the original filename, set this to *True*.
   - `file_size_limit`: Defines the maximum allowed file size in kilobytes (kB). Files larger than this limit will be rejected. By default, the limit is set to *5000* kB.
   - `filename_length_limit`: Defines the maximum allowed character length of the file name. By default, the limit is set to 100 characters.
+  - `keep_original_filename`: By default, DMF will rename the uploaded file to a random string. If you would like to keep the original filename, set this to *True*.
   - `sanitization`: DMF performs basic file sanitization by default. This can be disabled by setting this to *False*. This will instantly block all upload attempts that seem to be malicious.
   - `sensitivity`: Threshold from which DMF denotes files as malicious. The higher the sensitivity the more strict the detection. By default, the sensitivity is set to 0.99.
   - `uploadlogs_mode`: Uploads can also be logged, to better analyze attempts afterwards. There are three different stages, which can be logged. By default, this setting is set to 'blocked'.
