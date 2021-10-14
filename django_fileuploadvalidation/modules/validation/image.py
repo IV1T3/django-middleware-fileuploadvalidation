@@ -70,17 +70,14 @@ def check_integrity(file):
 def validate_file(file):
     logging.debug("[Validation module] - Starting image validation")
 
-    file.detection_results.file_integrity = check_integrity(file)
+    file.validation_results.file_integrity_ok = check_integrity(file)
+    file.validation_results.file_integrity_check_done = True
 
-    if file.detection_results.file_integrity:
-        pass
-        # file = check_file_exif_data(file)
-    else:
-        file.block = True
-        file.append_block_reason("integrity_check_failed")
-        logging.warning(
-            f"[Validation module] - Blocking image file: integrity_check_failed"
-        )
+    # if file.validation_results.file_integrity_ok:
+    #     pass
+    #     # file = check_file_exif_data(file)
+    # else:
+    #     logging.warning(f"[Validation module] - Image integrity check FAILED")
 
     logging.debug("[Validation module] - Validation: Image - DONE")
 

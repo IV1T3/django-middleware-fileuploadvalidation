@@ -23,29 +23,37 @@ class BasicFileInformation:
 
 @dataclass
 class DetectionResults:
-    file_integrity: bool = False
     filename_splits: list = field(default_factory=list)
     extensions: list = field(default_factory=list)
     signature_mime: str = ""
     guessed_mime: str = ""
     found_keywords: dict = field(default_factory=dict)
-
-    total_points_overall: int = 0
-    guessing_scores: dict = field(default_factory=dict)
+    found_pdf_malicious_reasons: list = field(default_factory=list)
 
 
 @dataclass
 class ValidationResults:
     file_size_ok: bool = False
-    request_mime_ok: bool = False
-    signature_mime_ok: bool = False
     matching_extension_signature_request_ok: bool = False
     filename_length_ok: bool = False
     extensions_whitelist_ok: bool = False
     request_whitelist_ok: bool = False
     signature_whitelist_ok: bool = False
     keyword_search_ok: bool = False
+
+    file_integrity_ok: bool = False
+    file_integrity_check_done: bool = False
+
+    pdf_malicious_check_ok: bool = False
+    pdf_malicious_check_done: bool = False
+
+    office_macros_ok: bool = False
+    office_macros_check_done: bool = False
+
     malicious: bool = False
+
+    total_points_overall: int = 0
+    guessing_scores: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -93,9 +101,9 @@ class File:
             exif_data,
         )
 
-        self.validation_results = ValidationResults()
+        self.validation_results = ValidationResults(guessing_scores=guessing_scores)
         self.attack_results = PossibleAttacks()
-        self.detection_results = DetectionResults(guessing_scores=guessing_scores)
+        self.detection_results = DetectionResults()
         self.sanitization_results = SanitizationResults()
 
     def _get_file_hashes(self):

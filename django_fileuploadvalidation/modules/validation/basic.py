@@ -15,21 +15,21 @@ def check_malicious_keywords(file):
     # - Try to avoid using overlapping keywords but keep file
     #   type distinction for future use
     keywords = {
-        "<?": 0,
-        "<?=": 0,
-        "<?php": 0,
-        "?> ": 0,
-        "<script>": 0,
-        "#!": 0,
-        "#!/": 0,
-        "#!/bin/sh": 0,
-        "#!/bin/bash": 0,
-        "#!/usr/bin/pwsh": 0,
-        "#!/usr/bin/env python3": 0,
-        "#!/usr/bin/env sh": 0,
-        "$_": 0,
-        "base64": 0,
-        "eval": 0,
+        "<?": [],
+        "<?=": [],
+        "<?php": [],
+        "?> ": [],
+        "<script>": [],
+        # "#!": [],
+        "#!/": [],
+        "#!/bin/sh": [],
+        "#!/bin/bash": [],
+        "#!/usr/bin/pwsh": [],
+        "#!/usr/bin/env python3": [],
+        "#!/usr/bin/env sh": [],
+        "$_": [],
+        "base64": [],
+        "eval": [],
     }
 
     found = False
@@ -40,31 +40,26 @@ def check_malicious_keywords(file):
                 pos = line.index(keyword.encode())
                 line_seq_following = line[pos : pos + 50]
                 try:
-                    line_seq_following.decode("ascii")
-                    keywords[keyword] += 1
-                    found = True
-                    logging.warning(
-                        "[Validation module] - ASCII Decoding POSSIBLE: %s",
-                        line_seq_following,
-                    )
+                    line_decoded = line_seq_following.decode("ascii")
+                    if not line_decoded.startswith("<?xpacket"):
+                        keywords[keyword].append(line_seq_following)
+                        found = True
+                        logging.warning(
+                            "[Validation module] - ASCII Decoding POSSIBLE: %s",
+                            line_seq_following,
+                        )
                 except UnicodeDecodeError:
-                    logging.debug("ASCII Decoding not possible")
                     continue
 
-    found_keywords = {key: val for key, val in keywords.items() if val > 0}
+    found_keywords = {key: val for key, val in keywords.items() if len(val) > 0}
 
     print(f"{found_keywords=}")
 
     file.detection_results.found_keywords = found_keywords
-    file.validation_results.keyword_search_ok = found
+    file.validation_results.keyword_search_ok = not found
 
-    # TODO: Currently too restrictive, basically blocks every file
-    # if found:
-    #     file.block = True
-    #     file.append_block_reason("malicious_keywords_found")
-    #     logging.warning(
-    #         f"[Validation module] - Blocking file: malicious_keywords_found"
-    #     )
+    if found:
+        logging.warning(f"[Validation module] - Malicious keywords have been found.")
 
     return file
 
@@ -95,9 +90,7 @@ def check_file_size_allowed(file, upload_config):
     file.validation_results.file_size_ok = file_size_ok
 
     if not file_size_ok:
-        file.block = True
-        file.append_block_reason("file_size_too_big")
-        logging.warning(f"[Validation module] - Blocking file: file_size_too_big")
+        logging.warning(f"[Validation module] - File size is too big.")
 
     return file
 
@@ -118,14 +111,10 @@ def check_request_header_mime(file, upload_config):
         file.basic_information.content_type, upload_config
     )
 
-    file.validation_results.request_mime_ok = mime_whitelist_result
+    file.validation_results.request_whitelist_ok = mime_whitelist_result
 
     if not mime_whitelist_result:
-        file.block = True
-        file.append_block_reason("request_mime_not_whitelisted")
-        logging.warning(
-            f"[Validation module] - Blocking file: request_mime_not_whitelisted"
-        )
+        logging.warning(f"[Validation module] - Content-Type not whitelisted")
 
     return file
 
@@ -154,9 +143,7 @@ def check_signature_and_request_mime_match_file_extensions(file):
     file.attack_results.mime_manipulation = not all_extensions_match
 
     if not all_extensions_match:
-        file.block = True
-        file.append_block_reason("mime_manipulation")
-        logging.warning(f"[Validation module] - Blocking file: mime_manipulation")
+        logging.warning(f"[Validation module] - Extension MIME does not match")
 
     return file
 
@@ -170,13 +157,10 @@ def check_file_signature(file, upload_config):
     mime_whitelist_result = check_mime_against_whitelist(
         file.detection_results.signature_mime, upload_config
     )
-    file.validation_results.signature_mime_ok = mime_whitelist_result
+    file.validation_results.signature_whitelist_ok = mime_whitelist_result
+
     if not mime_whitelist_result:
-        file.block = True
-        file.append_block_reason("signature_mime_not_whitelisted")
-        logging.warning(
-            f"[Validation module] - Blocking file: signature_mime_not_whitelisted"
-        )
+        logging.warning(f"[Validation module] - Signature not whitelisted")
 
     return file
 
@@ -193,11 +177,7 @@ def check_filename_length(file, upload_config):
     file.validation_results.filename_length_ok = length_ok
 
     if not length_ok:
-        file.block = True
-        file.append_block_reason("filename_length_too_long")
-        logging.warning(
-            f"[Validation module] - Blocking file: filename_length_too_long"
-        )
+        logging.warning(f"[Validation module] - Filename length too long")
 
     return file
 
@@ -219,11 +199,7 @@ def check_filename_extensions(file, upload_config):
 
     file.validation_results.extensions_whitelist_ok = all_extensions_whitelisted
     if not all_extensions_whitelisted:
-        file.block = True
-        file.append_block_reason("extension_not_whitelisted")
-        logging.warning(
-            f"[Validation module] - Blocking file: extension_not_whitelisted"
-        )
+        logging.warning(f"[Validation module] - Extension not whitelisted")
 
     # TODO: Add detection of alternate media file extensions such as .php5
 
@@ -241,14 +217,12 @@ def check_filename_for_null_byte_injections(file):
         )
         file.attack_results.null_byte_injection = null_byte_found
         if null_byte_found:
-            file.block = True
-            file.append_block_reason("null_byte_injection")
-            logging.warning(f"[Validation module] - Blocking file: null_byte_injection")
+            logging.warning(f"[Validation module] - Null byte injection found")
 
     return file
 
 
-def guess_mime_type_and_maliciousness(file, upload_config):
+def guess_mime_type(file):
     logging.debug("[Validation module] - Guessing MIME type")
 
     guessing_scores = {mime_type: 0 for mime_type in list(mimetypes.types_map.values())}
@@ -289,20 +263,7 @@ def guess_mime_type_and_maliciousness(file, upload_config):
     )
 
     guessed_mime_type = max(guessing_scores.items(), key=operator.itemgetter(1))[0]
-    correct_ratio = guessing_scores[guessed_mime_type] / total_points_overall
-    malicious = correct_ratio < upload_config["sensitivity"]
-    logging.info(
-        f"[Validation module] - Malicious: {malicious} - Score: ({guessing_scores[guessed_mime_type]}/{total_points_overall}) => {correct_ratio*100}%"
-    )
-
-    # Setting detection data
     file.detection_results.guessed_mime = guessed_mime_type
-    file.validation_results.malicious = malicious
-
-    if malicious:
-        file.block = True
-        file.append_block_reason("malicious")
-        logging.warning(f"[Validation module] - Blocking file: malicious")
 
     return file
 
@@ -314,6 +275,9 @@ def validate_file(file, upload_config):
     filename_splits = get_filename_splits(file)
     file.detection_results.filename_splits = filename_splits
     file.detection_results.extensions = filename_splits[1:]
+    main_file_extension = file.detection_results.extensions[0]
+    main_extension_mime_type = mimetypes.guess_type("name." + main_file_extension)[0]
+    file = add_point_to_guessed_file_type(file, main_extension_mime_type)
 
     # Detecting file signature
     signature_mime = match_file_signature(file)
@@ -331,6 +295,6 @@ def validate_file(file, upload_config):
     file = check_filename_length(file, upload_config)
     file = check_filename_extensions(file, upload_config)
     file = check_filename_for_null_byte_injections(file)
-    file = guess_mime_type_and_maliciousness(file, upload_config)
+    file = guess_mime_type(file)
 
     return file

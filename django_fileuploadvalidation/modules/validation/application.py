@@ -110,31 +110,37 @@ def validate_file(file):
 
     if is_pdf:
         logging.debug("[Validation module] - is_pdf")
-        file.detection_results.file_integrity = check_pdf_integrity(file)
-        if not file.detection_results.file_integrity:
-            file.block = True
-            file.append_block_reason("integrity_check_failed")
-            logging.warning(
-                f"[Validation module] - Blocking application file: integrity_check_failed"
-            )
+        file.validation_results.file_integrity_ok = check_pdf_integrity(file)
+        file.validation_results.file_integrity_check_done = True
+
+        if not file.validation_results.file_integrity_ok:
+            logging.warning(f"[Validation module] - PDF file integrity check FAILED")
 
         pdfid_data = get_pdfid_information(file)
         pdf_malicious, malicious_reasons = is_pdf_malicious(pdfid_data)
+
+        file.detection_results.found_pdf_malicious_reasons = malicious_reasons
+
+        file.validation_results.pdf_malicious_check_ok = not pdf_malicious
+        file.validation_results.pdf_malicious_check_done = True
+
         if pdf_malicious:
-            file.block = True
-            file.append_block_reason("pdf_malicious: {}".format(malicious_reasons))
             logging.warning(
-                f"[Validation module] - Blocking application file: pdf_malicious"
+                f"[Validation module] - PDF malicious check FAILED: {malicious_reasons}"
             )
 
     if is_office_doc:
         logging.debug("[Validation module] - is_office_doc")
         macros_found, malicious_indicators = ms_office.check_vba_macros(file)
+        file.validation_results.office_macros_ok = not macros_found
 
         print(f"{macros_found=}")
         pp.pprint(malicious_indicators)
 
-        # TODO: Handle found macro indicators and specify when to block
+        if macros_found:
+            logging.warning(
+                f"[Validation module] - Office malicious check FAILED: {malicious_indicators}"
+            )
 
     logging.debug("[Validation module] - Detection: Application - DONE")
 

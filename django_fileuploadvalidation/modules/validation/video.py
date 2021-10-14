@@ -32,6 +32,6 @@ def check_video_integrity(file):
 def validate_file(file):
     logging.debug("[Validation module] - Starting video validation")
 
-    # file.detection_results.file_integrity = check_video_integrity(file)
+    # file.validation_results.file_integrity_ok = check_video_integrity(file)
 
     return file

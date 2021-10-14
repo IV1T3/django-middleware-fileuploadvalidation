@@ -14,7 +14,7 @@ from django.http import HttpResponseForbidden
 
 from .data import whitelists
 
-from .modules import converter, reporter
+from .modules import converter, reporter, evaluator
 from .modules.sanitization import sanitizer
 from .modules.validation import validator
 
@@ -48,12 +48,14 @@ class FileUploadValidationMiddleware:
             files = self._convert(request, convert_to="file_objects")
             files, self.block_request = self._validate_files(files)
 
+            # Evaluate maliciousness
+            files, self.block_request = self._evaluate_files(files)
+
             if not self.block_request:
                 files = self._sanitize_files(files)
+                request = self._convert(request, files, convert_to="request")
 
             self._create_upload_log(files)
-            request = self._convert(request, files, convert_to="request")
-
             self._print_elapsed_time("COMPLETE")
 
             if not self.block_request:
@@ -63,8 +65,8 @@ class FileUploadValidationMiddleware:
                 response = self.get_response(request)
             else:
                 return HttpResponseForbidden("The file could not be uploaded.")
-
-        response = self.get_response(request)
+        else:
+            response = self.get_response(request)
 
         # Code to be executed for each request/response after
         # the view is called.
@@ -86,6 +88,12 @@ class FileUploadValidationMiddleware:
     def _validate_files(self, files):
         files, block_upload = validator.validate(files, self.upload_config)
         self._print_elapsed_time("Validator")
+
+        return files, block_upload
+
+    def _evaluate_files(self, files):
+        files, block_upload = evaluator.evaluate(files, self.upload_config)
+        self._print_elapsed_time("Evaluator")
 
         return files, block_upload
 

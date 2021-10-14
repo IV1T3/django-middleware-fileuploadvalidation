@@ -23,7 +23,6 @@ def validate(files, upload_config):
     for file_name, file in files.items():
 
         if not block_upload:
-            print(upload_config)
             if upload_config["clamav"]:
                 clamav_res = get_clamAV_results(file)
                 malicious = clamav_res == "FOUND"

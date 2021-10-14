@@ -54,9 +54,6 @@ def build_report(files):
             report.write("Detection Results\n")
             report.write("--------------------------------\n")
             report.write(
-                "File integrity:" + str(file.detection_results.file_integrity) + "\n"
-            )
-            report.write(
                 "Filename splits:" + str(file.detection_results.filename_splits) + "\n"
             )
             report.write("Extensions:" + str(file.detection_results.extensions) + "\n")
@@ -75,14 +72,6 @@ def build_report(files):
             report.write("--------------------------------\n")
             report.write(
                 "file_size_ok:" + str(file.validation_results.file_size_ok) + "\n"
-            )
-            report.write(
-                "request_mime_ok:" + str(file.validation_results.request_mime_ok) + "\n"
-            )
-            report.write(
-                "signature_mime_ok:"
-                + str(file.validation_results.signature_mime_ok)
-                + "\n"
             )
             report.write(
                 "matching_extension_signature_request_ok:"
@@ -107,6 +96,11 @@ def build_report(files):
             report.write(
                 "signature_whitelist_ok:"
                 + str(file.validation_results.signature_whitelist_ok)
+                + "\n"
+            )
+            report.write(
+                "File integrity:"
+                + str(file.validation_results.file_integrity_ok)
                 + "\n"
             )
             report.write("malicious:" + str(file.validation_results.malicious) + "\n")

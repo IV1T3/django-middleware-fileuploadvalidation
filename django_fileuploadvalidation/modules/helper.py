@@ -13,11 +13,11 @@ def fill_hex_with_zero(content, start_idx, end_idx):
 
 
 def add_point_to_guessed_file_type(file, mime):
-    if mime in file.detection_results.guessing_scores:
-        file.detection_results.guessing_scores[mime] += 1
+    if mime in file.validation_results.guessing_scores:
+        file.validation_results.guessing_scores[mime] += 1
     else:
-        file.detection_results.guessing_scores[mime] = 1
+        file.validation_results.guessing_scores[mime] = 1
 
-    file.detection_results.total_points_overall += 1
+    file.validation_results.total_points_overall += 1
 
     return file
