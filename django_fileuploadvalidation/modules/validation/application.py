@@ -134,7 +134,6 @@ def validate_file(file):
         macros_found, malicious_indicators = ms_office.check_vba_macros(file)
         file.validation_results.office_macros_ok = not macros_found
 
-        print(f"{macros_found=}")
         pp.pprint(malicious_indicators)
 
         if macros_found:
