@@ -8,10 +8,9 @@ blocks them afterwards.
 
 import logging
 import pprint
-import re
 import time
 
-from django.http import HttpResponseForbidden, request
+from django.http import HttpResponseForbidden
 
 from .data import whitelists
 
