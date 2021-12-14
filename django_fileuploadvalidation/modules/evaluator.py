@@ -27,6 +27,8 @@ def evaluate(files, upload_config):
         if not strict_val_success:
             block_upload = True
             file.block = True
+            file.validation_results.malicious = True
+            file.append_block_reason("strict_eval_failed")
             logging.warning("[Evaluator module] - Blocking: Strict evaluation FAILED")
         else:
             logging.info("[Evaluator module] - Strict evaluation PASSED")
@@ -42,6 +44,24 @@ def evaluate(files, upload_config):
                 "keywords": 1.0,
                 "pdf_check": 1.5,
                 "office_macros": 1.0,
+            }
+
+            keyword_weights = {
+                # "<?": [],
+                "<?=": [],
+                "<?php": [],
+                # "?> ": [],
+                "<script": [],
+                # "#!": [],
+                "#!/": [],
+                "#!/bin/sh": [],
+                "#!/bin/bash": [],
+                "#!/usr/bin/pwsh": [],
+                "#!/usr/bin/env python3": [],
+                "#!/usr/bin/env sh": [],
+                # "$_": [],
+                "base64": [],
+                "eval": [],
             }
 
             # 2.1. Evaluate found keywords
@@ -96,16 +116,20 @@ def evaluate(files, upload_config):
             # 2.4. Evaluate office macros
             # TODO
 
-            normalized_maliciousness = vague_val_mal_score / max_mal_score
+            if max_mal_score != 0:
+                normalized_maliciousness = vague_val_mal_score / max_mal_score
 
-            if normalized_maliciousness > 1 - upload_config["sensitivity"]:
-                logging.warning(
-                    "[Evaluator module] - Blocking: Vague evaluation FAILED"
-                )
-                block_upload = True
-                file.block = True
-                file.validation_results.malicious = True
-            else:
-                logging.info("[Evaluator module] - Vague evaluation PASSED")
+                if normalized_maliciousness > 1 - upload_config["sensitivity"]:
+                    logging.warning(
+                        "[Evaluator module] - Blocking: Vague evaluation FAILED"
+                    )
+                    block_upload = True
+                    file.block = True
+                    file.append_block_reason("vague_eval_failed")
+                    file.validation_results.malicious = True
+                else:
+                    logging.info("[Evaluator module] - Vague evaluation PASSED")
+        else:
+            break
 
     return files, block_upload

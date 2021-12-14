@@ -18,7 +18,6 @@ class BasicFileInformation:
     sha1: str
     sha256: str
     exif_data: dict = field(default_factory=dict)
-    filename_length: int = 0
 
 
 @dataclass

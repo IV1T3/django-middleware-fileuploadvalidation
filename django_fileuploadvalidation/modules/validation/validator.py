@@ -29,9 +29,9 @@ def validate(files, upload_config):
                 if malicious:
                     block_upload = True
                     file.block = True
-                    file.append_block_reason("ClamAV detection")
+                    file.append_block_reason("ClamAV_detection")
                     logging.warning(
-                        f"[Validation module] - Blocking file: ClamAV detection"
+                        f"{file.basic_information.name} [Validation module] - Blocking file: ClamAV detection"
                     )
 
             if not file.block:

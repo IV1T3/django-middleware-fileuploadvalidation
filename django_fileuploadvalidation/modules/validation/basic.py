@@ -1,3 +1,4 @@
+import re
 import logging
 import mimetypes
 import operator
@@ -15,24 +16,65 @@ def check_malicious_keywords(file):
     # - Try to avoid using overlapping keywords but keep file
     #   type distinction for future use
     keywords = {
-        "<?": [],
+        # "<?": [],
         "<?=": [],
         "<?php": [],
-        "?> ": [],
-        "<script>": [],
+        # "?> ": [],
+        "<script": [],
         # "#!": [],
-        "#!/": [],
+        # "#!/": [],
         "#!/bin/sh": [],
         "#!/bin/bash": [],
         "#!/usr/bin/pwsh": [],
         "#!/usr/bin/env python3": [],
         "#!/usr/bin/env sh": [],
-        "$_": [],
+        # "$_": [],
         "base64": [],
         "eval": [],
     }
 
+    re_keywords = {
+        b"<\?": [],
+        b"<\?=": [],
+        b"<\?php": [],
+        b"\?> ": [],
+        b"<\s*script": [],
+        # b"#!": [],
+        b"#!/": [],
+        b"#!/bin/sh": [],
+        b"#!/bin/bash": [],
+        b"#!/usr/bin/pwsh": [],
+        b"#!/usr/bin/env python3": [],
+        b"#!/usr/bin/env sh": [],
+        b"$_": [],
+        b"base64": [],
+        b"eval": [],
+    }
+
     found = False
+
+    # print(file.content)
+
+    for re_key in re_keywords:
+        r = re.compile(re_key)
+        for match in re.finditer(re_key, file.content):
+            matched_key = match.group()
+            matched_idcs = match.span()
+
+            print(matched_key, matched_idcs)
+
+            try:
+                line_decoded = file.content[
+                    max(matched_idcs[0] - 10, 0) : matched_idcs[1] + 10
+                ].decode("ascii")
+                print("NICE:", line_decoded)
+            except UnicodeDecodeError:
+                continue
+
+        # packed = r.findall(file.content)
+        # for res in packed:
+        #     print(res.span())
+        # print(packed)
 
     for line in file.content.splitlines():
         for keyword in keywords:
@@ -269,12 +311,14 @@ def guess_mime_type(file):
 
 
 def validate_file(file, upload_config):
-    logging.debug("[Validation module] - Starting basic detection")
+    logging.debug(
+        f"{file.basic_information.name} - [Validation module] - Starting basic detection"
+    )
 
     # Retrieve basic file information
     filename_splits = get_filename_splits(file)
     file.detection_results.filename_splits = filename_splits
-    file.detection_results.extensions = filename_splits[1:]
+    file.detection_results.extensions = [filename_splits[-1]]
     main_file_extension = file.detection_results.extensions[0]
     main_extension_mime_type = mimetypes.guess_type("name." + main_file_extension)[0]
     file = add_point_to_guessed_file_type(file, main_extension_mime_type)

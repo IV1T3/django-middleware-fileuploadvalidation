@@ -52,13 +52,14 @@ setup(
         'python-dotenv',
         'python-decouple',
         'exifread',
-        'pillow',
-        'clamd',
         'pypdf2',
-        'ffmpeg-python',
         'python-magic',
+        'pillow',
+        'wand',
         'pdfid>=1.0.5',
         'oletools',
         'pyyaml'
+        'clamd',
+        'python-ffmpeg',
     ],
 )

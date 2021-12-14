@@ -5,11 +5,11 @@ import time
 from datetime import datetime
 
 
-def create_file_path(filename):
+def create_file_path(filename, mode):
     logging.debug("[Reporter module] - Creating file path")
     curr_time = time.time()
     report_name = filename + "_" + str(curr_time) + ".log"
-    file_path = f"./uploadlogs/{report_name}"
+    file_path = f"./uploadlogs/{mode}/{report_name}"
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     return file_path
 
@@ -18,7 +18,10 @@ def build_report(files):
     logging.debug("[Reporter module] - Building report")
     for _, file in files.items():
         now = datetime.now().strftime("%d. %B %Y - %H:%M:%S")
-        file_path = create_file_path(file.basic_information.name)
+
+        file_upload_mode = "blocked" if file.block else "success"
+
+        file_path = create_file_path(file.basic_information.name, file_upload_mode)
         with open(file_path, "w+") as report:
             report.write("File Upload Report\n")
             report.write("Upload date and time: " + now + " UTC\n")
@@ -43,7 +46,7 @@ def build_report(files):
             report.write("SHA-1:" + str(file.basic_information.sha1) + "\n")
             report.write("SHA-256:" + str(file.basic_information.sha256) + "\n")
             report.write(
-                "Filename length:" + str(file.basic_information.filename_length) + "\n"
+                "Filename length:" + str(len(file.basic_information.name)) + "\n"
             )
             report.write("Block:" + str(file.block) + "\n")
             report.write("Block reasons:" + str(file.block_reasons) + "\n")
@@ -62,6 +65,9 @@ def build_report(files):
             )
             report.write(
                 "Guessed MIME:" + str(file.detection_results.guessed_mime) + "\n"
+            )
+            report.write(
+                "Found keywords:" + str(file.detection_results.found_keywords) + "\n"
             )
 
             ########################

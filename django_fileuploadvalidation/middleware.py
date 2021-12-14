@@ -8,9 +8,10 @@ blocks them afterwards.
 
 import logging
 import pprint
+import re
 import time
 
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, request
 
 from .data import whitelists
 
@@ -30,42 +31,38 @@ class FileUploadValidationMiddleware:
 
         self.get_response = get_response
 
-        self.block_request = None
-        self.middleware_timers = None
-        self.upload_config = None
-
     def __call__(self, request):
         # Code to be executed for each request before
         # the view (and later middleware) are called.
 
         if request.method == "POST" and len(request.FILES) > 0:
 
-            self.upload_config = self._extract_single_upload_config(request)
-
-            self.middleware_timers = [time.time()]
-            self.block_request = False
+            request.block_request = False
+            request.middleware_timers = [time.time()]
+            request.upload_config = self._extract_single_upload_config(request)
 
             files = self._convert(request, convert_to="file_objects")
-            files, self.block_request = self._validate_files(files)
+            files, request.block_request = self._validate_files(files, request)
 
             # Evaluate maliciousness
-            files, self.block_request = self._evaluate_files(files)
+            files, request.block_request = self._evaluate_files(files, request)
 
-            if not self.block_request:
-                files = self._sanitize_files(files)
-                request = self._convert(request, files, convert_to="request")
+            if not request.block_request:
+                files = self._sanitize_files(files, request)
 
-            self._create_upload_log(files)
-            self._print_elapsed_time("COMPLETE")
+            self._create_upload_log(files, request)
+            self._print_elapsed_time("COMPLETE", request)
 
-            if not self.block_request:
+            if not request.block_request:
                 logging.warning(
                     "[Middleware] - File not malicious and in whitelist => Forwarding request to view."
                 )
+                request = self._convert(request, files, convert_to="request")
                 response = self.get_response(request)
             else:
                 return HttpResponseForbidden("The file could not be uploaded.")
         else:
+            assert len(request.FILES) == 0
             response = self.get_response(request)
 
         # Code to be executed for each request/response after
@@ -81,35 +78,35 @@ class FileUploadValidationMiddleware:
         else:
             return None
 
-        self._print_elapsed_time("Converter")
+        self._print_elapsed_time("Converter", request)
 
         return conversion
 
-    def _validate_files(self, files):
-        files, block_upload = validator.validate(files, self.upload_config)
-        self._print_elapsed_time("Validator")
+    def _validate_files(self, files, request):
+        files, block_upload = validator.validate(files, request.upload_config)
+        self._print_elapsed_time("Validator", request)
 
         return files, block_upload
 
-    def _evaluate_files(self, files):
-        files, block_upload = evaluator.evaluate(files, self.upload_config)
-        self._print_elapsed_time("Evaluator")
+    def _evaluate_files(self, files, request):
+        files, block_upload = evaluator.evaluate(files, request.upload_config)
+        self._print_elapsed_time("Evaluator", request)
 
         return files, block_upload
 
-    def _sanitize_files(self, files):
-        sanitization_activated = self.upload_config["sanitization"]
-        if not self.block_request and sanitization_activated:
-            files = sanitizer.sanitize(files, self.upload_config)
+    def _sanitize_files(self, files, request):
+        sanitization_activated = request.upload_config["sanitization"]
+        if not request.block_request and sanitization_activated:
+            files = sanitizer.sanitize(files, request.upload_config)
 
-            self._print_elapsed_time("Sanitizer")
+            self._print_elapsed_time("Sanitizer", request)
 
         return files
 
-    def _print_elapsed_time(self, processing_step):
+    def _print_elapsed_time(self, processing_step, request):
         curr_time = time.time()
-        execution_last_step = (curr_time - self.middleware_timers[-1]) * 1000
-        execution_until_now = (curr_time - self.middleware_timers[0]) * 1000
+        execution_last_step = (curr_time - request.middleware_timers[-1]) * 1000
+        execution_until_now = (curr_time - request.middleware_timers[0]) * 1000
 
         if processing_step == "COMPLETE":
             logging.info(
@@ -119,16 +116,21 @@ class FileUploadValidationMiddleware:
             logging.info(
                 f"[Middleware] - {processing_step} took {round(execution_last_step, 3)} ms - Total: {round(execution_until_now, 3)} ms"
             )
-        self.middleware_timers.append(curr_time)
+        request.middleware_timers.append(curr_time)
 
-    def _create_upload_log(self, files):
-        uploadlogs_mode = self.upload_config["uploadlogs_mode"]
+    def _create_upload_log(self, files, request):
 
-        if not self.block_request:
+        uploadlogs_mode = request.upload_config["uploadlogs_mode"]
+
+        if not request.block_request:
+            print("not request.block_request")
             if uploadlogs_mode == "success" or uploadlogs_mode == "always":
+                print("uploadlogs_mode == success or uploadlogs_mode == always")
                 reporter.build_report(files)
         else:
+            print("request.block_request")
             if uploadlogs_mode == "blocked" or uploadlogs_mode == "always":
+                print("uploadlogs_mode == blocked or uploadlogs_mode == always")
                 reporter.build_report(files)
 
     def _extract_single_upload_config(self, request):
