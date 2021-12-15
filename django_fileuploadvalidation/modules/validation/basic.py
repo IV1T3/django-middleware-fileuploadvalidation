@@ -315,6 +315,8 @@ def validate_file(file, upload_config):
         f"{file.basic_information.name} - [Validation module] - Starting basic detection"
     )
 
+    mimetypes.init()
+
     # Retrieve basic file information
     filename_splits = get_filename_splits(file)
     file.detection_results.filename_splits = filename_splits

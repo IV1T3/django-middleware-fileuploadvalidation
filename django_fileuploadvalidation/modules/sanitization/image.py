@@ -86,6 +86,8 @@ def sanitization_task__clean_structure(file_object):
 def sanitize_file(file):
     logging.debug("[Sanitizer module] - Starting image sanitization")
 
+    mimetypes.init()
+
     file = sanitization_task__clean_exif(file)
     file.sanitization_results.cleansed_exif = True
 

@@ -17,6 +17,8 @@ def create_random_filename_with_guessed_extension(file_object):
 def sanitize_file(file, upload_config):
     logging.debug("[Sanitizer module] - Starting basic sanitization")
 
+    mimetypes.init()
+
     if not upload_config["keep_original_filename"]:
         file = create_random_filename_with_guessed_extension(file)
         file.sanitization_results.created_random_filename_with_guessed_extension = True

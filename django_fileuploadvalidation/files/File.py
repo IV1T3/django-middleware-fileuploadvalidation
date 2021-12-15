@@ -84,6 +84,7 @@ class File:
         hash_md5, hash_sha1, hash_sha256 = self._get_file_hashes()
         exif_data = self._retrieve_exif_data()
 
+        mimetypes.init()
         guessing_scores = {
             mime_type: 0 for mime_type in list(mimetypes.types_map.values())
         }

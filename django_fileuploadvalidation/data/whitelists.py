@@ -1,5 +1,6 @@
 import mimetypes
 
+mimetypes.init()
 all_mimetypes = list(mimetypes.types_map.values())
 
 WHITELIST_MIME_TYPES__AUDIO_ALL = [
