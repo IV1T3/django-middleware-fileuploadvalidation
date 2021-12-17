@@ -17,7 +17,8 @@ class BasicFileInformation:
     md5: str
     sha1: str
     sha256: str
-    exif_data: dict = field(default_factory=dict)
+    sha512: str
+    # exif_data: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -27,7 +28,6 @@ class DetectionResults:
     signature_mime: str = ""
     guessed_mime: str = ""
     found_keywords: dict = field(default_factory=dict)
-    found_pdf_malicious_reasons: list = field(default_factory=list)
 
 
 @dataclass
@@ -42,12 +42,6 @@ class ValidationResults:
 
     file_integrity_ok: bool = False
     file_integrity_check_done: bool = False
-
-    pdf_malicious_check_ok: bool = False
-    pdf_malicious_check_done: bool = False
-
-    office_macros_ok: bool = False
-    office_macros_check_done: bool = False
 
     malicious: bool = False
 
@@ -81,8 +75,8 @@ class File:
         self._block = False
         self._block_reasons = []
 
-        hash_md5, hash_sha1, hash_sha256 = self._get_file_hashes()
-        exif_data = self._retrieve_exif_data()
+        hash_md5, hash_sha1, hash_sha256, hash_sha512 = self._get_file_hashes()
+        # exif_data = self._retrieve_exif_data()
 
         mimetypes.init()
         guessing_scores = {
@@ -98,7 +92,8 @@ class File:
             hash_md5,
             hash_sha1,
             hash_sha256,
-            exif_data,
+            hash_sha512
+            # exif_data,
         )
 
         self.validation_results = ValidationResults(guessing_scores=guessing_scores)
@@ -111,21 +106,25 @@ class File:
         md5_hash = hashlib.md5()
         sha1_hash = hashlib.sha1()
         sha256_hash = hashlib.sha256()
+        sha512_hash = hashlib.sha512()
 
         for chunk in self._uploaded_file.chunks():
             md5_hash.update(chunk)
             sha1_hash.update(chunk)
             sha256_hash.update(chunk)
+            sha512_hash.update(chunk)
 
         hexdigest_md5 = md5_hash.hexdigest()
         hexdigest_sha1 = sha1_hash.hexdigest()
         hexdigest_sha256 = sha256_hash.hexdigest()
+        hexdigest_sha512 = sha512_hash.hexdigest()
 
         logging.debug(f"[File class] - MD5: {hexdigest_md5}")
         logging.debug(f"[File class] - SHA1: {hexdigest_sha1}")
         logging.debug(f"[File class] - SHA256: {hexdigest_sha256}")
+        logging.debug(f"[File class] - SHA512: {hexdigest_sha512}")
 
-        return hexdigest_md5, hexdigest_sha1, hexdigest_sha256
+        return hexdigest_md5, hexdigest_sha1, hexdigest_sha256, hexdigest_sha512
 
     def _retrieve_exif_data(self):
         logging.debug("[File class] - Retrieving file exif data")

@@ -1,153 +1,141 @@
-import os
+import json
 import logging
+import os
 import time
 
-from datetime import datetime
+import pprint
+
+pp = pprint.PrettyPrinter(indent=4)
+
+
+def convert(nested_dict):
+    """
+    Convert nested dict with bytes to str.
+    This is needed because bytes are not JSON serializable.
+
+    :param nested_dict: nested dict with bytes
+    """
+    if isinstance(nested_dict, dict):
+        return {convert(k): convert(v) for k, v in nested_dict.items()}
+    elif isinstance(nested_dict, list):
+        return [convert(v) for v in nested_dict]
+    elif isinstance(nested_dict, tuple):
+        return tuple(convert(v) for v in nested_dict)
+    elif (
+        isinstance(nested_dict, str)
+        or isinstance(nested_dict, int)
+        or isinstance(nested_dict, float)
+    ):
+        return nested_dict
+    else:
+        return str(nested_dict)
 
 
 def create_file_path(filename, mode):
     logging.debug("[Reporter module] - Creating file path")
     curr_time = time.time()
-    report_name = filename + "_" + str(curr_time) + ".log"
+    report_name = str(curr_time) + "_" + filename + ".json"
     file_path = f"./uploadlogs/{mode}/{report_name}"
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     return file_path
 
 
+def prepare_json_data(files):
+    logging.debug("[Reporter module] - Preparing json data")
+    json_data = {}
+    for file_name, file in files.items():
+        json_data[file_name] = {}
+
+        json_data[file_name]["overview"] = {
+            "name": file.basic_information.name,
+            "size": file.basic_information.size,
+            "content_type": file.basic_information.content_type,
+            "charset": file.basic_information.charset,
+            "md5": file.basic_information.md5,
+            "sha1": file.basic_information.sha1,
+            "sha256": file.basic_information.sha256,
+            "sha512": file.basic_information.sha512,
+            "block": file.block,
+            "block_reasons": file.block_reasons,
+        }
+
+        json_data[file_name]["detection"] = {
+            "filename_splits": file.detection_results.filename_splits,
+            "extensions": file.detection_results.extensions,
+            "signature_mime": file.detection_results.signature_mime,
+            "guessed_mime": file.detection_results.guessed_mime,
+            "found_keywords": file.detection_results.found_keywords,
+        }
+
+        file.validation_results.guessing_scores = {
+            k: v for k, v in file.validation_results.guessing_scores.items() if v > 0
+        }
+
+        json_data[file_name]["evaluation"] = {
+            "mime_manipulation": file.attack_results.mime_manipulation,
+            "null_byte_injection": file.attack_results.null_byte_injection,
+            "exif_injection": file.attack_results.exif_injection,
+        }
+
+        # Add Quicksand results
+        if file.quicksand_results["results"]:
+            json_data[file_name]["quicksand"] = {}
+            for suspicious_finding in file.quicksand_results["results"]["root"]:
+                json_data[file_name]["quicksand"][suspicious_finding["rule"]] = {
+                    "description": suspicious_finding["desc"],
+                    "strings": suspicious_finding["strings"],
+                    "type": suspicious_finding["type"],
+                }
+
+                if "mitre" in suspicious_finding:
+                    json_data[file_name]["quicksand"][suspicious_finding["rule"]][
+                        "mitre"
+                    ] = suspicious_finding["mitre"]
+
+            json_data[file_name]["quicksand"]["score"] = file.quicksand_results["score"]
+            json_data[file_name]["quicksand"]["warning"] = file.quicksand_results[
+                "warning"
+            ]
+            json_data[file_name]["quicksand"]["exploit"] = file.quicksand_results[
+                "exploit"
+            ]
+            json_data[file_name]["quicksand"]["execute"] = file.quicksand_results[
+                "execute"
+            ]
+            json_data[file_name]["quicksand"]["feature"] = file.quicksand_results[
+                "feature"
+            ]
+            json_data[file_name]["quicksand"]["risk"] = file.quicksand_results["risk"]
+            json_data[file_name]["quicksand"]["rating"] = file.quicksand_results[
+                "rating"
+            ]
+            json_data[file_name]["quicksand"]["structhash"] = file.quicksand_results[
+                "structhash"
+            ]
+            json_data[file_name]["quicksand"]["structure"] = file.quicksand_results[
+                "structure"
+            ]
+
+        json_data[file_name]["validation_results"] = file.validation_results.__dict__
+        json_data[file_name][
+            "sanitization_results"
+        ] = file.sanitization_results.__dict__
+
+    json_data = convert(json_data)
+
+    return json_data
+
+
+def write_json(json_data, file_path):
+    with open(file_path, "w") as f:
+        json.dump(json_data, f, indent=4)
+
+
 def build_report(files):
     logging.debug("[Reporter module] - Building report")
+
     for _, file in files.items():
-        now = datetime.now().strftime("%d. %B %Y - %H:%M:%S")
-
         file_upload_mode = "blocked" if file.block else "success"
-
         file_path = create_file_path(file.basic_information.name, file_upload_mode)
-        with open(file_path, "w+") as report:
-            report.write("File Upload Report\n")
-            report.write("Upload date and time: " + now + " UTC\n")
-            #######################
-            ## Basic Information ##
-            #######################
-            report.write("================================\n")
-            report.write("Basic file information\n")
-            report.write("--------------------------------\n")
-            report.write("File name:" + str(file.basic_information.name) + "\n")
-            report.write("File size:" + str(file.basic_information.size) + "\n")
-            report.write(
-                "Content-Type:" + str(file.basic_information.content_type) + "\n"
-            )
-            report.write(
-                "Content-Type Extra:"
-                + str(file.basic_information.content_type_extra)
-                + "\n"
-            )
-            report.write("Charset:" + str(file.basic_information.charset) + "\n")
-            report.write("MD5:" + str(file.basic_information.md5) + "\n")
-            report.write("SHA-1:" + str(file.basic_information.sha1) + "\n")
-            report.write("SHA-256:" + str(file.basic_information.sha256) + "\n")
-            report.write(
-                "Filename length:" + str(len(file.basic_information.name)) + "\n"
-            )
-            report.write("Block:" + str(file.block) + "\n")
-            report.write("Block reasons:" + str(file.block_reasons) + "\n")
-            #######################
-            ## Detection Results ##
-            #######################
-            report.write("================================\n")
-            report.write("Detection Results\n")
-            report.write("--------------------------------\n")
-            report.write(
-                "Filename splits:" + str(file.detection_results.filename_splits) + "\n"
-            )
-            report.write("Extensions:" + str(file.detection_results.extensions) + "\n")
-            report.write(
-                "Signature MIME:" + str(file.detection_results.signature_mime) + "\n"
-            )
-            report.write(
-                "Guessed MIME:" + str(file.detection_results.guessed_mime) + "\n"
-            )
-            report.write(
-                "Found keywords:" + str(file.detection_results.found_keywords) + "\n"
-            )
-
-            ########################
-            ## Validation Results ##
-            ########################
-            report.write("================================\n")
-            report.write("Validation Results\n")
-            report.write("--------------------------------\n")
-            report.write(
-                "file_size_ok:" + str(file.validation_results.file_size_ok) + "\n"
-            )
-            report.write(
-                "matching_extension_signature_request_ok:"
-                + str(file.validation_results.matching_extension_signature_request_ok)
-                + "\n"
-            )
-            report.write(
-                "filename_length_ok:"
-                + str(file.validation_results.filename_length_ok)
-                + "\n"
-            )
-            report.write(
-                "extensions_whitelist_ok:"
-                + str(file.validation_results.extensions_whitelist_ok)
-                + "\n"
-            )
-            report.write(
-                "request_whitelist_ok:"
-                + str(file.validation_results.request_whitelist_ok)
-                + "\n"
-            )
-            report.write(
-                "signature_whitelist_ok:"
-                + str(file.validation_results.signature_whitelist_ok)
-                + "\n"
-            )
-            report.write(
-                "File integrity:"
-                + str(file.validation_results.file_integrity_ok)
-                + "\n"
-            )
-            report.write("malicious:" + str(file.validation_results.malicious) + "\n")
-
-            ######################
-            ## Possible Attacks ##
-            ######################
-            report.write("================================\n")
-            report.write("Possible Attacks\n")
-            report.write("--------------------------------\n")
-            report.write(
-                "mime_manipulation:" + str(file.attack_results.mime_manipulation) + "\n"
-            )
-            report.write(
-                "null_byte_injection:"
-                + str(file.attack_results.null_byte_injection)
-                + "\n"
-            )
-            report.write(
-                "exif_injection:" + str(file.attack_results.exif_injection) + "\n"
-            )
-
-            ##########################
-            ## Sanitization Results ##
-            ##########################
-            report.write("================================\n")
-            report.write("Sanitization Results\n")
-            report.write("--------------------------------\n")
-            report.write(
-                "cleansed_exif:" + str(file.sanitization_results.cleansed_exif) + "\n"
-            )
-            report.write(
-                "cleansed_structure:"
-                + str(file.sanitization_results.cleansed_structure)
-                + "\n"
-            )
-            report.write(
-                "created_random_filename_with_guessed_extension:"
-                + str(
-                    file.sanitization_results.created_random_filename_with_guessed_extension
-                )
-                + "\n"
-            )
-            report.write("================================\n")
+        json_data = prepare_json_data(files)
+        write_json(json_data, file_path)

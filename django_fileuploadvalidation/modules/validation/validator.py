@@ -3,7 +3,7 @@ import logging
 
 from io import BytesIO
 
-from . import basic, image, application, video
+from . import basic, image, video, quicksand
 
 
 def get_clamAV_results(file_object):
@@ -39,14 +39,18 @@ def validate(files, upload_config):
                 # Perform basic file validation
                 file = basic.validate_file(file, upload_config)
 
+                print(f"{file.block=}")
+
                 if not file.block:
+                    # Perform quicksand scan
+                    file = quicksand.validate_file(file, upload_config)
 
                     # Get guessed file type
                     file_type = file.detection_results.guessed_mime
 
                     # Perform file type specific validation
                     if file_type.startswith("application"):
-                        file = application.validate_file(file)
+                        pass
                     elif file_type.startswith("audio"):
                         pass
                     elif file_type.startswith("image"):

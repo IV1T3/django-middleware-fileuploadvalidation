@@ -20,7 +20,7 @@ from .modules.validation import validator
 
 from .settings import UPLOAD_CONFIGURATION
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 pp = pprint.PrettyPrinter(indent=4)
 
 
@@ -43,10 +43,8 @@ class FileUploadValidationMiddleware:
             files = self._convert(request, convert_to="file_objects")
             files, request.block_request = self._validate_files(files, request)
 
-            # Evaluate maliciousness
-            files, request.block_request = self._evaluate_files(files, request)
-
             if not request.block_request:
+                files, request.block_request = self._evaluate_files(files, request)
                 files = self._sanitize_files(files, request)
 
             self._create_upload_log(files, request)
@@ -61,7 +59,6 @@ class FileUploadValidationMiddleware:
             else:
                 return HttpResponseForbidden("The file could not be uploaded.")
         else:
-            assert len(request.FILES) == 0
             response = self.get_response(request)
 
         # Code to be executed for each request/response after

@@ -98,24 +98,6 @@ def evaluate(files, upload_config):
                     integrity_score_outcomes[0] < integrity_score_outcomes[1]
                 ]
 
-            # 2.3. Evaluate malicous PDFs
-            if file.validation_results.pdf_malicious_check_done:
-                logging.info("[Evaluator module] - Starting PDF analysis")
-                pdf_score_outcomes = [1.0 * vague_val_weights["pdf_check"], 0.0]
-
-                if not file.validation_results.pdf_malicious_check_ok:
-                    for (
-                        mal_reason
-                    ) in file.detection_results.found_pdf_malicious_reasons:
-                        vague_val_mal_score += pdf_score_outcomes[0]
-
-                        max_mal_score += pdf_score_outcomes[
-                            pdf_score_outcomes[0] < pdf_score_outcomes[1]
-                        ]
-
-            # 2.4. Evaluate office macros
-            # TODO
-
             if max_mal_score != 0:
                 normalized_maliciousness = vague_val_mal_score / max_mal_score
 

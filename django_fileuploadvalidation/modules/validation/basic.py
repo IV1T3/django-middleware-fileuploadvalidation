@@ -15,23 +15,6 @@ def check_malicious_keywords(file):
     # - Implement more efficient way to check for keywords
     # - Try to avoid using overlapping keywords but keep file
     #   type distinction for future use
-    keywords = {
-        # "<?": [],
-        "<?=": [],
-        "<?php": [],
-        # "?> ": [],
-        "<script": [],
-        # "#!": [],
-        # "#!/": [],
-        "#!/bin/sh": [],
-        "#!/bin/bash": [],
-        "#!/usr/bin/pwsh": [],
-        "#!/usr/bin/env python3": [],
-        "#!/usr/bin/env sh": [],
-        # "$_": [],
-        "base64": [],
-        "eval": [],
-    }
 
     re_keywords = {
         b"<\?": [],
@@ -48,12 +31,10 @@ def check_malicious_keywords(file):
         b"#!/usr/bin/env sh": [],
         b"$_": [],
         b"base64": [],
-        b"eval": [],
+        # b"eval": [],
     }
 
     found = False
-
-    # print(file.content)
 
     for re_key in re_keywords:
         r = re.compile(re_key)
@@ -67,33 +48,18 @@ def check_malicious_keywords(file):
                 line_decoded = file.content[
                     max(matched_idcs[0] - 10, 0) : matched_idcs[1] + 10
                 ].decode("ascii")
-                print("NICE:", line_decoded)
+                if not "<?xpacket" in line_decoded:
+                    print("NICE:", line_decoded)
+                    re_keywords[re_key].append(line_decoded)
+                    found = True
+                    logging.warning(
+                        "[Validation module] - ASCII Decoding POSSIBLE: %s",
+                        line_decoded,
+                    )
             except UnicodeDecodeError:
                 continue
 
-        # packed = r.findall(file.content)
-        # for res in packed:
-        #     print(res.span())
-        # print(packed)
-
-    for line in file.content.splitlines():
-        for keyword in keywords:
-            if keyword.encode() in line:
-                pos = line.index(keyword.encode())
-                line_seq_following = line[pos : pos + 50]
-                try:
-                    line_decoded = line_seq_following.decode("ascii")
-                    if not line_decoded.startswith("<?xpacket"):
-                        keywords[keyword].append(line_seq_following)
-                        found = True
-                        logging.warning(
-                            "[Validation module] - ASCII Decoding POSSIBLE: %s",
-                            line_seq_following,
-                        )
-                except UnicodeDecodeError:
-                    continue
-
-    found_keywords = {key: val for key, val in keywords.items() if len(val) > 0}
+    found_keywords = {key: val for key, val in re_keywords.items() if len(val) > 0}
 
     print(f"{found_keywords=}")
 
