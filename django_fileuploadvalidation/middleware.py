@@ -36,33 +36,60 @@ class FileUploadValidationMiddleware:
 
         if request.method == "POST" and len(request.FILES) > 0:
 
-            request.block_request = False
-            request.middleware_timers = [time.time()]
-            request.upload_config = self._extract_single_upload_config(request)
-
-            files = self._convert(request, convert_to="file_objects")
-            files, request.block_request = self._validate_files(files, request)
-
-            if not request.block_request:
-                files, request.block_request = self._evaluate_files(files, request)
-                files = self._sanitize_files(files, request)
-
-            self._create_upload_log(files, request)
-            self._print_elapsed_time("COMPLETE", request)
+            request, files = self._monitor_request(request)
 
             if not request.block_request:
                 logging.warning(
                     "[Middleware] - File not malicious and in whitelist => Forwarding request to view."
                 )
                 request = self._convert(request, files, convert_to="request")
-                response = self.get_response(request)
             else:
                 return HttpResponseForbidden("The file could not be uploaded.")
-        else:
-            response = self.get_response(request)
+
+        response = self.get_response(request)
+
+        response = self._monitor_response(response)
 
         # Code to be executed for each request/response after
         # the view is called.
+
+        return response
+
+    def _monitor_request(self, request):
+        request.block_request = False
+        request.middleware_timers = [time.time()]
+        request.upload_config = self._extract_single_upload_config(request)
+
+        files = self._convert(request, convert_to="file_objects")
+        files, request.block_request = self._validate_files(files, request)
+
+        if not request.block_request:
+            files, request.block_request = self._evaluate_files(files, request)
+            files = self._sanitize_files(files, request)
+
+        self._create_upload_log(files, request)
+        self._print_elapsed_time("COMPLETE", request)
+
+        return request, files
+
+    def _monitor_response(self, response):
+
+        MONITORING_KEYWORDS = [
+            b"Configuration File (php.ini) Path",
+            b"PHP Extension Build",
+            # b"<h2>Upload All</h2>",
+        ]
+
+        suspicious_response = False
+
+        for i, elem in enumerate(response._container):
+            for keyword in MONITORING_KEYWORDS:
+                if keyword in elem:
+                    # response._container[i] = elem.replace(keyword, b"RESTRICTED")
+                    suspicious_response = True
+
+        if suspicious_response:
+            return HttpResponseForbidden("Response could not be delivered.")
 
         return response
 
