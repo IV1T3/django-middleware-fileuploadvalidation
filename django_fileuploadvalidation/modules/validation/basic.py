@@ -3,71 +3,28 @@ import logging
 import mimetypes
 import operator
 import pprint
+import os
 
 import magic
+import yara
+
 
 from ..helper import add_point_to_guessed_file_type
 
+def perform_yara_matching(file):
+    """
+    Perform YARA matching.
+    """
+    logging.debug("[Validation module] - Performing YARA matching")
 
-def check_malicious_keywords(file):
-    logging.debug("[Validation module] - Validating keywords")
-    # TODO:
-    # - Implement more efficient way to check for keywords
-    # - Try to avoid using overlapping keywords but keep file
-    #   type distinction for future use
+    file_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+    ) + "/data/yara/rules_20211228.yar"
 
-    re_keywords = {
-        b"<\?": [],
-        b"<\?=": [],
-        b"<\?php": [],
-        b"\?> ": [],
-        b"<\s*script": [],
-        # b"#!": [],
-        b"#!/": [],
-        b"#!/bin/sh": [],
-        b"#!/bin/bash": [],
-        b"#!/usr/bin/pwsh": [],
-        b"#!/usr/bin/env python3": [],
-        b"#!/usr/bin/env sh": [],
-        b"$_": [],
-        b"base64": [],
-        # b"eval": [],
-    }
+    rules = yara.compile(filepath=file_path)
+    matches = rules.match(data=file.content)
 
-    found = False
-
-    for re_key in re_keywords:
-        r = re.compile(re_key)
-        for match in re.finditer(re_key, file.content):
-            matched_key = match.group()
-            matched_idcs = match.span()
-
-            print(matched_key, matched_idcs)
-
-            try:
-                line_decoded = file.content[
-                    max(matched_idcs[0] - 10, 0) : matched_idcs[1] + 10
-                ].decode("ascii")
-                if not "<?xpacket" in line_decoded:
-                    print("NICE:", line_decoded)
-                    re_keywords[re_key].append(line_decoded)
-                    found = True
-                    logging.warning(
-                        "[Validation module] - ASCII Decoding POSSIBLE: %s",
-                        line_decoded,
-                    )
-            except UnicodeDecodeError:
-                continue
-
-    found_keywords = {key: val for key, val in re_keywords.items() if len(val) > 0}
-
-    print(f"{found_keywords=}")
-
-    file.detection_results.found_keywords = found_keywords
-    file.validation_results.keyword_search_ok = not found
-
-    if found:
-        logging.warning(f"[Validation module] - Malicious keywords have been found.")
+    file.detection_results.yara_matches = matches
 
     return file
 
@@ -213,6 +170,19 @@ def check_filename_extensions(file, upload_config):
 
     return file
 
+def check_yara_rules(file):
+    """
+    Check if the file matches any YARA rules.
+    """
+    logging.debug("[Validation module] - Validating YARA rules")
+
+    file.validation_results.yara_rules_ok = len(file.detection_results.yara_matches) == 0
+    
+    for match in file.detection_results.yara_matches:
+        file.append_block_reason("YARA match: " + match.rule)
+
+    return file
+
 
 def check_filename_for_null_byte_injections(file):
     logging.debug("[Validation module] - Validating for null byte injections")
@@ -283,6 +253,9 @@ def validate_file(file, upload_config):
 
     mimetypes.init()
 
+    # Match YARA rules
+    file = perform_yara_matching(file)
+
     # Retrieve basic file information
     filename_splits = get_filename_splits(file)
     file.detection_results.filename_splits = filename_splits
@@ -296,10 +269,8 @@ def validate_file(file, upload_config):
     file.detection_results.signature_mime = signature_mime
     file = add_point_to_guessed_file_type(file, signature_mime)
 
-    # Perform generic keyword based search
-    file = check_malicious_keywords(file)
-
     # Validate file information
+    file = check_yara_rules(file)
     file = check_file_size_allowed(file, upload_config)
     file = check_request_header_mime(file, upload_config)
     file = check_signature_and_request_mime_match_file_extensions(file)

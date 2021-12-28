@@ -20,6 +20,7 @@ def evaluate(files, upload_config):
             file.validation_results.extensions_whitelist_ok,
             file.validation_results.request_whitelist_ok,
             file.validation_results.signature_whitelist_ok,
+            file.validation_results.yara_rules_ok
         ]
 
         strict_val_success = all(strict_val_res)
@@ -45,44 +46,6 @@ def evaluate(files, upload_config):
                 "pdf_check": 1.5,
                 "office_macros": 1.0,
             }
-
-            keyword_weights = {
-                # "<?": [],
-                "<?=": [],
-                "<?php": [],
-                # "?> ": [],
-                "<script": [],
-                # "#!": [],
-                "#!/": [],
-                "#!/bin/sh": [],
-                "#!/bin/bash": [],
-                "#!/usr/bin/pwsh": [],
-                "#!/usr/bin/env python3": [],
-                "#!/usr/bin/env sh": [],
-                # "$_": [],
-                "base64": [],
-                "eval": [],
-            }
-
-            # 2.1. Evaluate found keywords
-            # TODO: Use weight based on keyword maliciousness
-            keywords_score_outcome = [1.0 * vague_val_weights["keywords"], 0.0]
-            factor_number_of_key_occurences = 0.0
-            if not file.validation_results.keyword_search_ok:
-                logging.info("[Evaluator module] - Starting keyword analysis")
-                for key, values in file.detection_results.found_keywords.items():
-                    factor_number_of_key_occurences += len(values)
-
-                vague_val_mal_score += (
-                    keywords_score_outcome[0] * factor_number_of_key_occurences
-                )
-
-            max_mal_score += (
-                keywords_score_outcome[
-                    keywords_score_outcome[0] < keywords_score_outcome[1]
-                ]
-                * factor_number_of_key_occurences
-            )
 
             # 2.2. Evaluate file integrity
             if file.validation_results.file_integrity_check_done:

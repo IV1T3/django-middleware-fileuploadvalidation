@@ -64,7 +64,6 @@ def prepare_json_data(files):
             "extensions": file.detection_results.extensions,
             "signature_mime": file.detection_results.signature_mime,
             "guessed_mime": file.detection_results.guessed_mime,
-            "found_keywords": file.detection_results.found_keywords,
         }
 
         file.validation_results.guessing_scores = {

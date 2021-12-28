@@ -56,7 +56,8 @@ setup(
         "pillow",
         "wand",
         "clamd",
-        "python-ffmpeg",
         "quicksand",
+        "oletools",
+        "yara-python"
     ],
 )

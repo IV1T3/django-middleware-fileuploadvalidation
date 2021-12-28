@@ -3,7 +3,7 @@ import logging
 
 from io import BytesIO
 
-from . import basic, image, video, quicksand
+from . import basic, image, quicksand
 
 
 def get_clamAV_results(file_object):
@@ -39,8 +39,6 @@ def validate(files, upload_config):
                 # Perform basic file validation
                 file = basic.validate_file(file, upload_config)
 
-                print(f"{file.block=}")
-
                 if not file.block:
                     # Perform quicksand scan
                     file = quicksand.validate_file(file, upload_config)
@@ -57,8 +55,8 @@ def validate(files, upload_config):
                         file = image.validate_file(file)
                     elif file_type.startswith("text"):
                         pass
-                    elif file_type.startswith("video"):
-                        file = video.validate_file(file)
+                    # elif file_type.startswith("video"):
+                    #     file = video.validate_file(file)
                     # else:
                     #    file = image.validate_file(file)
 
