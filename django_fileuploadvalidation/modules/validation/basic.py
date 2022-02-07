@@ -11,17 +11,29 @@ import yara
 
 from ..helper import add_point_to_guessed_file_type
 
+
 def perform_yara_matching(file):
     """
     Perform YARA matching.
     """
     logging.debug("[Validation module] - Performing YARA matching")
 
-    file_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-    ) + "/data/yara/rules_20211228.yar"
+    yara_dir_path = (
+        os.path.join(
+            os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+            )
+        )
+        + "/vendor/yara"
+    )
 
-    rules = yara.compile(filepath=file_path)
+    rules = yara.compile(
+        filepaths={
+            file_name.split(".")[0]: os.path.join(yara_dir_path, file_name)
+            for file_name in os.listdir(yara_dir_path)
+        }
+    )
+
     matches = rules.match(data=file.content)
 
     file.detection_results.yara_matches = matches
@@ -170,14 +182,17 @@ def check_filename_extensions(file, upload_config):
 
     return file
 
+
 def check_yara_rules(file):
     """
     Check if the file matches any YARA rules.
     """
     logging.debug("[Validation module] - Validating YARA rules")
 
-    file.validation_results.yara_rules_ok = len(file.detection_results.yara_matches) == 0
-    
+    file.validation_results.yara_rules_ok = (
+        len(file.detection_results.yara_matches) == 0
+    )
+
     for match in file.detection_results.yara_matches:
         file.append_block_reason("YARA match: " + match.rule)
 
