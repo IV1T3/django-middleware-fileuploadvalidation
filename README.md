@@ -33,7 +33,7 @@ Common document/PDF signature matching is already supported due to the integrati
 Custom YARA signatures can be placed under `/vendor/yara/`. A collection of useful YARA signatures can be found in the [awesome-yara](https://github.com/InQuest/awesome-yara) repository. The validation module will scan all files in the directory and compile the respective signatures.
 
 ### ClamAV virus scanning
-DMF also utilizes the ClamAV anti-virus engine. If you would like to enable ClamAV through DMF, follow our ClamAV installation instructions: [ClamAV Install Guide](https://github.com/IV1T3/django-middleware-fileuploadvalidation/blob/main/_CLAMAV_INSTALL_GUIDE.md)
+DMF also utilizes the ClamAV anti-virus engine. If you would like to enable ClamAV through DMF, follow our ClamAV installation instructions: [ClamAV Install Guide](https://github.com/IV1T3/django-middleware-fileuploadvalidation/blob/main/docs/_CLAMAV_INSTALL_GUIDE.md)
 
 ## Django settings
 DMF can be customized by modifying the Django project's settings.py file. Different upload restrictions can be applied on a path basis.
