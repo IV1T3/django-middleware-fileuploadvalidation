@@ -2,8 +2,8 @@ name: Release package
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - '*'
 
 jobs:
   deploy:
