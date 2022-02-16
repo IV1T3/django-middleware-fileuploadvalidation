@@ -82,14 +82,15 @@ class FileUploadValidationMiddleware:
 
         suspicious_response = False
 
-        for i, elem in enumerate(response._container):
-            for keyword in MONITORING_KEYWORDS:
-                if keyword in elem:
-                    # response._container[i] = elem.replace(keyword, b"RESTRICTED")
-                    suspicious_response = True
+        if "_container" in response.__dict__:
+            for i, elem in enumerate(response._container):
+                for keyword in MONITORING_KEYWORDS:
+                    if keyword in elem:
+                        # response._container[i] = elem.replace(keyword, b"RESTRICTED")
+                        suspicious_response = True
 
-        if suspicious_response:
-            return HttpResponseForbidden("Response could not be delivered.")
+            if suspicious_response:
+                return HttpResponseForbidden("Response could not be delivered.")
 
         return response
 
