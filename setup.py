@@ -52,6 +52,7 @@ setup(
         "python-dotenv",
         "python-decouple",
         "exifread",
+        "pdfid",
         "python-magic",
         "pillow",
         "wand",

@@ -27,7 +27,6 @@ def validate(files, upload_config):
                 clamav_res = get_clamAV_results(file)
                 malicious = clamav_res == "FOUND"
                 if malicious:
-                    block_upload = True
                     file.block = True
                     file.append_block_reason("ClamAV_detection")
                     logging.warning(

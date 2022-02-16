@@ -61,6 +61,7 @@ class SanitizationResults:
     cleansed_exif: bool = False
     cleansed_structure: bool = False
     created_random_filename_with_guessed_extension: bool = False
+    disarmed_pdf: bool = False
 
 
 class File:

@@ -1,6 +1,6 @@
 import logging
 
-from . import basic, image
+from . import basic, image, application
 
 
 def sanitize(files, upload_config):
@@ -18,7 +18,7 @@ def sanitize(files, upload_config):
 
         # Perform file type specific sanitization
         if file_type.startswith("application"):
-            pass
+            file = application.sanitize_file(file)
         elif file_type.startswith("audio"):
             pass
         elif file_type.startswith("image"):
