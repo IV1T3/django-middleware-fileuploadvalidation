@@ -57,7 +57,6 @@ By default, the DMF upload configuration is set as follows:
   "filename_length_limit": 100,
   "keep_original_filename": False,
   "sanitization": True,
-  "sensitivity": 0.99,
   "uploadlogs_mode": "blocked",
   "whitelist_name": "RESTRICTIVE",
   "whitelist": [],
@@ -88,8 +87,7 @@ UPLOAD_CONFIGURATION = {
   - `file_size_limit`: Defines the maximum allowed file size in kilobytes (kB). Files larger than this limit will be rejected. By default, the limit is set to *5000* kB.
   - `filename_length_limit`: Defines the maximum allowed character length of the file name. By default, the limit is set to 100 characters.
   - `keep_original_filename`: By default, DMF will rename the uploaded file to a random string. If you would like to keep the original filename, set this to *True*.
-  - `sanitization`: DMF performs basic file sanitization by default. This can be disabled by setting this to *False*. This will instantly block all upload attempts that seem to be malicious.
-  - `sensitivity`: Threshold from which DMF denotes files as malicious. The higher the sensitivity the more strict the detection. By default, the sensitivity is set to 0.99.
+  - `sanitization`: DMF supports sanitization of images and PDF documents. By default, DMF will block malicious files. However, activating the sanitization will instead sanitze files and upload them consequently.
   - `uploadlogs_mode`: Uploads can also be logged, to better analyze attempts afterwards. There are three different stages, which can be logged. By default, this setting is set to 'blocked'.
     - always: logs every upload attempt
     - success: logs only successful uploads

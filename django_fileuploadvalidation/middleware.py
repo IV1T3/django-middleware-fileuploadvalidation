@@ -169,7 +169,6 @@ class FileUploadValidationMiddleware:
             "file_size_limit": 500000000,
             "filename_length_limit": 100,
             "sanitization": True,
-            "sensitivity": 0.99,
             "uploadlogs_mode": "blocked",
             "whitelist_name": "RESTRICTIVE",
             "whitelist": [],
