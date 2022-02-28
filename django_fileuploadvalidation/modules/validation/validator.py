@@ -39,6 +39,7 @@ def validate(files, upload_config):
                 file = basic.validate_file(file, upload_config)
 
                 if not file.block:
+
                     # Perform quicksand scan
                     file = quicksand.validate_file(file, upload_config)
 

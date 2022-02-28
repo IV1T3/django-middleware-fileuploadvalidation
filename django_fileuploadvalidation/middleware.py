@@ -38,7 +38,12 @@ class FileUploadValidationMiddleware:
 
             request, files = self._monitor_request(request)
 
-            if not request.block_request:
+            if request.block_request and request.upload_config["sanitization"]:
+                logging.warning(
+                    "[Middleware] - File might be malicious, but sanitized => Forwarding request to view."
+                )
+                request = self._convert(request, files, convert_to="request")
+            elif not request.block_request:
                 logging.warning(
                     "[Middleware] - File not malicious and in whitelist => Forwarding request to view."
                 )
@@ -62,9 +67,9 @@ class FileUploadValidationMiddleware:
 
         files = self._convert(request, convert_to="file_objects")
         files, request.block_request = self._validate_files(files, request)
+        files, request.block_request = self._evaluate_files(files, request)
 
-        if not request.block_request:
-            files, request.block_request = self._evaluate_files(files, request)
+        if request.upload_config["sanitization"] and request.block_request:
             files = self._sanitize_files(files, request)
 
         self._create_upload_log(files, request)
@@ -113,17 +118,14 @@ class FileUploadValidationMiddleware:
         return files, block_upload
 
     def _evaluate_files(self, files, request):
-        files, block_upload = evaluator.evaluate(files, request.upload_config)
+        files, block_upload = evaluator.evaluate(files, request)
         self._print_elapsed_time("Evaluator", request)
 
         return files, block_upload
 
     def _sanitize_files(self, files, request):
-        sanitization_activated = request.upload_config["sanitization"]
-        if not request.block_request and sanitization_activated:
-            files = sanitizer.sanitize(files, request.upload_config)
-
-            self._print_elapsed_time("Sanitizer", request)
+        files = sanitizer.sanitize(files, request.upload_config)
+        self._print_elapsed_time("Sanitizer", request)
 
         return files
 

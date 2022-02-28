@@ -1,10 +1,11 @@
 import logging
 
 
-def evaluate(files, upload_config):
+def evaluate(files, request):
     logging.debug("[Evaluator module] - Starting maliciousness evaluation")
 
-    block_upload = False
+    upload_config = request.upload_config
+    block_upload = request.block_request
 
     for file_name, file in files.items():
 
