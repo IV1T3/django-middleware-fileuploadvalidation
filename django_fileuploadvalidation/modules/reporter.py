@@ -80,17 +80,18 @@ def prepare_json_data(files):
         # Add Quicksand results
         if file.quicksand_results["results"]:
             json_data[file_name]["quicksand"] = {}
-            for suspicious_finding in file.quicksand_results["results"]["root"]:
-                json_data[file_name]["quicksand"][suspicious_finding["rule"]] = {
-                    "description": suspicious_finding["desc"],
-                    "strings": suspicious_finding["strings"],
-                    "type": suspicious_finding["type"],
-                }
+            if "root" in file.quicksand_results["results"]:
+                for suspicious_finding in file.quicksand_results["results"]["root"]:
+                    json_data[file_name]["quicksand"][suspicious_finding["rule"]] = {
+                        "description": suspicious_finding["desc"],
+                        "strings": suspicious_finding["strings"],
+                        "type": suspicious_finding["type"],
+                    }
 
-                if "mitre" in suspicious_finding:
-                    json_data[file_name]["quicksand"][suspicious_finding["rule"]][
-                        "mitre"
-                    ] = suspicious_finding["mitre"]
+                    if "mitre" in suspicious_finding:
+                        json_data[file_name]["quicksand"][suspicious_finding["rule"]][
+                            "mitre"
+                        ] = suspicious_finding["mitre"]
 
             json_data[file_name]["quicksand"]["score"] = file.quicksand_results["score"]
             json_data[file_name]["quicksand"]["warning"] = file.quicksand_results[
