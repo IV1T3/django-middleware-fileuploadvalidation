@@ -129,11 +129,11 @@ class FileUploadValidationMiddleware:
 
         if processing_step == "COMPLETE":
             logging.info(
-                "[Middleware] - TOTAL execution time: %s ms" % execution_until_now
+                "[Middleware] - TOTAL execution time: %s sec" % (round(execution_until_now / 1000, 3))
             )
         else:
             logging.info(
-                f"[Middleware] - {processing_step} took {round(execution_last_step, 3)} ms - Total: {round(execution_until_now, 3)} ms"
+                f"[Middleware] - {processing_step} took {round(execution_last_step, 3)} ms - Total: {round(execution_until_now / 1000, 3)} sec"
             )
         request.middleware_timers.append(curr_time)
 
