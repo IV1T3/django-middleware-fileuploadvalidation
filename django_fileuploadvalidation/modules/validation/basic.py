@@ -61,9 +61,12 @@ def check_file_size_allowed(file, upload_config):
     """
     logging.debug("[Validation module] - Validating file size")
 
-    file_size_ok = (
-        file.basic_information.size / 1000 <= upload_config["file_size_limit"]
-    )
+    if upload_config["file_size_limit"] != None:
+        file_size_ok = (
+            file.basic_information.size / 1000 <= upload_config["file_size_limit"]
+        )
+    else:
+        file_size_ok = True
     file.validation_results.file_size_ok = file_size_ok
 
     if not file_size_ok:
@@ -148,9 +151,12 @@ def check_filename_length(file, upload_config):
     """
     logging.debug("[Validation module] - Validating filename length")
 
-    length_ok = (
-        len(file.basic_information.name) <= upload_config["filename_length_limit"]
-    )
+    if upload_config["filename_length_limit"] != None:
+        length_ok = (
+            len(file.basic_information.name) <= upload_config["filename_length_limit"]
+        )
+    else:
+        length_ok = True
     file.validation_results.filename_length_ok = length_ok
 
     if not length_ok:

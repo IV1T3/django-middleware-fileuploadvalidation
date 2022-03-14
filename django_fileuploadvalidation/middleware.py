@@ -38,18 +38,11 @@ class FileUploadValidationMiddleware:
 
             request, files = self._monitor_request(request)
 
-            if request.block_request and request.upload_config["sanitization"]:
-                logging.warning(
-                    "[Middleware] - File might be malicious, but sanitized => Forwarding request to view."
-                )
-                request = self._convert(request, files, convert_to="request")
-            elif not request.block_request:
-                logging.warning(
-                    "[Middleware] - File not malicious and in whitelist => Forwarding request to view."
-                )
-                request = self._convert(request, files, convert_to="request")
-            else:
+            if request.block_request:
+                logging.warning("[Middleware] - Blocking request.")
                 return HttpResponseForbidden("The file could not be uploaded.")
+            else:
+                request = self._convert(request, files, convert_to="request")
 
         response = self.get_response(request)
 
@@ -69,7 +62,7 @@ class FileUploadValidationMiddleware:
         files, request.block_request = self._validate_files(files, request)
         files, request.block_request = self._evaluate_files(files, request)
 
-        if request.upload_config["sanitization"] and request.block_request:
+        if request.upload_config["sanitization"] and not request.block_request:
             files = self._sanitize_files(files, request)
 
         self._create_upload_log(files, request)
@@ -166,8 +159,8 @@ class FileUploadValidationMiddleware:
         default_upload_config = {
             "clamav": False,
             "keep_original_filename": False,
-            "file_size_limit": 500000000,
-            "filename_length_limit": 100,
+            "file_size_limit": None,
+            "filename_length_limit": None,
             "sanitization": True,
             "uploadlogs_mode": "blocked",
             "whitelist_name": "RESTRICTIVE",

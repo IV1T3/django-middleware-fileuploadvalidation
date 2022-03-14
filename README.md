@@ -53,8 +53,8 @@ By default, the DMF upload configuration is set as follows:
 ```python
 {
   "clamav": False,
-  "file_size_limit": 500000000,
-  "filename_length_limit": 100,
+  "file_size_limit": None,
+  "filename_length_limit": None,
   "keep_original_filename": False,
   "sanitization": True,
   "uploadlogs_mode": "blocked",
