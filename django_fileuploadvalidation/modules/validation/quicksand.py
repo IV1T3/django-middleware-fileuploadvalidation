@@ -11,7 +11,7 @@ def perform_quicksand_scan(file):
 
     file.quicksand_results = qs.results
 
-    if qs.results["score"] > 0:
+    if qs.results["rating"] > 2:
         file.block = True
         file.append_block_reason("QS_detection")
         logging.warning(

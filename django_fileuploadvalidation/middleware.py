@@ -10,7 +10,7 @@ import logging
 import pprint
 import time
 
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseBadRequest
 
 from .data import whitelists
 
@@ -20,7 +20,7 @@ from .modules.validation import validator
 
 from .settings import UPLOAD_CONFIGURATION
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 pp = pprint.PrettyPrinter(indent=4)
 
 
@@ -40,7 +40,7 @@ class FileUploadValidationMiddleware:
 
             if request.block_request:
                 logging.warning("[Middleware] - Blocking request.")
-                return HttpResponseForbidden("The file could not be uploaded.")
+                return HttpResponseBadRequest("The file could not be uploaded.")
             else:
                 request = self._convert(request, files, convert_to="request")
 

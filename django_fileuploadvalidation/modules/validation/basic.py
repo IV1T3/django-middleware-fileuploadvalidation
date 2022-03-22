@@ -1,4 +1,3 @@
-import re
 import logging
 import mimetypes
 import operator
@@ -106,14 +105,84 @@ def check_signature_and_request_mime_match_file_extensions(file):
 
     extension_matchings = []
 
+    mime_similar_collections = [
+        [
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-word"
+        ],
+        [
+            "application/msexcel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-excel"
+        ],
+        [
+            "application/mspowerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.ms-powerpoint"
+        ],
+        [
+            "application/pdf",
+            "application/x-pdf",
+            "application/acrobat",
+            "applications/vnd.pdf",
+            "text/pdf",
+            "text/x-pdf"
+        ],
+        [
+            "image/jpeg",
+            "image/pjpeg",
+            "image/jpg",
+            "image/png",
+            "image/gif",
+            "image/bmp",
+            "image/x-windows-bmp",
+            "image/x-bitmap",
+            "image/x-xbitmap",
+            "image/x-win-bitmap",
+            "image/x-ms-bmp",
+            "image/x-bmp",
+        ],
+        [
+            "video/mp4",
+            "video/mpeg",
+            "video/quicktime",
+            "video/x-msvideo",
+            "video/x-ms-wmv",
+            "video/x-ms-wm",
+            "video/avi",
+            "video/msvideo",
+            "video/x-ms-asf",
+            "video/x-ms-asf-plugin",
+        ],
+        [
+            "audio/mpeg",
+            "audio/mp3",
+            "audio/x-mpeg",
+            "audio/x-mp3",
+            "audio/x-mpeg3",
+            "audio/mpeg3",
+            "audio/mpg",
+            "audio/x-mpg",
+            "audio/x-mpegaudio",
+            "audio/x-mp3-playlist",
+        ],
+    ]
+
     for single_file_extension in file.detection_results.extensions:
         file_extension_mime = mimetypes.guess_type("name." + single_file_extension)[0]
-        extension_matches = (
-            file_extension_mime
-            == file.detection_results.signature_mime
-            == file.basic_information.content_type
+
+        possible_mime_types = [file_extension_mime]
+        for mime_similar_collection in mime_similar_collections:
+            if file_extension_mime in mime_similar_collection:
+                possible_mime_types.extend(mime_similar_collection)
+                break
+        
+        mime_type_matching = (
+            file.basic_information.content_type in possible_mime_types and file.detection_results.signature_mime in possible_mime_types
         )
-        extension_matchings.append(extension_matches)
+        
+        extension_matchings.append(mime_type_matching)
 
     all_extensions_match = all(extension_matchings)
 
