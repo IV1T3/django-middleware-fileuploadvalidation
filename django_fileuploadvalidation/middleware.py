@@ -88,7 +88,7 @@ class FileUploadValidationMiddleware:
                         suspicious_response = True
 
             if suspicious_response:
-                return HttpResponseForbidden("Response could not be delivered.")
+                return HttpResponseBadRequest("Response could not be delivered.")
 
         return response
 

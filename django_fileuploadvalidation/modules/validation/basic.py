@@ -277,15 +277,23 @@ def check_yara_rules(file):
 def check_filename_for_null_byte_injections(file):
     logging.debug("[Validation module] - Validating for null byte injections")
 
+    null_byte_found = False
+
     for file_name_split in file.detection_results.filename_splits:
-        null_byte_found = (
+        print(f"%00 in file_name_split: {'%00' in file_name_split}")
+        null_byte_found_in_split = (
             "0x00" in file_name_split
             or "%00" in file_name_split
             or "\0" in file_name_split
         )
-        file.attack_results.null_byte_injection = null_byte_found
-        if null_byte_found:
-            logging.warning(f"[Validation module] - Null byte injection found")
+    
+        if null_byte_found_in_split:
+            null_byte_found = True
+            break
+
+    file.attack_results.null_byte_injection = null_byte_found
+    if null_byte_found:
+        logging.warning(f"[Validation module] - Null byte injection found")
 
     return file
 
