@@ -21,8 +21,8 @@ setup(
     # The project's main homepage.
     url="https://github.com/IV1T3/django-middleware-fileuploadvalidation",
     # Author details
-    author="Alexander Groddeck",
-    author_email="alexander.groddeck@uni-hamburg.de",
+    author="Alexander Groddeck, Pascal Wichmann",
+    author_email="alexander.groddeck@uni-hamburg.de, pascal.wichmann@uni-hamburg.de",
     license="Apache Software License",
     classifiers=[
         "Environment :: Web Environment",
