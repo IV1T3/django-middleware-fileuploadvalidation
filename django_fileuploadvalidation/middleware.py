@@ -73,8 +73,8 @@ class FileUploadValidationMiddleware:
     def _monitor_response(self, response):
 
         MONITORING_KEYWORDS = [
-            b"Configuration File (php.ini) Path",
-            b"PHP Extension Build",
+            b'<td class="e">Configuration File (php.ini) Path </td>',
+            b'<td class="e">PHP Extension Build </td>',
             # b"<h2>Upload All</h2>",
         ]
 
