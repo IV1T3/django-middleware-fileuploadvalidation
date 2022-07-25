@@ -75,6 +75,7 @@ class FileUploadValidationMiddleware:
         MONITORING_KEYWORDS = [
             b'<td class="e">Configuration File (php.ini) Path </td>',
             b'<td class="e">PHP Extension Build </td>',
+            b'<h2>Traceback <span class="commands"><a href="#" onclick="return switchPastebinFriendly(this);">',
             # b"<h2>Upload All</h2>",
         ]
 
