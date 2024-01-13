@@ -1,12 +1,20 @@
-# django-middleware-fileuploadvalidation (DMF)
+# django-middleware-fileuploadvalidation
 
- A modular Django middleware to validate user file uploads, detect specially crafted media files with malicious intent and either sanitize or block them afterward. 
+This Django middleware provides robust validation and sanitization for file uploads. It is designed to ensure the security and integrity of files uploaded through Django applications by performing various checks, validations, and sanitization processes.
 
 [![PyPI version](https://img.shields.io/pypi/v/django-middleware-fileuploadvalidation.svg?logo=pypi&logoColor=FFE873)](https://pypi.org/project/django-middleware-fileuploadvalidation/)
 [![Downloads](https://img.shields.io/pypi/dw/django-middleware-fileuploadvalidation)](https://pypi.org/project/django-middleware-fileuploadvalidation/)
 [![GitHub](https://img.shields.io/github/license/IV1T3/django-middleware-fileuploadvalidation.svg)](LICENSE)
 
-## Installing
+## Features
+- **File Validation**: Checks file types, sizes, and signatures to verify the authenticity and integrity of uploaded files.
+- **File Sanitization**: Cleans and modifies files to remove potentially harmful content, ensuring safe file handling.
+- **Configurable Settings**: Flexible configuration options to customize validation and sanitization rules based on specific needs.
+- **Comprehensive Logging**: Detailed logging for audit trails and debugging.
+- **Support for Multiple File Types**: Custom handlers for different file types (images, documents, etc.) with tailored validation and sanitization logic.
+
+## Installation
+
 
 This package can be installed via pip:
 
@@ -14,7 +22,7 @@ This package can be installed via pip:
 $ pip install django-middleware-fileuploadvalidation
 ```
 
-Then add `django_fileuploadvalidation.middleware.FileUploadValidationMiddleware` to the end of your `MIDDLEWARE` in settings.py.
+Then add `django_middleware_fileuploadvalidation.middleware.FileUploadValidationMiddleware` to the end of your `MIDDLEWARE` in settings.py.
 
 ```python
 MIDDLEWARE = [
@@ -23,8 +31,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     ...,
-    'django_fileuploadvalidation.middleware.FileUploadValidationMiddleware',
+    'django_middleware_fileuploadvalidation.middleware.FileUploadValidationMiddleware',
 ]
+
 ```
 
 ### YARA rule matching
@@ -35,54 +44,43 @@ Custom YARA signatures can be placed under `/vendor/yara/`. A collection of usef
 ### ClamAV virus scanning
 DMF also utilizes the ClamAV anti-virus engine. If you would like to enable ClamAV through DMF, follow our ClamAV installation instructions: [ClamAV Install Guide](https://github.com/IV1T3/django-middleware-fileuploadvalidation/blob/main/docs/_CLAMAV_INSTALL_GUIDE.md)
 
-## Django settings
-DMF can be customized by modifying the Django project's settings.py file. Different upload restrictions can be applied on a path basis.
-
-This example assumes that an apps urls.py includes the following paths resolving to `http://127.0.0.1:8000/upload_images/` and `http://127.0.0.1:8000/upload_pdfs/`, respectively.
-```python
-urlpatterns = [
-    ...,
-    path("upload_images/", views.upload_images),
-    path("upload_pdfs/", views.upload_pdfs),
-    ...,
-]
-```
-
-By default, the DMF upload configuration is set as follows:
-  
+## Configuration
+Be default, the upload configuration is set to the following:
 ```python
 {
-  "clamav": False,
-  "file_size_limit": None,
-  "filename_length_limit": None,
-  "keep_original_filename": False,
-  "sanitization": True,
-  "uploadlogs_mode": "blocked",
-  "whitelist_name": "RESTRICTIVE",
-  "whitelist": [],
+    "clamav": False,
+    "file_size_limit": None,
+    "filename_length_limit": None,
+    "keep_original_filename": False,
+    "sanitization": True,
+    "uploadlogs_mode": "blocked",
+    "whitelist_name": "RESTRICTED",
+    "whitelist": [],
 }
 ```
 
-Each field can be customized on a path basis in the settings.py file overwriting the default configuration.
-These are valid example configurations:
+The middleware can be configured by adding a decorator to the respective view function that should be protected. Each field can be individually configured by passing the respective parameter to the decorator.
+
 ```python
-UPLOAD_CONFIGURATION = {
-    # Default DMF configuration. However, only image files are allowed.
-    "upload_images": {
-        "whitelist_name": "IMAGES_ALL",
-    },
-    # Only PDF files are allowed with a file size limit of 2MB.
-    # The original filename is kept.
-    "upload_pdfs": {
-        "file_size_limit": 200000000,
-        "keep_original_filename": True,
-        "whitelist_name": "CUSTOM",
-        "whitelist": ["application/pdf"],
-    },
-}
+from django_middleware_fileuploadvalidation.decorators import file_upload_config
+
+@file_upload_config()
+def upload_default_view(request):
+    # View logic for uploading files
+    ...
+
+@file_upload_config(file_size_limit=2000000, keep_original_filename=True, whitelist=["application/pdf"])
+def upload_pdf_view(request):
+    # View logic for uploading PDF files
+    ...
+
+@file_upload_config(whitelist_name="IMAGES_ALL")
+def upload_image_view(request):
+    # View logic for uploading images
+    ...
 ```
 
-### Configuration 
+### Options 
   - `clamav`: ClamAV is an open source antivirus engine for detecting trojans, viruses, malware & other malicious threats. By default, ClamAV is disabled. However, if you want to enable it, you can do so by setting this to *True*.
   - `file_size_limit`: Defines the maximum allowed file size in kilobytes (kB). Files larger than this limit will be rejected. By default, there is no file size limit set.
   - `filename_length_limit`: Defines the maximum allowed character length of the file name. By default, there is no file length limit set.
@@ -105,5 +103,4 @@ UPLOAD_CONFIGURATION = {
       - IMAGE_RESTRICTIVE: image/gif, image/jpeg, image/png, image/tiff
       - TEXT_RESTRICTIVE: text/plain
       - VIDEO_RESTRICTIVE: video/mp4, video/mpeg
-    - CUSTOM: This allows to define a custom whitelist.
-  - `whitelist` (optional): If *CUSTOM* has been specified in the *whitelist_name* field, then this field requires a list of MIME types defining the custom whitelist. 
+  - `whitelist`: If you want to use a custom whitelist, you can define it here. The whitelist must be a list of strings. Each string must be a valid MIME type. For example: `["application/pdf", "image/png"]`. This setting will override the `whitelist_name` setting.

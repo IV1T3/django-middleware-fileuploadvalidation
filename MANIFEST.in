@@ -1,2 +1,2 @@
 include README.md
-recursive-include django_fileuploadvalidation *
+recursive-include django_middleware_fileuploadvalidation *
