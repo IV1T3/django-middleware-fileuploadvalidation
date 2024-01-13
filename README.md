@@ -1,4 +1,4 @@
-# django-middleware-fileuploadvalidation
+# django-middleware-fileuploadvalidation (DMF)
 
 This Django middleware provides robust validation and sanitization for file uploads. It is designed to ensure the security and integrity of files uploaded through Django applications by performing various checks, validations, and sanitization processes.
 
@@ -21,7 +21,7 @@ This Django middleware provides robust validation and sanitization for file uplo
 This package can be installed via pip:
 
 ```bash
-$ pip install django-middleware-fileuploadvalidation
+pip install django-middleware-fileuploadvalidation
 ```
 
 Then add `django_middleware_fileuploadvalidation.middleware.FileUploadValidationMiddleware` to the end of your `MIDDLEWARE` in settings.py.
@@ -47,7 +47,7 @@ Custom YARA signatures can be placed under `/vendor/yara/`. A collection of usef
 DMF also utilizes the ClamAV anti-virus engine. If you would like to enable ClamAV through DMF, follow our ClamAV installation instructions: [ClamAV Install Guide](https://github.com/IV1T3/django-middleware-fileuploadvalidation/blob/main/docs/_CLAMAV_INSTALL_GUIDE.md)
 
 ## Configuration
-Be default, the upload configuration is set to the following:
+By default, the upload configuration is set to the following:
 ```python
 {
     "clamav": False,
