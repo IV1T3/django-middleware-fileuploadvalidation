@@ -6,6 +6,8 @@ This Django middleware provides robust validation and sanitization for file uplo
 [![Downloads](https://img.shields.io/pypi/dw/django-middleware-fileuploadvalidation)](https://pypi.org/project/django-middleware-fileuploadvalidation/)
 [![GitHub](https://img.shields.io/github/license/IV1T3/django-middleware-fileuploadvalidation.svg)](LICENSE)
 
+> :warning: **Breaking Changes in Version 1.0.0**: We've introduced a significant update to the upload configuration method. This change transitions from a per-path basis in the settings.py to a more flexible per-view basis using decorators. You can now configure uploads directly at the view level using decorators, offering more granular control. Please update your implementations accordingly to accommodate these changes. Examples of the new configuration method can be found in the [Configuration](#configuration) section below.
+
 ## Features
 - **File Validation**: Checks file types, sizes, and signatures to verify the authenticity and integrity of uploaded files.
 - **File Sanitization**: Cleans and modifies files to remove potentially harmful content, ensuring safe file handling.
