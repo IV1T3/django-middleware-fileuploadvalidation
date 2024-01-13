@@ -23,17 +23,12 @@ jobs:
       - name: Configure Poetry
         run: |
           poetry config virtualenvs.create false # Disable virtualenv creation
+          poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
 
       - name: Install dependencies
         run: |
-          poetry install
-
-      - name: Build package
-        run: |
-          poetry build
+          poetry install --no-dev
 
       - name: Publish package
-        env:
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           poetry publish --build
