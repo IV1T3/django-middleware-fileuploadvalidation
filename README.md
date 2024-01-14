@@ -54,6 +54,12 @@ By default, the upload configuration is set to the following:
     "file_size_limit": None,
     "filename_length_limit": None,
     "keep_original_filename": False,
+    "response_config": {
+        "error_func": HttpResponseForbidden,
+        "message": "File upload blocked",
+        "redirect_on_block": None,
+        "status": 403,
+    },
     "sanitization": True,
     "uploadlogs_mode": "blocked",
     "whitelist_name": "RESTRICTED",
@@ -64,6 +70,8 @@ By default, the upload configuration is set to the following:
 The middleware can be configured by adding a decorator to the respective view function that should be protected. Each field can be individually configured by passing the respective parameter to the decorator.
 
 ```python
+from django.http import HttpResponseForbidden
+
 from django_middleware_fileuploadvalidation.decorators import file_upload_config
 
 @file_upload_config()
@@ -71,12 +79,30 @@ def upload_default_view(request):
     # View logic for uploading files
     ...
 
-@file_upload_config(file_size_limit=2000000, keep_original_filename=True, whitelist=["application/pdf"])
+@file_upload_config(
+  file_size_limit=2000000,
+  keep_original_filename=True,
+  response_config={
+      "error_func": HttpResponseForbidden,
+      "message": "Please upload an image.",
+      "status": 403,
+  },
+  whitelist=["application/pdf"]
+)
 def upload_pdf_view(request):
     # View logic for uploading PDF files
     ...
 
-@file_upload_config(whitelist_name="IMAGES_ALL")
+@file_upload_config(
+  filename_length_limit=100,
+  response_config={
+      "message": "Please upload an image.",
+      "redirect_on_block": 'file_list',
+      "status": 403,
+  },
+  uploadlogs_mode='always',
+  whitelist_name='IMAGE_ALL',
+)
 def upload_image_view(request):
     # View logic for uploading images
     ...
@@ -87,6 +113,12 @@ def upload_image_view(request):
   - `file_size_limit`: Defines the maximum allowed file size in kilobytes (kB). Files larger than this limit will be rejected. By default, there is no file size limit set.
   - `filename_length_limit`: Defines the maximum allowed character length of the file name. By default, there is no file length limit set.
   - `keep_original_filename`: By default, DMF will rename the uploaded file to a random string. If you would like to keep the original filename, set this to *True*.
+  - `response_config`: Customizes the response behavior on file upload validation failure. Options include:
+    - error_func: The Django HttpResponse function to execute on failure. Default: HttpResponseForbidden.
+    - message: The message to display on failure. This utilizes the messaging framework of Django. The message can then be displayed in the redirected view. Default: "File upload blocked".
+    - redirect_on_block: The URL name to redirect to on failure. If this is set, the error_func will be ignored.
+    - Default: None.
+    - status: The HTTP status code to return on failure. Default: 403.
   - `sanitization`: DMF supports sanitization of images and PDF documents. By default, DMF will block malicious files. However, activating the sanitization will instead sanitze files and upload them consequently.
   - `uploadlogs_mode`: Uploads can also be logged, to better analyze attempts afterwards. There are three different stages, which can be logged. By default, this setting is set to 'blocked'.
     - always: logs every upload attempt

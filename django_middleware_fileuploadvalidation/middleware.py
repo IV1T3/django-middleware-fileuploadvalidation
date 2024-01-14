@@ -13,7 +13,9 @@ import pprint
 # from asgiref.sync import async_to_sync        TODO: Do research on this.
 from typing import Any
 
+from django.contrib import messages
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.urls import reverse
 from django.utils.deprecation import MiddlewareMixin
 
 from .FileUploadHandler import FileUploadHandler
@@ -65,25 +67,30 @@ class FileUploadValidationMiddleware(MiddlewareMixin):
 
             if request.block_request:
                 error_response_config = config.get("response_config", {})
-                if error_response_config.get("redirect_on_block"):
-                    logging.debug("[Middleware][PV] - Redirecting request.")
-                    return HttpResponseRedirect(
-                        error_response_config["redirect_on_block"]
-                    )
-
+                block_message = error_response_config.get(
+                    "message", "File upload blocked"
+                )
+                status = error_response_config.get("status", 403)
                 error_func = error_response_config.get(
                     "error_func", HttpResponseForbidden
                 )
-                message = error_response_config.get("message", "File upload blocked")
-                status = error_response_config.get("status", 403)
+
+                if error_response_config.get("redirect_on_block"):
+                    logging.debug("[Middleware][PV] - Redirecting request.")
+                    messages.add_message(request, messages.ERROR, block_message)
+                    redirect_url = reverse(error_response_config["redirect_on_block"])
+                    return HttpResponseRedirect(redirect_url)
 
                 logging.debug(
                     "[Middleware][PV] - Blocking request with message: {} and status: {}".format(
-                        message, status
+                        block_message, status
                     )
                 )
-                return error_func(message, status=status)
+                return error_func(block_message, status=status)
             else:
+                messages.add_message(
+                    request, messages.SUCCESS, "File upload successful."
+                )
                 request = handler.convert_to_request(files)
 
         request.file_upload_handler = handler

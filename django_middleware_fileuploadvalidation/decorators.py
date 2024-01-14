@@ -16,15 +16,15 @@ def file_upload_config(**config_options):
         bool | str | List | None | dict[str, HttpResponseForbidden | str | int | bool],
     ] = {
         "clamav": False,
+        "file_size_limit": None,
+        "filename_length_limit": None,
+        "keep_original_filename": False,
         "response_config": {
             "error_func": HttpResponseForbidden,
             "message": "File upload blocked",
             "redirect_on_block": None,
             "status": 403,
         },
-        "file_size_limit": None,
-        "filename_length_limit": None,
-        "keep_original_filename": False,
         "sanitization": True,
         "uploadlogs_mode": "blocked",
         "whitelist_name": "RESTRICTED",
