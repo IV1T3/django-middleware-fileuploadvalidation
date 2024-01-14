@@ -351,4 +351,3 @@ rule _TryagFileManager3_shell_php_1 {
         filesize < 30KB and ( 8 of them )
       ) or ( all of them )
 }
-

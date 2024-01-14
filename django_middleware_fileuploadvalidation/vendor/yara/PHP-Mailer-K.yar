@@ -12,9 +12,8 @@ rule PHP_Mailer_K
 		$d= "$email = explode"
 		$e= "while($email[$i]"
 		$f= "alert"
- 
+
 
         condition:
                 all of them
 }
-

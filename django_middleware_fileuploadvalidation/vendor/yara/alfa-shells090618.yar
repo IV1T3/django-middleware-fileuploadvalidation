@@ -109,4 +109,3 @@ rule infected_09_06_18_shells_us1 {
          ( 8 of them )
       ) or ( all of them )
 }
-

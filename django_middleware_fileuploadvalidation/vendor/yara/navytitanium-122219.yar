@@ -4,7 +4,7 @@
    Date: 2019-12-22
    Identifier: work1
    Reference: https://github.com/Hestat/lw-yara/
-   Reference malware samples: https://github.com/NavyTitanium/Misc-Malwares/tree/master/PHP 
+   Reference malware samples: https://github.com/NavyTitanium/Misc-Malwares/tree/master/PHP
 */
 
 /* Rule Set ----------------------------------------------------------------- */
@@ -477,4 +477,3 @@ rule ailmentx {
          ( 8 of them )
       ) or ( all of them )
 }
-

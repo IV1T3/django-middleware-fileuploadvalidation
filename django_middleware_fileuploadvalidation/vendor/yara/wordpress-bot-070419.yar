@@ -49,4 +49,3 @@ rule wordpress_bot1 {
          ( all of them )
       ) or ( all of them )
 }
-

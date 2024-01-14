@@ -25,4 +25,3 @@ rule drupal_injection_case134 {
          ( all of them )
       ) or ( all of them )
 }
-

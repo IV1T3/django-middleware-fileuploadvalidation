@@ -47,4 +47,3 @@ rule infected_02_22_19_fljm {
          ( 2 of them )
       ) or ( all of them )
 }
-

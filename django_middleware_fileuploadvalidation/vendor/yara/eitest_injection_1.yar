@@ -13,4 +13,3 @@ rule eitest_injection_1
 	condition:
 	all of them
 }
-

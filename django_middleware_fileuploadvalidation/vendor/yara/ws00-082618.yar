@@ -42,4 +42,3 @@ rule infected_08_26_18_shell1_ws00 {
          ( all of them )
       ) or ( all of them )
 }
-

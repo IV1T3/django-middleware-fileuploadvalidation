@@ -25,4 +25,3 @@ rule infected_08_24_18_upload_shell_ubh {
          ( all of them )
       ) or ( all of them )
 }
-

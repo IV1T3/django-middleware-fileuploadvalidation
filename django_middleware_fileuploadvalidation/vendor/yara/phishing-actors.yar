@@ -7,7 +7,7 @@ rule phishing_actor_emails
        info = " emails associated as the recipents of phishing campaigns "
 
     strings:
-    
+
 	$a1= "bartr40@gmail.com"
 	$a2= "james.bergkamp25@gmail.com"
 	$a3= "bergkamp.james26@gmail.com"
@@ -52,6 +52,6 @@ rule phishing_actor_emails
 	$a42="halifax89@yandex.com"
 
     condition:
-    
+
 	any of them
 }

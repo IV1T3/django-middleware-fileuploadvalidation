@@ -57,5 +57,3 @@ rule infected_08_27_18_phishing_english_none {
    condition:
         ( all of them )
 }
-
-

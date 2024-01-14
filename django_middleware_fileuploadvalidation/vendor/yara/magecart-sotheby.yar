@@ -22,12 +22,9 @@ rule magecart_sotheby {
 	$s6 = "while(--_0x3bfac4"
 	$s7 = "hotlCkRyRv)"
 	$s8 = "function LycqLBoqkw("
-	$s9 = "unescape(encodeURIComponent"     
+	$s9 = "unescape(encodeURIComponent"
    condition:
        (6 of them)
 	  or
        (all of them)
 }
-
-
-

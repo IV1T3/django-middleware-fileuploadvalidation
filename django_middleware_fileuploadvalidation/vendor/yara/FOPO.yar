@@ -1,12 +1,12 @@
 rule FOPOobfuscator
 {
-	meta: 
+	meta:
 	author= "Brian Laskowski"
 	info= " FOPO Obfuscator detected"
 
 	strings:
 		$fopo = "Obfuscation provided by FOPO"
-	
+
 	condition:
 		$fopo
 }

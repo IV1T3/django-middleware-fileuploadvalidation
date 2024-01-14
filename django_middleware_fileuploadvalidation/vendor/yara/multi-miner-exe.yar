@@ -290,5 +290,3 @@ rule miner_s_m_p_2 {
         filesize < 9000KB and ( 1 of ($x*) and 4 of them )
       ) or ( all of them )
 }
-
-

@@ -56,4 +56,3 @@ rule infected_08_25_18_sms {
          ( all of them )
       ) or ( all of them )
 }
-

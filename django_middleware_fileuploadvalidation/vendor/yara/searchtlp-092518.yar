@@ -20,4 +20,3 @@ rule search_result_tpl {
    condition:
       ( all of them )
 }
-

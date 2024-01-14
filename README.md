@@ -39,7 +39,7 @@ MIDDLEWARE = [
 ```
 
 ### YARA rule matching
-DMF supports the detection of malicious files based on custom YARA signatures. 
+DMF supports the detection of malicious files based on custom YARA signatures.
 Common document/PDF signature matching is already supported due to the integration of the [QuickSand](https://github.com/tylabs/quicksand) framework.
 Custom YARA signatures can be placed under `/vendor/yara/`. A collection of useful YARA signatures can be found in the [awesome-yara](https://github.com/InQuest/awesome-yara) repository. The validation module will scan all files in the directory and compile the respective signatures.
 
@@ -82,7 +82,7 @@ def upload_image_view(request):
     ...
 ```
 
-### Options 
+### Options
   - `clamav`: ClamAV is an open source antivirus engine for detecting trojans, viruses, malware & other malicious threats. By default, ClamAV is disabled. However, if you want to enable it, you can do so by setting this to *True*.
   - `file_size_limit`: Defines the maximum allowed file size in kilobytes (kB). Files larger than this limit will be rejected. By default, there is no file size limit set.
   - `filename_length_limit`: Defines the maximum allowed character length of the file name. By default, there is no file length limit set.

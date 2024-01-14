@@ -6,7 +6,7 @@ rule perl_socks_proxy
        info = " perl socks proxy 05/21/18 "
 
     strings:
-    
+
 	$s1="/usr/bin/perl"
 	$s2="socks_bind"
 	$s3="socks_connect"
@@ -15,4 +15,3 @@ rule perl_socks_proxy
     condition:
     all of them
 }
-

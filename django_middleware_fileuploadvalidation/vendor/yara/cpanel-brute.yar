@@ -14,4 +14,3 @@ rule cpanel_brute_force_tool_brutus
     condition:
     all of them
 }
-

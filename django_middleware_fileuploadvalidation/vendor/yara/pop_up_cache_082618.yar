@@ -27,4 +27,3 @@ rule pop_up_cache_obsfuscated_malware {
          ( all of them )
       ) or ( all of them )
 }
-

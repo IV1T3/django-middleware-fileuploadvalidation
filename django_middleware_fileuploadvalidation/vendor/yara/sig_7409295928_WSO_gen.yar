@@ -27,4 +27,3 @@ rule sig_7409295928_WSO_generic {
          ( all of them )
       ) or ( all of them )
 }
-

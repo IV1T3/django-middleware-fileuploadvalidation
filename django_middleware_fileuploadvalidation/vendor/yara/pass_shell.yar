@@ -42,4 +42,3 @@ rule infected_06_04_18_case115_pass {
          ( 8 of them )
       ) or ( all of them )
 }
-

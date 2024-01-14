@@ -141,4 +141,3 @@ rule infected_09_01_18_botnet_kit_login {
          ( 8 of them )
       ) or ( all of them )
 }
-

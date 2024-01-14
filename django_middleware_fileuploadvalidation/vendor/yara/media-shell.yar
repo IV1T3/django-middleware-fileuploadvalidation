@@ -6,7 +6,7 @@ rule media_shell
        info = " php shell 05/24/18 "
 
     strings:
-    
+
 	$s1="$pfile = $recover_file"
 	$s2="$data = curl_exec"
 	$s3="$gDir = str_replace"
@@ -16,4 +16,3 @@ rule media_shell
     condition:
     all of them
 }
-

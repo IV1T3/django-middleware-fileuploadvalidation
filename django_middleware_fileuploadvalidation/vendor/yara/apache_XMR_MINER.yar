@@ -114,4 +114,3 @@ rule _apache2_apache2_1_0_XMR_MINER {
         filesize < 5000KB and ( 1 of ($x*) and 4 of them )
       ) or ( all of them )
 }
-

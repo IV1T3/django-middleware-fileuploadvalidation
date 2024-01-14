@@ -26,4 +26,3 @@ rule infected_08_24_18_shell5_symlink_bypass {
          ( 1 of ($x*) and 4 of them )
       ) or ( all of them )
 }
-

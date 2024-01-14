@@ -31,4 +31,3 @@ rule infected_09_20_18_hand {
          ( all of them )
       ) or ( all of them )
 }
-

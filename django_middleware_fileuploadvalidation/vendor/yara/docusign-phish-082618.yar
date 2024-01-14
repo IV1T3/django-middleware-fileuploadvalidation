@@ -61,4 +61,3 @@ rule infected_08_26_18_DocuSign_phishing_index {
          ( all of them )
       ) or ( all of them )
 }
-

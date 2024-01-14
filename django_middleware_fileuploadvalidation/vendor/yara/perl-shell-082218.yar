@@ -43,4 +43,3 @@ rule infected_08_22_18_perl_shell_t {
          ( 1 of ($x*) and 4 of them )
       ) or ( all of them )
 }
-

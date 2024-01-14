@@ -50,4 +50,3 @@ rule infected_08_27_18_chase_bank_phish_verify {
          ( all of them )
       ) or ( all of them )
 }
-

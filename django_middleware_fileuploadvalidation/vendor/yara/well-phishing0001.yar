@@ -7,7 +7,7 @@ rule phishing_well_fargo
        info = " wells fargo phishing kit "
 
     strings:
-    
+
 	$a= "$formproc_obj"
 	$b= "$data_email_sender"
 	$c= "$validator"
@@ -16,4 +16,3 @@ rule phishing_well_fargo
     condition:
     all of them
 }
-

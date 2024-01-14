@@ -25,4 +25,3 @@ rule infected_09_30_18_s3sshll {
    condition:
          ( all of them )
 }
-

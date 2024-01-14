@@ -1,6 +1,6 @@
 import logging
 
-from . import basic, image, application
+from . import application, basic, image
 
 
 def sanitize(files, upload_config):
@@ -9,7 +9,6 @@ def sanitize(files, upload_config):
     sanitized_files = {}
 
     for file_name, file in files.items():
-
         # Perform basic file sanitization
         file = basic.sanitize_file(file, upload_config)
 

@@ -1,6 +1,6 @@
 rule crypto_miner_config_file_0
 {
-	meta: 
+	meta:
 	author= "Brian Laskowski"
 	info= " Detected a cryptomining config file"
 
@@ -9,8 +9,7 @@ rule crypto_miner_config_file_0
 		$m1 = "wallet_address"
 		$m2 = "pool_password"
 		$m3 = "pool_weight"
-	
+
 	condition:
 		all of them
 }
-

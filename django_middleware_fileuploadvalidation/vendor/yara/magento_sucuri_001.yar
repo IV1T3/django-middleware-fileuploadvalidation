@@ -21,6 +21,5 @@ rule magento_sucuri_malware {
       $s4 = "Cc.php" fullword ascii
       $s5 = "shell_exec" ascii
    condition:
-          all of them 
+          all of them
 }
-

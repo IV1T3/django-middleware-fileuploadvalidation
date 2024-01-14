@@ -34,4 +34,3 @@ rule infected_10_02_18_xmlrpc {
          ( 8 of them )
       ) or ( all of them )
 }
-

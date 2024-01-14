@@ -1,10 +1,10 @@
-import mimetypes
-import exifread
 import hashlib
 import logging
-
+import mimetypes
 from dataclasses import dataclass, field
 from io import BytesIO
+
+import exifread
 
 
 @dataclass
@@ -72,8 +72,8 @@ class File:
     def __init__(self, file):
         logging.debug("[File class] - Initializing file object")
         self._uploaded_file = file
-        self._content = b"".join([chunk for chunk in file.chunks()])
-        self._block = False
+        self._content_internal = b"".join([chunk for chunk in file.chunks()])
+        self._block_internal = False
         self._block_reasons = []
 
         hash_md5, hash_sha1, hash_sha256, hash_sha512 = self._get_file_hashes()
@@ -93,7 +93,7 @@ class File:
             hash_md5,
             hash_sha1,
             hash_sha256,
-            hash_sha512
+            hash_sha512,
             # exif_data,
         )
 
@@ -139,25 +139,25 @@ class File:
 
     @property
     def content(self):
-        return self._content
-
-    @property
-    def block(self):
-        return self._block
-
-    @property
-    def block_reasons(self):
-        return self._block_reasons
+        return self._content_internal
 
     @content.setter
     def content(self, new_content):
         logging.debug("[File class] - Setting new file content")
-        self._content = new_content
+        self._content_internal = new_content
+
+    @property
+    def block(self):
+        return self._block_internal
 
     @block.setter
     def block(self, new_block_status):
         logging.debug("[File class] - Setting new block status")
-        self._block = new_block_status
+        self._block_internal = new_block_status
+
+    @property
+    def block_reasons(self):
+        return self._block_reasons
 
     def append_block_reason(self, block_reason):
         logging.debug("[File class] - Appending new block reason")

@@ -42,4 +42,3 @@ rule infected_188_120_231_151_2018_01_07a_shells_fack {
          ( 8 of them )
       ) or ( all of them )
 }
-

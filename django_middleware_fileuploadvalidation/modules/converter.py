@@ -1,11 +1,10 @@
-from django.core.handlers.wsgi import WSGIRequest
-from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.http import QueryDict
-from django.utils.datastructures import MultiValueDict
-
+import logging
 from io import BytesIO
 
-import logging
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.handlers.wsgi import WSGIRequest
+from django.http import QueryDict
+from django.utils.datastructures import MultiValueDict
 
 from .. import File
 

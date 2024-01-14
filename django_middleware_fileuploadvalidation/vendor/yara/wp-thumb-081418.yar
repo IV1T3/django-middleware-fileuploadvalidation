@@ -23,4 +23,3 @@ rule wp_timthumb_081418 {
          ( all of them )
       ) or ( all of them )
 }
-

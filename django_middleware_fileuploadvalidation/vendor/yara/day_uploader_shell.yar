@@ -27,4 +27,3 @@ rule sig_day_uploader_shell {
          ( all of them )
       ) or ( all of them )
 }
-

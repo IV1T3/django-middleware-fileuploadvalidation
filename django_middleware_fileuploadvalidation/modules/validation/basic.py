@@ -1,8 +1,8 @@
 import logging
 import mimetypes
 import operator
-import pprint
 import os
+import pprint
 
 import magic
 import yara
@@ -17,6 +17,7 @@ def add_point_to_guessed_file_type(file, mime):
     file.validation_results.total_points_overall += 1
 
     return file
+
 
 def perform_yara_matching(file):
     """
@@ -116,17 +117,17 @@ def check_signature_and_request_mime_match_file_extensions(file):
         [
             "application/msword",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.ms-word"
+            "application/vnd.ms-word",
         ],
         [
             "application/msexcel",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "application/vnd.ms-excel"
+            "application/vnd.ms-excel",
         ],
         [
             "application/mspowerpoint",
             "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            "application/vnd.ms-powerpoint"
+            "application/vnd.ms-powerpoint",
         ],
         [
             "application/pdf",
@@ -134,7 +135,7 @@ def check_signature_and_request_mime_match_file_extensions(file):
             "application/acrobat",
             "applications/vnd.pdf",
             "text/pdf",
-            "text/x-pdf"
+            "text/x-pdf",
         ],
         [
             "image/jpeg",
@@ -184,11 +185,12 @@ def check_signature_and_request_mime_match_file_extensions(file):
             if file_extension_mime in mime_similar_collection:
                 possible_mime_types.extend(mime_similar_collection)
                 break
-        
+
         mime_type_matching = (
-            file.basic_information.content_type in possible_mime_types and file.detection_results.signature_mime in possible_mime_types
+            file.basic_information.content_type in possible_mime_types
+            and file.detection_results.signature_mime in possible_mime_types
         )
-        
+
         extension_matchings.append(mime_type_matching)
 
     all_extensions_match = all(extension_matchings)
@@ -293,7 +295,7 @@ def check_filename_for_null_byte_injections(file):
             or "%00" in file_name_split
             or "\0" in file_name_split
         )
-    
+
         if null_byte_found_in_split:
             null_byte_found = True
             break

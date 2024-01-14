@@ -639,4 +639,3 @@ rule PAYPAL_PHISHING_001_infected_06_08_18_case127_files_N_Vier1 {
 }
 
 /* Super Rules ------------------------------------------------------------- */
-

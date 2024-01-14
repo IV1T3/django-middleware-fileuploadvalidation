@@ -6,7 +6,7 @@ rule generic_php_injection_1
        info = " general php injection 05/16/18 "
 
     strings:
-    
+
     $s1="Array()"
     $s2="foreach"
     $s3="eval"
@@ -19,4 +19,3 @@ rule generic_php_injection_1
     condition:
     all of them
 }
-

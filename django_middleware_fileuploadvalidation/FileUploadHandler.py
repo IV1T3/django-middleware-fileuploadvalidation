@@ -1,27 +1,30 @@
 import logging
 import time
-
-from typing import Tuple, List, Dict, Optional
+from typing import Dict, List, Optional, Tuple
 
 from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest
 
 from .data import whitelists
-from .modules import converter, reporter, evaluator
+from .modules import converter, evaluator, reporter
 from .modules.sanitization import sanitizer
 from .modules.validation import validator
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 class FileUploadHandler:
     """
     Handles file upload validation and sanitization processes.
     """
+
     def __init__(self) -> None:
         logging.debug("[FileUploadHandler] - Initializing FileUploadHandler.")
         self.request: Optional[HttpRequest] = None
         self.upload_config: Optional[Dict] = None
 
-    def set_request(self, request: HttpRequest, upload_config: Optional[Dict] = None) -> None:
+    def set_request(
+        self, request: HttpRequest, upload_config: Optional[Dict] = None
+    ) -> None:
         """
         Sets the request and upload configuration for the handler.
         """
@@ -30,7 +33,9 @@ class FileUploadHandler:
                 whitelist_name = upload_config.get("whitelist_name", "RESTRICTIVE")
                 upload_config["whitelist"] = self.get_valid_whitelist(whitelist_name)
             else:
-                upload_config["whitelist"] = [x.lower() for x in upload_config["whitelist"]]
+                upload_config["whitelist"] = [
+                    x.lower() for x in upload_config["whitelist"]
+                ]
 
             logging.debug("[FileUploadHandler] - Extracting upload config.")
             logging.debug("[FileUploadHandler] - Upload config:")
@@ -52,7 +57,14 @@ class FileUploadHandler:
         files, self.request.block_request = self.validate_files(files)
         files, self.request.block_request = self.evaluate_files(files)
 
-        if self.request.upload_config.get("sanitization") and not self.request.block_request:
+        assert (
+            self.request.upload_config is not None
+        ), "Request is not set in FileUploadHandler"
+
+        if (
+            self.request.upload_config.get("sanitization")
+            and not self.request.block_request
+        ):
             files = self.sanitize_files(files)
 
         self.create_upload_log(files)
@@ -66,12 +78,14 @@ class FileUploadHandler:
         """
         logging.debug("[FileUploadHandler] - Monitoring response.")
         if self.contains_suspicious_content(response):
-            logging.warning("[FileUploadHandler] - Response contains suspicious content.")
+            logging.warning(
+                "[FileUploadHandler] - Response contains suspicious content."
+            )
             return HttpResponseBadRequest("Response could not be delivered.")
-    
+
         logging.debug("[FileUploadHandler] - Response is clean.")
         return response
-    
+
     def contains_suspicious_content(self, response: HttpResponse) -> bool:
         """
         Checks if the response contains suspicious content.
@@ -89,7 +103,7 @@ class FileUploadHandler:
                     if keyword in elem:
                         # response._container[i] = elem.replace(keyword, b"RESTRICTED")
                         return True
-        
+
         return False
 
     def convert_to_file_objects(self) -> List:
@@ -114,6 +128,7 @@ class FileUploadHandler:
         """
         Validates the uploaded files.
         """
+        assert self.request is not None, "Request is not set in FileUploadHandler"
         files, block_upload = validator.validate(files, self.request.upload_config)
         self.print_elapsed_time("Validator")
 
@@ -132,6 +147,7 @@ class FileUploadHandler:
         """
         Sanitizes the uploaded files.
         """
+        assert self.request is not None, "Request is not set in FileUploadHandler"
         files = sanitizer.sanitize(files, self.request.upload_config)
         self.print_elapsed_time("Sanitizer")
 
@@ -141,12 +157,13 @@ class FileUploadHandler:
         """
         Creates a log for the file upload process.
         """
+        assert self.request is not None, "Request is not set in FileUploadHandler"
         uploadlogs_mode = self.request.upload_config["uploadlogs_mode"]
         if not self.request.block_request and uploadlogs_mode in ["success", "always"]:
             reporter.build_report(files)
         elif self.request.block_request and uploadlogs_mode in ["blocked", "always"]:
             reporter.build_report(files)
-    
+
     # def _create_upload_log(self, files, request):
 
     #     uploadlogs_mode = request.upload_config["uploadlogs_mode"]
@@ -166,13 +183,15 @@ class FileUploadHandler:
         """
         Prints the elapsed time for a processing step.
         """
+        assert self.request is not None, "Request is not set in FileUploadHandler"
         curr_time = time.time()
         execution_last_step = (curr_time - self.request.middleware_timers[-1]) * 1000
         execution_until_now = (curr_time - self.request.middleware_timers[0]) * 1000
 
         if processing_step == "COMPLETE":
             logging.info(
-                "[Middleware] - TOTAL execution time: %s sec" % (round(execution_until_now / 1000, 3))
+                "[Middleware] - TOTAL execution time: %s sec"
+                % (round(execution_until_now / 1000, 3))
             )
         else:
             logging.info(
@@ -198,4 +217,6 @@ class FileUploadHandler:
             "ALL": whitelists.WHITELIST_MIME_TYPES__ALL,
             "RESTRICTIVE": whitelists.WHITELIST_MIME_TYPES__RESTRICTIVE,
         }
-        return whitelists_mapping.get(whitelist_name, whitelists.WHITELIST_MIME_TYPES__RESTRICTIVE)
+        return whitelists_mapping.get(
+            whitelist_name, whitelists.WHITELIST_MIME_TYPES__RESTRICTIVE
+        )

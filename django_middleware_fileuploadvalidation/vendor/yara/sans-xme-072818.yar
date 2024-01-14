@@ -42,4 +42,3 @@ rule jquery_prettyphoto {
          ( 1 of ($x*) and 4 of them )
       ) or ( all of them )
 }
-

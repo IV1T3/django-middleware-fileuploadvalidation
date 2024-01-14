@@ -77,4 +77,3 @@ rule quotaview_incoming_microsoft_phish_index {
 
 
 /* Super Rules ------------------------------------------------------------- */
-

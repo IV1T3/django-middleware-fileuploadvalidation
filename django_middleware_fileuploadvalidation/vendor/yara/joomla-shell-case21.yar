@@ -42,4 +42,3 @@ rule infected_case21_temp {
          ( 8 of them )
       ) or ( all of them )
 }
-

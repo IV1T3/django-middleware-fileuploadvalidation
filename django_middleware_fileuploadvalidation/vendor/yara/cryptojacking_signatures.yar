@@ -54,4 +54,3 @@ rule crypto_jacking_signatures {
    condition:
       any of them
 }
-

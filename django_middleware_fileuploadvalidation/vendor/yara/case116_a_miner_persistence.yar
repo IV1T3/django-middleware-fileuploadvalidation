@@ -42,4 +42,3 @@ rule infected_06_04_18_case116_a_crypto_miner_persistence_shell {
          ( 1 of ($x*) and 4 of them )
       ) or ( all of them )
 }
-

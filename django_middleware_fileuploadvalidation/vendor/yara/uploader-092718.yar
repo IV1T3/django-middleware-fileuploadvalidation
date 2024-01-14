@@ -25,4 +25,3 @@ rule infected_09_27_18_uploader {
          ( all of them )
       ) or ( all of them )
 }
-

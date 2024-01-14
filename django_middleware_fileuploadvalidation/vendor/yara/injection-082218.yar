@@ -23,4 +23,3 @@ rule infected_082218_class_wp_widget_rss {
          ( all of them )
       ) or ( all of them )
 }
-

@@ -7,13 +7,13 @@ Rationale behind the rules:
 1. a webshell must always execute some kind of payload (in $payload*). the payload is either:
 -- direct php function like exec, file write, sql, ...
 -- indirect via eval, self defined functions, callbacks, reflection, ...
-2. a webshell must always have some way to get the attackers input, e.g. for PHP in $_GET, php://input or $_SERVER (HTTP for headers). 
+2. a webshell must always have some way to get the attackers input, e.g. for PHP in $_GET, php://input or $_SERVER (HTTP for headers).
 
 The input may be hidden in obfuscated code, so we look for either:
 a) payload + input
 b) eval-style-payloads + obfuscation
 c) includers (webshell is split in 2+ files)
-d) unique strings, if the coder doesn't even intend to hide 
+d) unique strings, if the coder doesn't even intend to hide
 
 Additional conditions will be added to reduce false positves. Check all findings for unintentional webshells aka vulnerabilities ;)
 
@@ -91,9 +91,9 @@ rule webshell_php_generic
 	strings:
 		$wfp_tiny1 = "escapeshellarg" fullword
 		$wfp_tiny2 = "addslashes" fullword
-	
+
 		//strings from private rule php_false_positive_tiny
-		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval 
+		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval
 		//$gfp_tiny1 = "addslashes" fullword
 		//$gfp_tiny2 = "escapeshellarg" fullword
 		$gfp_tiny3 = "include \"./common.php\";" // xcache
@@ -104,7 +104,7 @@ rule webshell_php_generic
 		$gfp_tiny8 = "echo shell_exec($aspellcommand . ' 2>&1');"
 		$gfp_tiny9 = "throw new Exception('Could not find authentication source with id ' . $sourceId);"
 		$gfp_tiny10= "return isset( $_POST[ $key ] ) ? $_POST[ $key ] : ( isset( $_REQUEST[ $key ] ) ? $_REQUEST[ $key ] : $default );"
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -112,18 +112,18 @@ rule webshell_php_generic
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 		//strings from private rule capa_php_input
 		$inp1 = "php://input" wide ascii
 		$inp2 = /_GET\s?\[/ wide ascii
-        // for passing $_GET to a function 
+        // for passing $_GET to a function
 		$inp3 = /\(\s?\$_GET\s?\)/ wide ascii
 		$inp4 = /_POST\s?\[/ wide ascii
 		$inp5 = /\(\s?\$_POST\s?\)/ wide ascii
@@ -135,7 +135,7 @@ rule webshell_php_generic
 		$inp17 = /getenv[\t ]{0,20}\([\t ]{0,20}['"]HTTP_/ wide ascii
 		$inp18 = "array_values($_SERVER)" wide ascii
 		$inp19 = /file_get_contents\("https?:\/\// wide ascii
-	
+
 		//strings from private rule capa_php_payload
 		// \([^)] to avoid matching on e.g. eval() in comments
 		$cpayload1 = /\beval[\t ]*\([^)]/ nocase wide ascii
@@ -156,7 +156,7 @@ rule webshell_php_generic
 		$m_cpayload_preg_filter1 = /\bpreg_filter[\t ]*\([^\)]/ nocase wide ascii
 		$m_cpayload_preg_filter2 = "'|.*|e'" nocase wide ascii
 		// TODO backticks
-	
+
 		//strings from private rule capa_gen_sus
 
         // these strings are just a bit suspicious, so several of them are needed, depending on filesize
@@ -218,13 +218,13 @@ rule webshell_php_generic
         // very suspicious strings, one is enough
         $gen_much_sus7  = "Web Shell" nocase
         $gen_much_sus8  = "WebShell" nocase
-        $gen_much_sus3  = "hidded shell" 
+        $gen_much_sus3  = "hidded shell"
         $gen_much_sus4  = "WScript.Shell.1" nocase
-        $gen_much_sus5  = "AspExec" 
+        $gen_much_sus5  = "AspExec"
         $gen_much_sus14 = "\\pcAnywhere\\" nocase
         $gen_much_sus15 = "antivirus" nocase
         $gen_much_sus16 = "McAfee" nocase
-        $gen_much_sus17 = "nishang" 
+        $gen_much_sus17 = "nishang"
         $gen_much_sus18 = "\"unsafe" fullword wide ascii
         $gen_much_sus19 = "'unsafe" fullword wide ascii
         $gen_much_sus24 = "exploit" fullword wide ascii
@@ -282,7 +282,7 @@ rule webshell_php_generic
 
         $gif = { 47 49 46 38 }
 
-	
+
 		//strings from private rule capa_php_payload_multiple
 		// \([^)] to avoid matching on e.g. eval() in comments
 		$cmpayload1 = /\beval[\t ]*\([^)]/ nocase wide ascii
@@ -299,74 +299,74 @@ rule webshell_php_generic
 		$cmpayload12 = /\bmb_ereg_replace[\t ]*\([^\)]{1,100}'e'/ nocase wide ascii
 		$cmpayload20 = /\bcreate_function[\t ]*\([^)]/ nocase wide ascii
 		$cmpayload21 = /\bReflectionFunction[\t ]*\([^)]/ nocase wide ascii
-	
+
 	condition:
-		not ( 
-			any of ( $gfp_tiny* ) 
+		not (
+			any of ( $gfp_tiny* )
 		)
-		and ( 
+		and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
-		and ( 
-			any of ( $inp* ) 
+		and (
+			any of ( $inp* )
 		)
-		and ( 
+		and (
 			any of ( $cpayload* ) or
-        all of ( $m_cpayload_preg_filter* ) 
+        all of ( $m_cpayload_preg_filter* )
 		)
-		and 
-		( ( filesize < 1000 and not any of ( $wfp_tiny* ) ) or 
-		( ( 
+		and
+		( ( filesize < 1000 and not any of ( $wfp_tiny* ) ) or
+		( (
         $gif at 0 or
         (
-            filesize < 4KB and 
+            filesize < 4KB and
             (
                 1 of ( $gen_much_sus* ) or
                 2 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 20KB and 
+            filesize < 20KB and
             (
                 2 of ( $gen_much_sus* ) or
                 3 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 50KB and 
+            filesize < 50KB and
             (
                 2 of ( $gen_much_sus* ) or
                 4 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 100KB and 
+            filesize < 100KB and
             (
                 2 of ( $gen_much_sus* ) or
                 6 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 150KB and 
+            filesize < 150KB and
             (
                 3 of ( $gen_much_sus* ) or
                 7 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 500KB and 
+            filesize < 500KB and
             (
                 4 of ( $gen_much_sus* ) or
                 8 of ( $gen_bit_sus* )
             )
-        ) 
+        )
 		)
-		and 
-		( filesize > 5KB or not any of ( $wfp_tiny* ) ) ) or 
-		( filesize < 500KB and ( 
-			4 of ( $cmpayload* ) 
+		and
+		( filesize > 5KB or not any of ( $wfp_tiny* ) ) ) or
+		( filesize < 500KB and (
+			4 of ( $cmpayload* )
 		)
 		) )
 }
@@ -383,7 +383,7 @@ rule webshell_php_generic_callback
 	strings:
 
 		//strings from private rule php_false_positive
-		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval 
+		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval
         // a good choice is a string with good atom quality = ideally 4 unusual characters next to each other
 		$gfp1  = "eval(\"return [$serialised_parameter" // elgg
 		$gfp2  = "$this->assert(strpos($styles, $"
@@ -397,9 +397,9 @@ rule webshell_php_generic_callback
 		$gfp10 = "[][}{;|]\\|\\\\[+=]\\|<?=>?"
 		$gfp11 = "(eval (getenv \"EPROLOG\")))"
 		$gfp12 = "ZmlsZV9nZXRfY29udGVudHMoJ2h0dHA6Ly9saWNlbnNlLm9wZW5jYXJ0LWFwaS5jb20vbGljZW5zZS5waHA/b3JkZXJ"
-	
+
 		//strings from private rule php_false_positive_tiny
-		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval 
+		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval
 		//$gfp_tiny1 = "addslashes" fullword
 		//$gfp_tiny2 = "escapeshellarg" fullword
 		$gfp_tiny3 = "include \"./common.php\";" // xcache
@@ -410,11 +410,11 @@ rule webshell_php_generic_callback
 		$gfp_tiny8 = "echo shell_exec($aspellcommand . ' 2>&1');"
 		$gfp_tiny9 = "throw new Exception('Could not find authentication source with id ' . $sourceId);"
 		$gfp_tiny10= "return isset( $_POST[ $key ] ) ? $_POST[ $key ] : ( isset( $_REQUEST[ $key ] ) ? $_REQUEST[ $key ] : $default );"
-	
+
 		//strings from private rule capa_php_input
 		$inp1 = "php://input" wide ascii
 		$inp2 = /_GET\s?\[/ wide ascii
-        // for passing $_GET to a function 
+        // for passing $_GET to a function
 		$inp3 = /\(\s?\$_GET\s?\)/ wide ascii
 		$inp4 = /_POST\s?\[/ wide ascii
 		$inp5 = /\(\s?\$_POST\s?\)/ wide ascii
@@ -426,7 +426,7 @@ rule webshell_php_generic_callback
 		$inp17 = /getenv[\t ]{0,20}\([\t ]{0,20}['"]HTTP_/ wide ascii
 		$inp18 = "array_values($_SERVER)" wide ascii
 		$inp19 = /file_get_contents\("https?:\/\// wide ascii
-	
+
 		//strings from private rule capa_php_callback
 		$callback1 = /\bob_start[\t ]*\([^)]/ nocase wide ascii
 		$callback2 = /\barray_diff_uassoc[\t ]*\([^)]/ nocase wide ascii
@@ -468,7 +468,7 @@ rule webshell_php_generic_callback
 		$cfp1 = /ob_start\(['\"]ob_gzhandler/ nocase wide ascii
         $cfp2 = "IWPML_Backend_Action_Loader" ascii wide
 		$cfp3 = "<?phpclass WPML" ascii
-	
+
 		//strings from private rule capa_gen_sus
 
         // these strings are just a bit suspicious, so several of them are needed, depending on filesize
@@ -530,13 +530,13 @@ rule webshell_php_generic_callback
         // very suspicious strings, one is enough
         $gen_much_sus7  = "Web Shell" nocase
         $gen_much_sus8  = "WebShell" nocase
-        $gen_much_sus3  = "hidded shell" 
+        $gen_much_sus3  = "hidded shell"
         $gen_much_sus4  = "WScript.Shell.1" nocase
-        $gen_much_sus5  = "AspExec" 
+        $gen_much_sus5  = "AspExec"
         $gen_much_sus14 = "\\pcAnywhere\\" nocase
         $gen_much_sus15 = "antivirus" nocase
         $gen_much_sus16 = "McAfee" nocase
-        $gen_much_sus17 = "nishang" 
+        $gen_much_sus17 = "nishang"
         $gen_much_sus18 = "\"unsafe" fullword wide ascii
         $gen_much_sus19 = "'unsafe" fullword wide ascii
         $gen_much_sus24 = "exploit" fullword wide ascii
@@ -594,64 +594,64 @@ rule webshell_php_generic_callback
 
         $gif = { 47 49 46 38 }
 
-	
+
 	condition:
-		not ( 
-			any of ( $gfp* ) 
+		not (
+			any of ( $gfp* )
 		)
-		and not ( 
-			any of ( $gfp_tiny* ) 
+		and not (
+			any of ( $gfp_tiny* )
 		)
-		and ( 
-			any of ( $inp* ) 
+		and (
+			any of ( $inp* )
 		)
-		and ( 
+		and (
 			not any of ( $cfp* ) and
         (
             any of ( $callback* )  or
             all of ( $m_callback* )
-        ) 
+        )
 		)
-		and 
-		( filesize < 1000 or ( 
+		and
+		( filesize < 1000 or (
         $gif at 0 or
         (
-            filesize < 4KB and 
+            filesize < 4KB and
             (
                 1 of ( $gen_much_sus* ) or
                 2 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 20KB and 
+            filesize < 20KB and
             (
                 2 of ( $gen_much_sus* ) or
                 3 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 50KB and 
+            filesize < 50KB and
             (
                 2 of ( $gen_much_sus* ) or
                 4 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 100KB and 
+            filesize < 100KB and
             (
                 2 of ( $gen_much_sus* ) or
                 6 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 150KB and 
+            filesize < 150KB and
             (
                 3 of ( $gen_much_sus* ) or
                 7 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 500KB and 
+            filesize < 500KB and
             (
                 4 of ( $gen_much_sus* ) or
                 8 of ( $gen_bit_sus* )
             )
-        ) 
+        )
 		)
 		)
 }
@@ -753,11 +753,11 @@ rule webshell_php_base64_encoded_payloads
         // false positives
         $fp1 = { D0 CF 11 E0 A1 B1 1A E1 }
         // api.telegram
-        $fp2 = "YXBpLnRlbGVncmFtLm9" 
+        $fp2 = "YXBpLnRlbGVncmFtLm9"
 		// Log files
 		$fp3 = "GET /"
-		$fp4 = "POST /"	
-	
+		$fp4 = "POST /"
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -765,28 +765,28 @@ rule webshell_php_base64_encoded_payloads
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 	condition:
-		filesize < 300KB and ( 
+		filesize < 300KB and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
-		and not any of ( $fp* ) and any of ( $decode* ) and 
-		( ( any of ( $one* ) and not any of ( $execu* ) ) or any of ( $two* ) or any of ( $three* ) or 
-		( any of ( $four* ) and not any of ( $esystem* ) ) or 
+		and not any of ( $fp* ) and any of ( $decode* ) and
+		( ( any of ( $one* ) and not any of ( $execu* ) ) or any of ( $two* ) or any of ( $three* ) or
+		( any of ( $four* ) and not any of ( $esystem* ) ) or
 		( any of ( $five* ) and not any of ( $opening* ) ) or any of ( $six* ) or any of ( $seven* ) or any of ( $eight* ) or any of ( $nine* ) )
 }
 
@@ -824,9 +824,9 @@ rule webshell_php_generic_eval
 	strings:
         // new: eval($GLOBALS['_POST'
 		$geval = /\b(exec|shell_exec|passthru|system|popen|proc_open|pcntl_exec|eval|assert)[\t ]*(\(base64_decode)?(\(stripslashes)?[\t ]*(\(trim)?[\t ]*\(\$(_POST|_GET|_REQUEST|_SERVER\s?\[['"]HTTP_|GLOBALS\[['"]_(POST|GET|REQUEST))/ wide ascii
-	
+
 		//strings from private rule php_false_positive
-		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval 
+		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval
         // a good choice is a string with good atom quality = ideally 4 unusual characters next to each other
 		$gfp1  = "eval(\"return [$serialised_parameter" // elgg
 		$gfp2  = "$this->assert(strpos($styles, $"
@@ -842,10 +842,10 @@ rule webshell_php_generic_eval
 		$gfp12 = "ZmlsZV9nZXRfY29udGVudHMoJ2h0dHA6Ly9saWNlbnNlLm9wZW5jYXJ0LWFwaS5jb20vbGljZW5zZS5waHA/b3JkZXJ"
 		// Log files
 		$gfp_3 = " GET /"
-		$gfp_4 = " POST /"		
+		$gfp_4 = " POST /"
 	condition:
-		filesize < 300KB and not ( 
-			any of ( $gfp* ) 
+		filesize < 300KB and not (
+			any of ( $gfp* )
 		)
 		and $geval
 }
@@ -866,7 +866,7 @@ rule webshell_php_double_eval_tiny
 		$fp1 = "clone" fullword wide ascii
 		$fp2 = "* @assert" ascii
 		$fp3 = "*@assert" ascii
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -874,24 +874,24 @@ rule webshell_php_double_eval_tiny
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 	condition:
-		filesize > 70 and filesize < 300 and ( 
+		filesize > 70 and filesize < 300 and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
 		and #payload >= 2 and not any of ( $fp* )
 }
@@ -908,7 +908,7 @@ rule webshell_php_obfuscated
 	strings:
 
 		//strings from private rule php_false_positive
-		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval 
+		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval
         // a good choice is a string with good atom quality = ideally 4 unusual characters next to each other
 		$gfp1  = "eval(\"return [$serialised_parameter" // elgg
 		$gfp2  = "$this->assert(strpos($styles, $"
@@ -922,7 +922,7 @@ rule webshell_php_obfuscated
 		$gfp10 = "[][}{;|]\\|\\\\[+=]\\|<?=>?"
 		$gfp11 = "(eval (getenv \"EPROLOG\")))"
 		$gfp12 = "ZmlsZV9nZXRfY29udGVudHMoJ2h0dHA6Ly9saWNlbnNlLm9wZW5jYXJ0LWFwaS5jb20vbGljZW5zZS5waHA/b3JkZXJ"
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -930,14 +930,14 @@ rule webshell_php_obfuscated
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 		//strings from private rule capa_php_obfuscation_multi
 		$o1 = "chr(" nocase wide ascii
 		$o2 = "chr (" nocase wide ascii
@@ -951,7 +951,7 @@ rule webshell_php_obfuscated
 		$o8 = "\\112" wide ascii
 		$o9 = "\\120" wide ascii
 		$fp1 = "$goto" wide ascii
-	
+
 		//strings from private rule capa_php_payload
 		// \([^)] to avoid matching on e.g. eval() in comments
 		$cpayload1 = /\beval[\t ]*\([^)]/ nocase wide ascii
@@ -972,49 +972,49 @@ rule webshell_php_obfuscated
 		$m_cpayload_preg_filter1 = /\bpreg_filter[\t ]*\([^\)]/ nocase wide ascii
 		$m_cpayload_preg_filter2 = "'|.*|e'" nocase wide ascii
 		// TODO backticks
-	
+
 	condition:
-		not ( 
-			any of ( $gfp* ) 
+		not (
+			any of ( $gfp* )
 		)
-		and ( 
+		and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
-		and ( 
+		and (
 			// allow different amounts of potential obfuscation functions depending on filesize
 			not $fp1 and (
 				(
-						filesize < 20KB and 
+						filesize < 20KB and
 						(
 							( #o1+#o2 ) > 50 or
 							#o3 > 10 or
-							( #o4+#o5+#o6+#o7+#o8+#o9 ) > 20 
-						) 
+							( #o4+#o5+#o6+#o7+#o8+#o9 ) > 20
+						)
 				) or (
-						filesize < 200KB and 
+						filesize < 200KB and
 						(
 							( #o1+#o2 ) > 200 or
 							#o3 > 30 or
-							( #o4+#o5+#o6+#o7+#o8+#o9 ) > 30 
-						) 
+							( #o4+#o5+#o6+#o7+#o8+#o9 ) > 30
+						)
 
 				)
 			)
 
- 
+
 		)
-		and ( 
+		and (
 			any of ( $cpayload* ) or
-        all of ( $m_cpayload_preg_filter* ) 
+        all of ( $m_cpayload_preg_filter* )
 		)
-		
+
 }
 
 rule webshell_php_obfuscated_encoding
@@ -1032,7 +1032,7 @@ rule webshell_php_obfuscated_encoding
         // one without plain a, one without plain s, to avoid hitting on plain "assert("
 		$enc_assert1 = /(a|\\97|\\x61)(\\115|\\x73)(s|\\115|\\x73)(e|\\101|\\x65)(r|\\114|\\x72)(t|\\116|\\x74)(\(|\\x28|\\40)/ wide ascii nocase
 		$enc_assert2 = /(\\97|\\x61)(s|\\115|\\x73)(s|\\115|\\x73)(e|\\101|\\x65)(r|\\114|\\x72)(t|\\116|\\x74)(\(|\\x28|\\40)/ wide ascii nocase
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -1040,24 +1040,24 @@ rule webshell_php_obfuscated_encoding
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 	condition:
-		filesize < 700KB and ( 
+		filesize < 700KB and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
 		and any of ( $enc* )
 }
@@ -1075,7 +1075,7 @@ rule webshell_php_obfuscated_encoding_mixed_dec_and_hex
 		//$mix = /['"]\\x?[0-9a-f]{2,3}[\\\w]{2,20}\\\d{1,3}[\\\w]{2,20}\\x[0-9a-f]{2}\\/ wide ascii nocase
 		$mix = /['"](\w|\\x?[0-9a-f]{2,3})[\\x0-9a-f]{2,20}\\\d{1,3}[\\x0-9a-f]{2,20}\\x[0-9a-f]{2}\\/ wide ascii nocase
 
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -1083,24 +1083,24 @@ rule webshell_php_obfuscated_encoding_mixed_dec_and_hex
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 	condition:
-		filesize < 700KB and ( 
+		filesize < 700KB and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
 		and any of ( $mix* )
 }
@@ -1118,9 +1118,9 @@ rule webshell_php_obfuscated_tiny
         $obf1 = /\w'\.'\w/ wide ascii
         $obf2 = /\w\"\.\"\w/ wide ascii
         $obf3 = "].$" wide ascii
-	
+
 		//strings from private rule php_false_positive
-		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval 
+		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval
         // a good choice is a string with good atom quality = ideally 4 unusual characters next to each other
 		$gfp1  = "eval(\"return [$serialised_parameter" // elgg
 		$gfp2  = "$this->assert(strpos($styles, $"
@@ -1134,7 +1134,7 @@ rule webshell_php_obfuscated_tiny
 		$gfp10 = "[][}{;|]\\|\\\\[+=]\\|<?=>?"
 		$gfp11 = "(eval (getenv \"EPROLOG\")))"
 		$gfp12 = "ZmlsZV9nZXRfY29udGVudHMoJ2h0dHA6Ly9saWNlbnNlLm9wZW5jYXJ0LWFwaS5jb20vbGljZW5zZS5waHA/b3JkZXJ"
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -1142,14 +1142,14 @@ rule webshell_php_obfuscated_tiny
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 		//strings from private rule capa_php_payload
 		// \([^)] to avoid matching on e.g. eval() in comments
 		$cpayload1 = /\beval[\t ]*\([^)]/ nocase wide ascii
@@ -1170,26 +1170,26 @@ rule webshell_php_obfuscated_tiny
 		$m_cpayload_preg_filter1 = /\bpreg_filter[\t ]*\([^\)]/ nocase wide ascii
 		$m_cpayload_preg_filter2 = "'|.*|e'" nocase wide ascii
 		// TODO backticks
-	
+
 	condition:
-		filesize < 500 and not ( 
-			any of ( $gfp* ) 
+		filesize < 500 and not (
+			any of ( $gfp* )
 		)
-		and ( 
+		and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
-		and ( 
+		and (
 			any of ( $cpayload* ) or
-        all of ( $m_cpayload_preg_filter* ) 
+        all of ( $m_cpayload_preg_filter* )
 		)
-		and 
+		and
 		( ( #obf1 + #obf2 ) > 2 or #obf3 > 10 )
 }
 
@@ -1215,7 +1215,7 @@ rule webshell_php_obfuscated_str_replace
 		$chr1  = "\\61" wide ascii
 		$chr2  = "\\112" wide ascii
 		$chr3  = "\\120" wide ascii
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -1223,26 +1223,26 @@ rule webshell_php_obfuscated_str_replace
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 	condition:
-		filesize < 300KB and ( 
+		filesize < 300KB and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
-		and any of ( $payload* ) and #goto > 1 and 
+		and any of ( $payload* ) and #goto > 1 and
 		( #chr1 > 10 or #chr2 > 10 or #chr3 > 10 )
 }
 
@@ -1273,7 +1273,7 @@ rule webshell_php_obfuscated_fopo
 		$two4 = "sAQABhAHMAcwBlAHIAdAAoA" wide ascii
 		$two5 = "7AEAAYQBzAHMAZQByAHQAKA" wide ascii
 		$two6 = "OwBAAGEAcwBzAGUAcgB0ACgA" wide ascii
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -1281,26 +1281,26 @@ rule webshell_php_obfuscated_fopo
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 	condition:
-		filesize < 3000KB and ( 
+		filesize < 3000KB and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
-		and $payload and 
+		and $payload and
 		( any of ( $one* ) or any of ( $two* ) )
 }
 
@@ -1321,10 +1321,10 @@ rule webshell_php_gzinflated
 		$payload8 = /eval\s?\(\s?pack\s?\(/ wide ascii nocase
 
         // api.telegram
-        $fp1 = "YXBpLnRlbGVncmFtLm9" 
-	
+        $fp1 = "YXBpLnRlbGVncmFtLm9"
+
 		//strings from private rule php_false_positive
-		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval 
+		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval
         // a good choice is a string with good atom quality = ideally 4 unusual characters next to each other
 		$gfp1  = "eval(\"return [$serialised_parameter" // elgg
 		$gfp2  = "$this->assert(strpos($styles, $"
@@ -1338,7 +1338,7 @@ rule webshell_php_gzinflated
 		$gfp10 = "[][}{;|]\\|\\\\[+=]\\|<?=>?"
 		$gfp11 = "(eval (getenv \"EPROLOG\")))"
 		$gfp12 = "ZmlsZV9nZXRfY29udGVudHMoJ2h0dHA6Ly9saWNlbnNlLm9wZW5jYXJ0LWFwaS5jb20vbGljZW5zZS5waHA/b3JkZXJ"
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -1346,27 +1346,27 @@ rule webshell_php_gzinflated
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 	condition:
-		filesize < 700KB and not ( 
-			any of ( $gfp* ) 
+		filesize < 700KB and not (
+			any of ( $gfp* )
 		)
-		and ( 
+		and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
 		and 1 of ( $payload* ) and not any of ( $fp* )
 }
@@ -1381,7 +1381,7 @@ rule webshell_php_obfuscated_3
 
 	strings:
         $obf1 = "chr(" wide ascii
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -1389,14 +1389,14 @@ rule webshell_php_obfuscated_3
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 		//strings from private rule capa_php_callback
 		$callback1 = /\bob_start[\t ]*\([^)]/ nocase wide ascii
 		$callback2 = /\barray_diff_uassoc[\t ]*\([^)]/ nocase wide ascii
@@ -1438,7 +1438,7 @@ rule webshell_php_obfuscated_3
 		$cfp1 = /ob_start\(['\"]ob_gzhandler/ nocase wide ascii
         $cfp2 = "IWPML_Backend_Action_Loader" ascii wide
 		$cfp3 = "<?phpclass WPML" ascii
-	
+
 		//strings from private rule capa_php_payload
 		// \([^)] to avoid matching on e.g. eval() in comments
 		$cpayload1 = /\beval[\t ]*\([^)]/ nocase wide ascii
@@ -1459,7 +1459,7 @@ rule webshell_php_obfuscated_3
 		$m_cpayload_preg_filter1 = /\bpreg_filter[\t ]*\([^\)]/ nocase wide ascii
 		$m_cpayload_preg_filter2 = "'|.*|e'" nocase wide ascii
 		// TODO backticks
-	
+
 		//strings from private rule capa_php_obfuscation_single
 		$cobfs1 = "gzinflate" fullword nocase wide ascii
 		$cobfs2 = "gzuncompress" fullword nocase wide ascii
@@ -1467,7 +1467,7 @@ rule webshell_php_obfuscated_3
 		$cobfs4 = "base64_decode" fullword nocase wide ascii
 		$cobfs5 = "pack" fullword nocase wide ascii
 		$cobfs6 = "undecode" fullword nocase wide ascii
-	
+
 		//strings from private rule capa_gen_sus
 
         // these strings are just a bit suspicious, so several of them are needed, depending on filesize
@@ -1529,13 +1529,13 @@ rule webshell_php_obfuscated_3
         // very suspicious strings, one is enough
         $gen_much_sus7  = "Web Shell" nocase
         $gen_much_sus8  = "WebShell" nocase
-        $gen_much_sus3  = "hidded shell" 
+        $gen_much_sus3  = "hidded shell"
         $gen_much_sus4  = "WScript.Shell.1" nocase
-        $gen_much_sus5  = "AspExec" 
+        $gen_much_sus5  = "AspExec"
         $gen_much_sus14 = "\\pcAnywhere\\" nocase
         $gen_much_sus15 = "antivirus" nocase
         $gen_much_sus16 = "McAfee" nocase
-        $gen_much_sus17 = "nishang" 
+        $gen_much_sus17 = "nishang"
         $gen_much_sus18 = "\"unsafe" fullword wide ascii
         $gen_much_sus19 = "'unsafe" fullword wide ascii
         $gen_much_sus24 = "exploit" fullword wide ascii
@@ -1593,75 +1593,75 @@ rule webshell_php_obfuscated_3
 
         $gif = { 47 49 46 38 }
 
-	
+
 	condition:
-		( 
+		(
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
-		and 
-		( ( 
+		and
+		( (
 			not any of ( $cfp* ) and
         (
             any of ( $callback* )  or
             all of ( $m_callback* )
-        ) 
+        )
 		)
-		or ( 
+		or (
 			any of ( $cpayload* ) or
-        all of ( $m_cpayload_preg_filter* ) 
+        all of ( $m_cpayload_preg_filter* )
 		)
-		) and ( 
-			any of ( $cobfs* ) 
+		) and (
+			any of ( $cobfs* )
 		)
-		and 
-		( filesize < 1KB or 
-		( filesize < 3KB and 
-		( ( 
+		and
+		( filesize < 1KB or
+		( filesize < 3KB and
+		( (
         $gif at 0 or
         (
-            filesize < 4KB and 
+            filesize < 4KB and
             (
                 1 of ( $gen_much_sus* ) or
                 2 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 20KB and 
+            filesize < 20KB and
             (
                 2 of ( $gen_much_sus* ) or
                 3 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 50KB and 
+            filesize < 50KB and
             (
                 2 of ( $gen_much_sus* ) or
                 4 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 100KB and 
+            filesize < 100KB and
             (
                 2 of ( $gen_much_sus* ) or
                 6 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 150KB and 
+            filesize < 150KB and
             (
                 3 of ( $gen_much_sus* ) or
                 7 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 500KB and 
+            filesize < 500KB and
             (
                 4 of ( $gen_much_sus* ) or
                 8 of ( $gen_bit_sus* )
             )
-        ) 
+        )
 		)
 		or #obf1 > 10 ) ) )
 }
@@ -1680,7 +1680,7 @@ rule webshell_php_includer_eval
 		$payload2 = "assert" fullword wide ascii
 		$include1 = "$_FILE" wide ascii
 		$include2 = "include" wide ascii
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -1688,24 +1688,24 @@ rule webshell_php_includer_eval
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 	condition:
-		filesize < 200 and ( 
+		filesize < 200 and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
 		and 1 of ( $payload* ) and 1 of ( $include* )
 }
@@ -1720,7 +1720,7 @@ rule webshell_php_includer_tiny
 
 	strings:
 		$php_include1 = /include\(\$_(GET|POST|REQUEST)\[/ nocase wide ascii
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -1728,24 +1728,24 @@ rule webshell_php_includer_tiny
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 	condition:
-		filesize < 100 and ( 
+		filesize < 100 and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
 		and any of ( $php_include* )
 }
@@ -1765,7 +1765,7 @@ rule webshell_php_dynamic
 	strings:
 		$pd_fp1 = "whoops_add_stack_frame" wide ascii
 		$pd_fp2 = "new $ec($code, $mode, $options, $userinfo);" wide ascii
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -1773,14 +1773,14 @@ rule webshell_php_dynamic
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 		//strings from private rule capa_php_dynamic
         // php variable regex from https://www.php.net/manual/en/language.variables.basics.php
 		$dynamic1 = /\$[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff\[\]'"]{0,20}\(\$/ wide ascii
@@ -1790,20 +1790,20 @@ rule webshell_php_dynamic
 		$dynamic5 = /\$[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff\[\]'"]{0,20}\(\)/ wide ascii
 		$dynamic6 = /\$[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff\[\]'"]{0,20}\(@/ wide ascii
 		$dynamic7 = /\$[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff\[\]'"]{0,20}\(base64_decode/ wide ascii
-	
+
 	condition:
-		filesize > 20 and filesize < 200 and ( 
+		filesize > 20 and filesize < 200 and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
-		and ( 
-			any of ( $dynamic* ) 
+		and (
+			any of ( $dynamic* )
 		)
 		and not any of ( $pd_fp* )
 }
@@ -1822,13 +1822,13 @@ rule webshell_php_dynamic_big
 		//strings from private rule capa_bin_files
         $dex   = { 64 65 ( 78 | 79 ) 0a 30 }
         $pack  = { 50 41 43 4b 00 00 00 02 00 }
-	
+
 		//strings from private rule capa_php_new_long
 		// no <?=
 		$new_php2 = "<?php" nocase wide ascii
 		$new_php3 = "<script language=\"php" nocase wide ascii
         $php_short = "<?"
-	
+
 		//strings from private rule capa_php_dynamic
         // php variable regex from https://www.php.net/manual/en/language.variables.basics.php
 		$dynamic1 = /\$[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff\[\]'"]{0,20}\(\$/ wide ascii
@@ -1838,7 +1838,7 @@ rule webshell_php_dynamic_big
 		$dynamic5 = /\$[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff\[\]'"]{0,20}\(\)/ wide ascii
 		$dynamic6 = /\$[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff\[\]'"]{0,20}\(@/ wide ascii
 		$dynamic7 = /\$[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff\[\]'"]{0,20}\(base64_decode/ wide ascii
-	
+
 		//strings from private rule capa_gen_sus
 
         // these strings are just a bit suspicious, so several of them are needed, depending on filesize
@@ -1900,13 +1900,13 @@ rule webshell_php_dynamic_big
         // very suspicious strings, one is enough
         $gen_much_sus7  = "Web Shell" nocase
         $gen_much_sus8  = "WebShell" nocase
-        $gen_much_sus3  = "hidded shell" 
+        $gen_much_sus3  = "hidded shell"
         $gen_much_sus4  = "WScript.Shell.1" nocase
-        $gen_much_sus5  = "AspExec" 
+        $gen_much_sus5  = "AspExec"
         $gen_much_sus14 = "\\pcAnywhere\\" nocase
         $gen_much_sus15 = "antivirus" nocase
         $gen_much_sus16 = "McAfee" nocase
-        $gen_much_sus17 = "nishang" 
+        $gen_much_sus17 = "nishang"
         $gen_much_sus18 = "\"unsafe" fullword wide ascii
         $gen_much_sus19 = "'unsafe" fullword wide ascii
         $gen_much_sus24 = "exploit" fullword wide ascii
@@ -1964,28 +1964,28 @@ rule webshell_php_dynamic_big
 
         $gif = { 47 49 46 38 }
 
-	
+
 	condition:
-		filesize < 500KB and not ( 
-        uint16(0) == 0x5a4d or 
-        $dex at 0 or 
-        $pack at 0 or 
+		filesize < 500KB and not (
+        uint16(0) == 0x5a4d or
+        $dex at 0 or
+        $pack at 0 or
         // fp on jar with zero compression
-        uint16(0) == 0x4b50 
+        uint16(0) == 0x4b50
 		)
-		and ( 
+		and (
 			any of ( $new_php* ) or
-        $php_short at 0 
+        $php_short at 0
 		)
-		and ( 
-			any of ( $dynamic* ) 
+		and (
+			any of ( $dynamic* )
 		)
-		and 
-		( ( 
+		and
+		( (
 			// file shouldn't be too small to have big enough data for math.entropy
-			filesize > 2KB and 
+			filesize > 2KB and
         (
-            // base64 : 
+            // base64 :
             // ignore first and last 500bytes because they usually contain code for decoding and executing
             math.entropy(500, filesize-500) >= 5.7 and
             // encoded text has a higher mean than text or code because it's missing the spaces and special chars with the low numbers
@@ -2005,47 +2005,47 @@ rule webshell_php_dynamic_big
             // lets take a bit more because it might not be pure base64 also include some xor, shift, replacement, ...
             // 89 is the mean of the base64 chars
             math.deviation(500, filesize-500, 89.0) > 65
-        ) 
+        )
 		)
-		or ( 
+		or (
         $gif at 0 or
         (
-            filesize < 4KB and 
+            filesize < 4KB and
             (
                 1 of ( $gen_much_sus* ) or
                 2 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 20KB and 
+            filesize < 20KB and
             (
                 2 of ( $gen_much_sus* ) or
                 3 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 50KB and 
+            filesize < 50KB and
             (
                 2 of ( $gen_much_sus* ) or
                 4 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 100KB and 
+            filesize < 100KB and
             (
                 2 of ( $gen_much_sus* ) or
                 6 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 150KB and 
+            filesize < 150KB and
             (
                 3 of ( $gen_much_sus* ) or
                 7 of ( $gen_bit_sus* )
             )
         ) or (
-            filesize < 500KB and 
+            filesize < 500KB and
             (
                 4 of ( $gen_much_sus* ) or
                 8 of ( $gen_bit_sus* )
             )
-        ) 
+        )
 		)
 		)
 }
@@ -2067,7 +2067,7 @@ rule webshell_php_encoded_big
 		$new_php2 = "<?php" nocase wide ascii
 		$new_php3 = "<script language=\"php" nocase wide ascii
         $php_short = "<?"
-	
+
 		//strings from private rule capa_php_payload
 		// \([^)] to avoid matching on e.g. eval() in comments
 		$cpayload1 = /\beval[\t ]*\([^)]/ nocase wide ascii
@@ -2088,21 +2088,21 @@ rule webshell_php_encoded_big
 		$m_cpayload_preg_filter1 = /\bpreg_filter[\t ]*\([^\)]/ nocase wide ascii
 		$m_cpayload_preg_filter2 = "'|.*|e'" nocase wide ascii
 		// TODO backticks
-	
+
 	condition:
-		filesize < 1000KB and ( 
+		filesize < 1000KB and (
 			any of ( $new_php* ) or
-        $php_short at 0 
+        $php_short at 0
 		)
-		and ( 
+		and (
 			any of ( $cpayload* ) or
-        all of ( $m_cpayload_preg_filter* ) 
+        all of ( $m_cpayload_preg_filter* )
 		)
-		and ( 
+		and (
 			// file shouldn't be too small to have big enough data for math.entropy
-			filesize > 2KB and 
+			filesize > 2KB and
         (
-            // base64 : 
+            // base64 :
             // ignore first and last 500bytes because they usually contain code for decoding and executing
             math.entropy(500, filesize-500) >= 5.7 and
             // encoded text has a higher mean than text or code because it's missing the spaces and special chars with the low numbers
@@ -2122,9 +2122,9 @@ rule webshell_php_encoded_big
             // lets take a bit more because it might not be pure base64 also include some xor, shift, replacement, ...
             // 89 is the mean of the base64 chars
             math.deviation(500, filesize-500, 89.0) > 65
-        ) 
+        )
 		)
-		
+
 }
 
 rule webshell_php_generic_backticks
@@ -2138,7 +2138,7 @@ rule webshell_php_generic_backticks
 
 	strings:
 		$backtick = /`[\t ]*\$(_POST\[|_GET\[|_REQUEST\[|_SERVER\['HTTP_)/ wide ascii
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -2146,24 +2146,24 @@ rule webshell_php_generic_backticks
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 	condition:
-		( 
+		(
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
 		and $backtick and filesize < 200
 }
@@ -2179,7 +2179,7 @@ rule webshell_php_generic_backticks_obfuscated
 
 	strings:
 		$s1 = /echo[\t ]*\(?`\$/ wide ascii
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -2187,24 +2187,24 @@ rule webshell_php_generic_backticks_obfuscated
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 	condition:
-		filesize < 500 and ( 
+		filesize < 500 and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
 		and $s1
 }
@@ -2254,7 +2254,7 @@ rule webshell_php_by_string_known_webshell
         $pbs63 = "use function \\assert as "
 
 		$front1 = "<?php eval(" nocase wide ascii
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -2262,37 +2262,37 @@ rule webshell_php_by_string_known_webshell
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 		//strings from private rule capa_bin_files
         $dex   = { 64 65 ( 78 | 79 ) 0a 30 }
         $pack  = { 50 41 43 4b 00 00 00 02 00 }
-	
+
 	condition:
-		filesize < 500KB and ( 
+		filesize < 500KB and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
-		and not ( 
-        uint16(0) == 0x5a4d or 
-        $dex at 0 or 
-        $pack at 0 or 
+		and not (
+        uint16(0) == 0x5a4d or
+        $dex at 0 or
+        $pack at 0 or
         // fp on jar with zero compression
-        uint16(0) == 0x4b50 
+        uint16(0) == 0x4b50
 		)
-		and 
+		and
 		( any of ( $pbs* ) or $front1 in ( 0 .. 60 ) )
 }
 
@@ -2358,7 +2358,7 @@ rule webshell_php_by_string_obfuscation
 		$opbs76 = "'ev'.'al("
         // eval( in hex
 		$opbs77 = "\\x65\\x76\\x61\\x6c\\x28" wide ascii nocase
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -2366,24 +2366,24 @@ rule webshell_php_by_string_obfuscation
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 	condition:
-		filesize < 500KB and ( 
+		filesize < 500KB and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
 		and any of ( $opbs* )
 }
@@ -2400,7 +2400,7 @@ rule webshell_php_strings_susp
 
 	strings:
 		$sstring1 = "eval(\"?>\"" nocase wide ascii
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -2408,16 +2408,16 @@ rule webshell_php_strings_susp
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 		//strings from private rule php_false_positive
-		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval 
+		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval
         // a good choice is a string with good atom quality = ideally 4 unusual characters next to each other
 		$gfp1  = "eval(\"return [$serialised_parameter" // elgg
 		$gfp2  = "$this->assert(strpos($styles, $"
@@ -2431,11 +2431,11 @@ rule webshell_php_strings_susp
 		$gfp10 = "[][}{;|]\\|\\\\[+=]\\|<?=>?"
 		$gfp11 = "(eval (getenv \"EPROLOG\")))"
 		$gfp12 = "ZmlsZV9nZXRfY29udGVudHMoJ2h0dHA6Ly9saWNlbnNlLm9wZW5jYXJ0LWFwaS5jb20vbGljZW5zZS5waHA/b3JkZXJ"
-	
+
 		//strings from private rule capa_php_input
 		$inp1 = "php://input" wide ascii
 		$inp2 = /_GET\s?\[/ wide ascii
-        // for passing $_GET to a function 
+        // for passing $_GET to a function
 		$inp3 = /\(\s?\$_GET\s?\)/ wide ascii
 		$inp4 = /_POST\s?\[/ wide ascii
 		$inp5 = /\(\s?\$_POST\s?\)/ wide ascii
@@ -2447,25 +2447,25 @@ rule webshell_php_strings_susp
 		$inp17 = /getenv[\t ]{0,20}\([\t ]{0,20}['"]HTTP_/ wide ascii
 		$inp18 = "array_values($_SERVER)" wide ascii
 		$inp19 = /file_get_contents\("https?:\/\// wide ascii
-	
+
 	condition:
-		filesize < 700KB and ( 
+		filesize < 700KB and (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
-		and not ( 
-			any of ( $gfp* ) 
+		and not (
+			any of ( $gfp* )
 		)
-		and 
-		( 2 of ( $sstring* ) or 
-		( 1 of ( $sstring* ) and ( 
-			any of ( $inp* ) 
+		and
+		( 2 of ( $sstring* ) or
+		( 1 of ( $sstring* ) and (
+			any of ( $inp* )
 		)
 		) )
 }
@@ -2504,9 +2504,9 @@ rule webshell_php_function_via_get
 		$sr3 = /\$_GET\s?\[.{1,30}\]\(\$_POST\s?\[/ wide ascii
 		$sr4 = /\$_REQUEST\s?\[.{1,30}\]\(\$_REQUEST\s?\[/ wide ascii
 		$sr5 = /\$_SERVER\s?\[HTTP_.{1,30}\]\(\$_SERVER\s?\[HTTP_/ wide ascii
-	
+
 		//strings from private rule php_false_positive
-		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval 
+		// try to use only strings which would be flagged by themselves as suspicous by other rules, e.g. eval
         // a good choice is a string with good atom quality = ideally 4 unusual characters next to each other
 		$gfp1  = "eval(\"return [$serialised_parameter" // elgg
 		$gfp2  = "$this->assert(strpos($styles, $"
@@ -2520,10 +2520,10 @@ rule webshell_php_function_via_get
 		$gfp10 = "[][}{;|]\\|\\\\[+=]\\|<?=>?"
 		$gfp11 = "(eval (getenv \"EPROLOG\")))"
 		$gfp12 = "ZmlsZV9nZXRfY29udGVudHMoJ2h0dHA6Ly9saWNlbnNlLm9wZW5jYXJ0LWFwaS5jb20vbGljZW5zZS5waHA/b3JkZXJ"
-	
+
 	condition:
-		filesize < 500KB and not ( 
-			any of ( $gfp* ) 
+		filesize < 500KB and not (
+			any of ( $gfp* )
 		)
 		and any of ( $sr* )
 }
@@ -2543,7 +2543,7 @@ rule webshell_php_writer
         $sus6 = "gif89" wide ascii
         //$sus13= "<textarea " wide ascii
         $sus16= "Army" fullword wide ascii
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -2551,18 +2551,18 @@ rule webshell_php_writer
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 		//strings from private rule capa_php_input
 		$inp1 = "php://input" wide ascii
 		$inp2 = /_GET\s?\[/ wide ascii
-        // for passing $_GET to a function 
+        // for passing $_GET to a function
 		$inp3 = /\(\s?\$_GET\s?\)/ wide ascii
 		$inp4 = /_POST\s?\[/ wide ascii
 		$inp5 = /\(\s?\$_POST\s?\)/ wide ascii
@@ -2574,32 +2574,32 @@ rule webshell_php_writer
 		$inp17 = /getenv[\t ]{0,20}\([\t ]{0,20}['"]HTTP_/ wide ascii
 		$inp18 = "array_values($_SERVER)" wide ascii
 		$inp19 = /file_get_contents\("https?:\/\// wide ascii
-	
+
 		//strings from private rule capa_php_write_file
 		$php_multi_write1 = "fopen(" wide ascii
 		$php_multi_write2 = "fwrite(" wide ascii
 		$php_write1 = "move_uploaded_file" fullword wide ascii
-	
+
 	condition:
-		( 
+		(
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
-		and ( 
-			any of ( $inp* ) 
+		and (
+			any of ( $inp* )
 		)
-		and ( 
+		and (
         any of ( $php_write* ) or
-        all of ( $php_multi_write* ) 
+        all of ( $php_multi_write* )
 		)
-		and 
-		( filesize < 400 or 
+		and
+		( filesize < 400 or
 		( filesize < 4000 and 1 of ( $sus* ) ) )
 }
 
@@ -2629,7 +2629,7 @@ rule webshell_asp_writer
         $sus14= "\"unsafe" fullword wide ascii
         $sus15= "'unsafe" fullword wide ascii
         $sus16= "Army" fullword wide ascii
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -2654,7 +2654,7 @@ rule webshell_asp_writer
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -2683,8 +2683,8 @@ rule webshell_asp_writer
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 		//strings from private rule capa_asp_input
         // Request.BinaryRead
         // Request.Form
@@ -2703,7 +2703,7 @@ rule webshell_asp_writer
         $asp_asp   = "<asp:" wide ascii
         $asp_text1 = ".text" wide ascii
         $asp_text2 = ".Text" wide ascii
-	
+
 		//strings from private rule capa_asp_write_file
 		// $asp_write1 = "ADODB.Stream" wide ascii # just a string, can be easily obfuscated
 		$asp_always_write1 = /\.write/ nocase wide ascii
@@ -2715,33 +2715,33 @@ rule webshell_asp_writer
 		$asp_cr_write2 = "CreateObject (" fullword nocase wide ascii
 		$asp_streamwriter1 = "streamwriter" fullword nocase wide ascii
 		$asp_streamwriter2 = "filestream" fullword nocase wide ascii
-	
+
 	condition:
-		( 
+		(
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		and ( 
+		and (
 			any of ( $asp_input* ) or
         (
             $asp_xml_http and
@@ -2751,19 +2751,19 @@ rule webshell_asp_writer
             any of ( $asp_form* ) and
             any of ( $asp_text* ) and
             $asp_asp
-        ) 
+        )
 		)
-		and ( 
+		and (
         any of ( $asp_always_write* ) and
         (
             any of ( $asp_write_way_one* ) and
             any of ( $asp_cr_write* )
         ) or (
             any of ( $asp_streamwriter* )
-        ) 
+        )
 		)
-		and 
-		( filesize < 400 or 
+		and
+		( filesize < 400 or
 		( filesize < 6000 and 1 of ( $sus* ) ) )
 }
 
@@ -2784,7 +2784,7 @@ rule webshell_asp_obfuscated
         $asp_obf6 = "q\"+\"u\"" wide ascii
         $asp_obf7 = "\"u\"+\"e" wide ascii
         $asp_obf8 = "/*//*/" wide ascii
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -2809,7 +2809,7 @@ rule webshell_asp_obfuscated
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -2838,8 +2838,8 @@ rule webshell_asp_obfuscated
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 		//strings from private rule capa_asp_payload
 		$asp_payload0  = "eval_r" fullword nocase wide ascii
 		$asp_payload1  = /\beval\s/ nocase wide ascii
@@ -2873,7 +2873,7 @@ rule webshell_asp_obfuscated
 		$asp_multi_payload_five3 = ".Filename" nocase wide ascii
 		$asp_multi_payload_five4 = ".Arguments" nocase wide ascii
 
-	
+
 		//strings from private rule capa_asp_write_file
 		// $asp_write1 = "ADODB.Stream" wide ascii # just a string, can be easily obfuscated
 		$asp_always_write1 = /\.write/ nocase wide ascii
@@ -2885,7 +2885,7 @@ rule webshell_asp_obfuscated
 		$asp_cr_write2 = "CreateObject (" fullword nocase wide ascii
 		$asp_streamwriter1 = "streamwriter" fullword nocase wide ascii
 		$asp_streamwriter2 = "filestream" fullword nocase wide ascii
-	
+
 		//strings from private rule capa_asp_obfuscation_multi
         // many Chr or few and a loop????
         //$loop1 = "For "
@@ -2932,101 +2932,101 @@ rule webshell_asp_obfuscated
 
         $m_fp1 = "Author: Andre Teixeira - andret@microsoft.com" /* FPs with 0227f4c366c07c45628b02bae6b4ad01 */
 
-	
+
 		//strings from private rule capa_asp_obfuscation_obviously
 		$oo1 = /\w\"&\"\w/ wide ascii
 		$oo2 = "*/\").Replace(\"/*" wide ascii
-	
+
 	condition:
-		filesize < 100KB and ( 
+		filesize < 100KB and (
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		and 
-		( ( ( 
+		and
+		( ( (
 			any of ( $asp_payload* ) or
         all of ( $asp_multi_payload_one* ) or
         all of ( $asp_multi_payload_two* ) or
         all of ( $asp_multi_payload_three* ) or
         all of ( $asp_multi_payload_four* ) or
-        all of ( $asp_multi_payload_five* ) 
+        all of ( $asp_multi_payload_five* )
 		)
-		or ( 
+		or (
         any of ( $asp_always_write* ) and
         (
             any of ( $asp_write_way_one* ) and
             any of ( $asp_cr_write* )
         ) or (
             any of ( $asp_streamwriter* )
-        ) 
+        )
 		)
-		) and 
-		( ( 
+		) and
+		( (
         (
-            filesize < 100KB and 
+            filesize < 100KB and
             not any of ( $m_fp* ) and
             (
                 //( #o1+#o2 ) > 50 or
-                ( #o4+#o5+#o6+#o7+#o8+#o9 ) > 20 
-            ) 
+                ( #o4+#o5+#o6+#o7+#o8+#o9 ) > 20
+            )
         ) or (
-            filesize < 5KB and 
+            filesize < 5KB and
             (
                 //( #o1+#o2 ) > 10 or
                 ( #o4+#o5+#o6+#o7+#o8+#o9 ) > 5 or
                 (
                     //( #o1+#o2 ) > 1 and
-                    ( #m_multi_one1 + #m_multi_one2 + #m_multi_one3 + #m_multi_one4 + #m_multi_one5 ) > 3 
+                    ( #m_multi_one1 + #m_multi_one2 + #m_multi_one3 + #m_multi_one4 + #m_multi_one5 ) > 3
                 )
 
-            ) 
+            )
         ) or (
-            filesize < 700 and 
+            filesize < 700 and
             (
                 //( #o1+#o2 ) > 1 or
                 ( #o4+#o5+#o6+#o7+#o8+#o9 ) > 3 or
-                ( #m_multi_one1 + #m_multi_one2 + #m_multi_one3 + #m_multi_one4 + #m_multi_one5 ) > 2 
-            ) 
-        )  
+                ( #m_multi_one1 + #m_multi_one2 + #m_multi_one3 + #m_multi_one4 + #m_multi_one5 ) > 2
+            )
+        )
 		)
-		or any of ( $asp_obf* ) ) or ( 
+		or any of ( $asp_obf* ) ) or (
         (
-            filesize < 100KB and 
+            filesize < 100KB and
             (
                 ( #oo1 ) > 2 or
                 $oo2
-            ) 
+            )
         ) or (
-            filesize < 25KB and 
+            filesize < 25KB and
             (
                 ( #oo1 ) > 1
-            ) 
+            )
         ) or (
-            filesize < 1KB and 
+            filesize < 1KB and
             (
-                ( #oo1 ) > 0 
-            ) 
-        )  
+                ( #oo1 ) > 0
+            )
+        )
 		)
 		)
 }
@@ -3048,7 +3048,7 @@ rule webshell_asp_generic_eval_on_input
 		$payload_and_input1 = /\beval[\s\(]{1,20}request[.\(\[]/ nocase wide ascii
 		$payload_and_input2 = /\bexecute[\s\(]{1,20}request\(/ nocase wide ascii
 		$payload_and_input4 = /\bExecuteGlobal\s{1,20}request\(/ nocase wide ascii
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -3073,7 +3073,7 @@ rule webshell_asp_generic_eval_on_input
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -3102,34 +3102,34 @@ rule webshell_asp_generic_eval_on_input
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 	condition:
-		( filesize < 1100KB and ( 
+		( filesize < 1100KB and (
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		and any of ( $payload_and_input* ) ) or 
+		and any of ( $payload_and_input* ) ) or
 		( filesize < 100 and any of ( $payload_and_input* ) )
 }
 
@@ -3162,7 +3162,7 @@ rule webshell_asp_nano
         $fp1      = "eval a"
         $fp2      = "'Eval'"
         $fp3      = "Eval(\""
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -3187,7 +3187,7 @@ rule webshell_asp_nano
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -3216,8 +3216,8 @@ rule webshell_asp_nano
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 		//strings from private rule capa_asp_payload
 		$asp_payload0  = "eval_r" fullword nocase wide ascii
 		$asp_payload1  = /\beval\s/ nocase wide ascii
@@ -3251,7 +3251,7 @@ rule webshell_asp_nano
 		$asp_multi_payload_five3 = ".Filename" nocase wide ascii
 		$asp_multi_payload_five4 = ".Arguments" nocase wide ascii
 
-	
+
 		//strings from private rule capa_asp_write_file
 		// $asp_write1 = "ADODB.Stream" wide ascii # just a string, can be easily obfuscated
 		$asp_always_write1 = /\.write/ nocase wide ascii
@@ -3263,52 +3263,52 @@ rule webshell_asp_nano
 		$asp_cr_write2 = "CreateObject (" fullword nocase wide ascii
 		$asp_streamwriter1 = "streamwriter" fullword nocase wide ascii
 		$asp_streamwriter2 = "filestream" fullword nocase wide ascii
-	
+
 	condition:
-		( 
+		(
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		and 
-		( ( 
+		and
+		( (
 			any of ( $asp_payload* ) or
         all of ( $asp_multi_payload_one* ) or
         all of ( $asp_multi_payload_two* ) or
         all of ( $asp_multi_payload_three* ) or
         all of ( $asp_multi_payload_four* ) or
-        all of ( $asp_multi_payload_five* ) 
+        all of ( $asp_multi_payload_five* )
 		)
-		or ( 
+		or (
         any of ( $asp_always_write* ) and
         (
             any of ( $asp_write_way_one* ) and
             any of ( $asp_cr_write* )
         ) or (
             any of ( $asp_streamwriter* )
-        ) 
+        )
 		)
-		) and not any of ( $fp* ) and 
-		( filesize < 200 or 
+		) and not any of ( $fp* ) and
+		( filesize < 200 or
 		( filesize < 1000 and any of ( $susasp* ) ) )
 }
 
@@ -3328,7 +3328,7 @@ rule webshell_asp_encoded
 		$sus2 = "cmd" fullword wide ascii
 		$sus3 = "password" fullword wide ascii
 		$sus4 = "UserPass" fullword wide ascii
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -3353,7 +3353,7 @@ rule webshell_asp_encoded
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -3382,36 +3382,36 @@ rule webshell_asp_encoded
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 	condition:
-		filesize < 500KB and ( 
+		filesize < 500KB and (
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		and any of ( $encoded* ) and any of ( $data* ) and 
-		( any of ( $sus* ) or 
-		( filesize < 20KB and #data1 > 4 ) or 
+		and any of ( $encoded* ) and any of ( $data* ) and
+		( any of ( $sus* ) or
+		( filesize < 20KB and #data1 > 4 ) or
 		( filesize < 700 and #data1 > 0 ) )
 }
 
@@ -3434,7 +3434,7 @@ rule webshell_asp_encoded_aspcoding
 		//$sus2 = "cmd" fullword wide ascii
 		//$sus3 = "password" fullword wide ascii
 		//$sus4 = "UserPass" fullword wide ascii
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -3459,7 +3459,7 @@ rule webshell_asp_encoded_aspcoding
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -3488,32 +3488,32 @@ rule webshell_asp_encoded_aspcoding
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 	condition:
-		filesize < 500KB and ( 
+		filesize < 500KB and (
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
 		and all of ( $encoded* ) and any of ( $data* )
 }
@@ -3584,7 +3584,7 @@ rule webshell_asp_by_string
 		$asp_string46 = "\"c\" + \"m\" + \"d\"" wide ascii
 		$asp_string47 = "\".\"+\"e\"+\"x\"+\"e\"" wide ascii
 
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -3609,7 +3609,7 @@ rule webshell_asp_by_string
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -3638,32 +3638,32 @@ rule webshell_asp_by_string
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 	condition:
-		filesize < 200KB and ( 
+		filesize < 200KB and (
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
 		and any of ( $asp_string* )
 }
@@ -3682,7 +3682,7 @@ rule webshell_asp_sniffer
 		$sniff3 = ".SetSocketOption(" wide ascii
 		$sniff4 = ".IOControl(" wide ascii
 		$sniff5 = "PacketCaptureWriter" fullword wide ascii
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -3707,7 +3707,7 @@ rule webshell_asp_sniffer
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -3736,8 +3736,8 @@ rule webshell_asp_sniffer
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 		//strings from private rule capa_asp_input
         // Request.BinaryRead
         // Request.Form
@@ -3756,33 +3756,33 @@ rule webshell_asp_sniffer
         $asp_asp   = "<asp:" wide ascii
         $asp_text1 = ".text" wide ascii
         $asp_text2 = ".Text" wide ascii
-	
+
 	condition:
-		( 
+		(
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		and ( 
+		and (
 			any of ( $asp_input* ) or
         (
             $asp_xml_http and
@@ -3792,7 +3792,7 @@ rule webshell_asp_sniffer
             any of ( $asp_form* ) and
             any of ( $asp_text* ) and
             $asp_asp
-        ) 
+        )
 		)
 		and filesize < 30KB and all of ( $sniff* )
 }
@@ -3809,7 +3809,7 @@ rule webshell_asp_generic_tiny
 
 	strings:
         $fp1 = "net.rim.application.ipproxyservice.AdminCommand.execute"
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -3834,7 +3834,7 @@ rule webshell_asp_generic_tiny
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -3863,8 +3863,8 @@ rule webshell_asp_generic_tiny
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 		//strings from private rule capa_asp_input
         // Request.BinaryRead
         // Request.Form
@@ -3883,11 +3883,11 @@ rule webshell_asp_generic_tiny
         $asp_asp   = "<asp:" wide ascii
         $asp_text1 = ".text" wide ascii
         $asp_text2 = ".Text" wide ascii
-	
+
 		//strings from private rule capa_bin_files
         $dex   = { 64 65 ( 78 | 79 ) 0a 30 }
         $pack  = { 50 41 43 4b 00 00 00 02 00 }
-	
+
 		//strings from private rule capa_asp_payload
 		$asp_payload0  = "eval_r" fullword nocase wide ascii
 		$asp_payload1  = /\beval\s/ nocase wide ascii
@@ -3921,7 +3921,7 @@ rule webshell_asp_generic_tiny
 		$asp_multi_payload_five3 = ".Filename" nocase wide ascii
 		$asp_multi_payload_five4 = ".Arguments" nocase wide ascii
 
-	
+
 		//strings from private rule capa_asp_write_file
 		// $asp_write1 = "ADODB.Stream" wide ascii # just a string, can be easily obfuscated
 		$asp_always_write1 = /\.write/ nocase wide ascii
@@ -3933,33 +3933,33 @@ rule webshell_asp_generic_tiny
 		$asp_cr_write2 = "CreateObject (" fullword nocase wide ascii
 		$asp_streamwriter1 = "streamwriter" fullword nocase wide ascii
 		$asp_streamwriter2 = "filestream" fullword nocase wide ascii
-	
+
 	condition:
-		( 
+		(
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		and ( 
+		and (
 			any of ( $asp_input* ) or
         (
             $asp_xml_http and
@@ -3969,33 +3969,33 @@ rule webshell_asp_generic_tiny
             any of ( $asp_form* ) and
             any of ( $asp_text* ) and
             $asp_asp
-        ) 
+        )
 		)
-		and not 1 of ( $fp* ) and not ( 
-        uint16(0) == 0x5a4d or 
-        $dex at 0 or 
-        $pack at 0 or 
+		and not 1 of ( $fp* ) and not (
+        uint16(0) == 0x5a4d or
+        $dex at 0 or
+        $pack at 0 or
         // fp on jar with zero compression
-        uint16(0) == 0x4b50 
+        uint16(0) == 0x4b50
 		)
-		and 
-		( filesize < 700 and 
-		( ( 
+		and
+		( filesize < 700 and
+		( (
 			any of ( $asp_payload* ) or
         all of ( $asp_multi_payload_one* ) or
         all of ( $asp_multi_payload_two* ) or
         all of ( $asp_multi_payload_three* ) or
         all of ( $asp_multi_payload_four* ) or
-        all of ( $asp_multi_payload_five* ) 
+        all of ( $asp_multi_payload_five* )
 		)
-		or ( 
+		or (
         any of ( $asp_always_write* ) and
         (
             any of ( $asp_write_way_one* ) and
             any of ( $asp_cr_write* )
         ) or (
             any of ( $asp_streamwriter* )
-        ) 
+        )
 		)
 		) )
 }
@@ -4014,13 +4014,13 @@ rule webshell_asp_generic
 	strings:
         $asp_much_sus7  = "Web Shell" nocase
         $asp_much_sus8  = "WebShell" nocase
-        $asp_much_sus3  = "hidded shell" 
+        $asp_much_sus3  = "hidded shell"
         $asp_much_sus4  = "WScript.Shell.1" nocase
-        $asp_much_sus5  = "AspExec" 
+        $asp_much_sus5  = "AspExec"
         $asp_much_sus14 = "\\pcAnywhere\\" nocase
         $asp_much_sus15 = "antivirus" nocase
         $asp_much_sus16 = "McAfee" nocase
-        $asp_much_sus17 = "nishang" 
+        $asp_much_sus17 = "nishang"
         $asp_much_sus18 = "\"unsafe" fullword wide ascii
         $asp_much_sus19 = "'unsafe" fullword wide ascii
         $asp_much_sus28 = "exploit" fullword wide ascii
@@ -4075,11 +4075,11 @@ rule webshell_asp_generic
 
 
         // "e"+"x"+"e"
-        $asp_gen_obf1 = "\"+\"" wide ascii 
+        $asp_gen_obf1 = "\"+\"" wide ascii
 
         $fp1 = "DataBinder.Eval"
 		$fp2 = "B2BTools"
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -4104,7 +4104,7 @@ rule webshell_asp_generic
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -4133,12 +4133,12 @@ rule webshell_asp_generic
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 		//strings from private rule capa_bin_files
         $dex   = { 64 65 ( 78 | 79 ) 0a 30 }
         $pack  = { 50 41 43 4b 00 00 00 02 00 }
-	
+
 		//strings from private rule capa_asp_input
         // Request.BinaryRead
         // Request.Form
@@ -4157,7 +4157,7 @@ rule webshell_asp_generic
         $asp_asp   = "<asp:" wide ascii
         $asp_text1 = ".text" wide ascii
         $asp_text2 = ".Text" wide ascii
-	
+
 		//strings from private rule capa_asp_payload
 		$asp_payload0  = "eval_r" fullword nocase wide ascii
 		$asp_payload1  = /\beval\s/ nocase wide ascii
@@ -4191,7 +4191,7 @@ rule webshell_asp_generic
 		$asp_multi_payload_five3 = ".Filename" nocase wide ascii
 		$asp_multi_payload_five4 = ".Arguments" nocase wide ascii
 
-	
+
 		//strings from private rule capa_asp_write_file
 		// $asp_write1 = "ADODB.Stream" wide ascii # just a string, can be easily obfuscated
 		$asp_always_write1 = /\.write/ nocase wide ascii
@@ -4203,47 +4203,47 @@ rule webshell_asp_generic
 		$asp_cr_write2 = "CreateObject (" fullword nocase wide ascii
 		$asp_streamwriter1 = "streamwriter" fullword nocase wide ascii
 		$asp_streamwriter2 = "filestream" fullword nocase wide ascii
-	
+
 		//strings from private rule capa_asp_classid
 		$tagasp_capa_classid1 = "72C24DD5-D70A-438B-8A42-98424B88AFB8" nocase wide ascii
 		$tagasp_capa_classid2 = "F935DC22-1CF0-11D0-ADB9-00C04FD58A0B" nocase wide ascii
 		$tagasp_capa_classid3 = "093FF999-1EA0-4079-9525-9614C3504B74" nocase wide ascii
 		$tagasp_capa_classid4 = "F935DC26-1CF0-11D0-ADB9-00C04FD58A0B" nocase wide ascii
 		$tagasp_capa_classid5 = "0D43FE01-F093-11CF-8940-00A0C9054228" nocase wide ascii
-	
+
 	condition:
-		( 
+		(
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		and not ( 
-        uint16(0) == 0x5a4d or 
-        $dex at 0 or 
-        $pack at 0 or 
+		and not (
+        uint16(0) == 0x5a4d or
+        $dex at 0 or
+        $pack at 0 or
         // fp on jar with zero compression
-        uint16(0) == 0x4b50 
+        uint16(0) == 0x4b50
 		)
-		and ( 
+		and (
 			any of ( $asp_input* ) or
         (
             $asp_xml_http and
@@ -4253,42 +4253,42 @@ rule webshell_asp_generic
             any of ( $asp_form* ) and
             any of ( $asp_text* ) and
             $asp_asp
-        ) 
+        )
 		)
-		and ( 
+		and (
 			any of ( $asp_payload* ) or
         all of ( $asp_multi_payload_one* ) or
         all of ( $asp_multi_payload_two* ) or
         all of ( $asp_multi_payload_three* ) or
         all of ( $asp_multi_payload_four* ) or
-        all of ( $asp_multi_payload_five* ) 
+        all of ( $asp_multi_payload_five* )
 		)
-		and not any of ( $fp* ) and 
-		( ( filesize < 3KB and 
-		( 1 of ( $asp_slightly_sus* ) ) ) or 
-		( filesize < 25KB and 
-		( 1 of ( $asp_much_sus* ) or 1 of ( $asp_gen_sus* ) or 
-		( #asp_gen_obf1 > 2 ) ) ) or 
-		( filesize < 50KB and 
-		( 1 of ( $asp_much_sus* ) or 3 of ( $asp_gen_sus* ) or 
-		( #asp_gen_obf1 > 6 ) ) ) or 
-		( filesize < 150KB and 
-		( 1 of ( $asp_much_sus* ) or 4 of ( $asp_gen_sus* ) or 
-		( #asp_gen_obf1 > 6 ) or 
-		( ( 
+		and not any of ( $fp* ) and
+		( ( filesize < 3KB and
+		( 1 of ( $asp_slightly_sus* ) ) ) or
+		( filesize < 25KB and
+		( 1 of ( $asp_much_sus* ) or 1 of ( $asp_gen_sus* ) or
+		( #asp_gen_obf1 > 2 ) ) ) or
+		( filesize < 50KB and
+		( 1 of ( $asp_much_sus* ) or 3 of ( $asp_gen_sus* ) or
+		( #asp_gen_obf1 > 6 ) ) ) or
+		( filesize < 150KB and
+		( 1 of ( $asp_much_sus* ) or 4 of ( $asp_gen_sus* ) or
+		( #asp_gen_obf1 > 6 ) or
+		( (
         any of ( $asp_always_write* ) and
         (
             any of ( $asp_write_way_one* ) and
             any of ( $asp_cr_write* )
         ) or (
             any of ( $asp_streamwriter* )
-        ) 
+        )
 		)
-		and 
-		( 1 of ( $asp_much_sus* ) or 2 of ( $asp_gen_sus* ) or 
-		( #asp_gen_obf1 > 3 ) ) ) ) ) or 
-		( filesize < 100KB and ( 
-        any of ( $tagasp_capa_classid* ) 
+		and
+		( 1 of ( $asp_much_sus* ) or 2 of ( $asp_gen_sus* ) or
+		( #asp_gen_obf1 > 3 ) ) ) ) ) or
+		( filesize < 100KB and (
+        any of ( $tagasp_capa_classid* )
 		)
 		) )
 }
@@ -4319,7 +4319,7 @@ rule webshell_asp_generic_registry_reader
         $sus5 = "System.Security.SecurityException" wide ascii
 
         $fp1 = "Avira Operations GmbH" wide
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -4344,7 +4344,7 @@ rule webshell_asp_generic_registry_reader
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -4373,8 +4373,8 @@ rule webshell_asp_generic_registry_reader
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 		//strings from private rule capa_asp_input
         // Request.BinaryRead
         // Request.Form
@@ -4393,35 +4393,35 @@ rule webshell_asp_generic_registry_reader
         $asp_asp   = "<asp:" wide ascii
         $asp_text1 = ".text" wide ascii
         $asp_text2 = ".Text" wide ascii
-	
+
 	condition:
-		( 
+		(
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		and all of ( $asp_reg* ) and any of ( $sus* ) and not any of ( $fp* ) and 
-		( filesize < 10KB or 
-		( filesize < 150KB and ( 
+		and all of ( $asp_reg* ) and any of ( $sus* ) and not any of ( $fp* ) and
+		( filesize < 10KB or
+		( filesize < 150KB and (
 			any of ( $asp_input* ) or
         (
             $asp_xml_http and
@@ -4431,7 +4431,7 @@ rule webshell_asp_generic_registry_reader
             any of ( $asp_form* ) and
             any of ( $asp_text* ) and
             $asp_asp
-        ) 
+        )
 		)
 		) )
 }
@@ -4455,7 +4455,7 @@ rule webshell_aspx_regeorg_csharp
 		$sa4 = "Response.BinaryWrite" nocase wide ascii
 		$sa5 = "Socket" nocase wide ascii
         $georg = "Response.Write(\"Georg says, 'All seems fine'\")"
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -4480,7 +4480,7 @@ rule webshell_aspx_regeorg_csharp
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -4509,35 +4509,35 @@ rule webshell_aspx_regeorg_csharp
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 	condition:
-		filesize < 300KB and ( 
+		filesize < 300KB and (
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		and 
-		( $georg or 
+		and
+		( $georg or
 		( all of ( $sa* ) and any of ( $input_sa* ) ) )
 }
 
@@ -4558,7 +4558,7 @@ rule webshell_csharp_generic
 		$exec_proc2 = "start(" nocase wide ascii
 		$exec_shell1 = "cmd.exe" nocase wide ascii
 		$exec_shell2 = "powershell.exe" nocase wide ascii
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -4583,7 +4583,7 @@ rule webshell_csharp_generic
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -4612,34 +4612,34 @@ rule webshell_csharp_generic
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 	condition:
-		( 
+		(
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		and filesize < 300KB and 
+		and filesize < 300KB and
 		( $input_http or all of ( $input_form* ) ) and all of ( $exec_proc* ) and any of ( $exec_shell* )
 }
 
@@ -4668,7 +4668,7 @@ rule webshell_asp_runtime_compile
 		$payload_invoke2 = "CreateInstance" fullword nocase wide ascii
         $rc_fp1 = "Request.MapPath"
         $rc_fp2 = "<body><mono:MonoSamplesHeader runat=\"server\"/>" wide ascii
-	
+
 		//strings from private rule capa_asp_input
         // Request.BinaryRead
         // Request.Form
@@ -4687,9 +4687,9 @@ rule webshell_asp_runtime_compile
         $asp_asp   = "<asp:" wide ascii
         $asp_text1 = ".text" wide ascii
         $asp_text2 = ".Text" wide ascii
-	
+
 	condition:
-		filesize < 10KB and ( 
+		filesize < 10KB and (
 			any of ( $asp_input* ) or
         (
             $asp_xml_http and
@@ -4699,9 +4699,9 @@ rule webshell_asp_runtime_compile
             any of ( $asp_form* ) and
             any of ( $asp_text* ) and
             $asp_asp
-        ) 
+        )
 		)
-		and not any of ( $rc_fp* ) and 
+		and not any of ( $rc_fp* ) and
 		( ( all of ( $payload_reflection* ) and any of ( $payload_load_reflection* ) ) or all of ( $payload_compile* ) ) and any of ( $payload_invoke* )
 }
 
@@ -4760,8 +4760,8 @@ rule webshell_asp_sql
         //$slightly_sus2 = "SELECT * FROM " wide ascii
         $slightly_sus3 = "SHOW COLUMNS FROM " wide ascii
         $slightly_sus4 = "show columns from " wide ascii
-        
-	
+
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -4786,7 +4786,7 @@ rule webshell_asp_sql
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -4815,8 +4815,8 @@ rule webshell_asp_sql
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 		//strings from private rule capa_asp_input
         // Request.BinaryRead
         // Request.Form
@@ -4835,33 +4835,33 @@ rule webshell_asp_sql
         $asp_asp   = "<asp:" wide ascii
         $asp_text1 = ".text" wide ascii
         $asp_text2 = ".Text" wide ascii
-	
+
 	condition:
-		( 
+		(
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		and ( 
+		and (
 			any of ( $asp_input* ) or
         (
             $asp_xml_http and
@@ -4871,11 +4871,11 @@ rule webshell_asp_sql
             any of ( $asp_form* ) and
             any of ( $asp_text* ) and
             $asp_asp
-        ) 
+        )
 		)
-		and 
-		( 6 of ( $sql* ) or all of ( $o_sql* ) or 3 of ( $a_sql* ) or all of ( $c_sql* ) ) and 
-		( ( filesize < 150KB and any of ( $sus* ) ) or 
+		and
+		( 6 of ( $sql* ) or all of ( $o_sql* ) or 3 of ( $a_sql* ) or all of ( $c_sql* ) ) and
+		( ( filesize < 150KB and any of ( $sus* ) ) or
 		( filesize < 5KB and any of ( $slightly_sus* ) ) )
 }
 
@@ -4904,8 +4904,8 @@ rule webshell_asp_scan_writable
         $sus2 = "shell" nocase wide ascii
         $sus3 = "orking directory" nocase fullword wide ascii
         $sus4 = "scan" nocase wide ascii
-        
-	
+
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -4930,7 +4930,7 @@ rule webshell_asp_scan_writable
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -4959,8 +4959,8 @@ rule webshell_asp_scan_writable
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 		//strings from private rule capa_asp_input
         // Request.BinaryRead
         // Request.Form
@@ -4979,33 +4979,33 @@ rule webshell_asp_scan_writable
         $asp_asp   = "<asp:" wide ascii
         $asp_text1 = ".text" wide ascii
         $asp_text2 = ".Text" wide ascii
-	
+
 	condition:
-		filesize < 10KB and ( 
+		filesize < 10KB and (
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		and ( 
+		and (
 			any of ( $asp_input* ) or
         (
             $asp_xml_http and
@@ -5015,7 +5015,7 @@ rule webshell_asp_scan_writable
             any of ( $asp_form* ) and
             any of ( $asp_text* ) and
             $asp_asp
-        ) 
+        )
 		)
 		and 6 of ( $scan* ) and any of ( $sus* )
 }
@@ -5037,7 +5037,7 @@ rule webshell_jsp_regeorg
 		$jgeorg4 = "X-STATUS" fullword wide ascii
 		$jgeorg5 = "socket" fullword wide ascii
 		$jgeorg6 = "FORWARD" fullword wide ascii
-	
+
 		//strings from private rule capa_jsp_safe
 		$cjsp_short1 = "<%" ascii wide
 		$cjsp_short2 = "%>" wide ascii
@@ -5049,18 +5049,18 @@ rule webshell_jsp_regeorg
 		$cjsp_long5 = "<%@ " nocase ascii wide
 		$cjsp_long6 = "<% " ascii wide
 		$cjsp_long7 = "< %" ascii wide
-	
+
 	condition:
-		filesize < 300KB and ( 
+		filesize < 300KB and (
         $cjsp_short1 at 0 or
 			any of ( $cjsp_long* ) or
 			$cjsp_short2 in ( filesize-100..filesize ) or
         (
             $cjsp_short2 and (
                 $cjsp_short1 in ( 0..1000 ) or
-                $cjsp_short1 in ( filesize-1000..filesize ) 
+                $cjsp_short1 in ( filesize-1000..filesize )
             )
-        ) 
+        )
 		)
 		and all of ( $jgeorg* )
 }
@@ -5081,7 +5081,7 @@ rule webshell_jsp_http_proxy
 		$jh4 = "HttpRequest" fullword wide ascii
 		$jh5 = "openConnection" fullword wide ascii
 		$jh6 = "getParameter" fullword wide ascii
-	
+
 		//strings from private rule capa_jsp_safe
 		$cjsp_short1 = "<%" ascii wide
 		$cjsp_short2 = "%>" wide ascii
@@ -5093,18 +5093,18 @@ rule webshell_jsp_http_proxy
 		$cjsp_long5 = "<%@ " nocase ascii wide
 		$cjsp_long6 = "<% " ascii wide
 		$cjsp_long7 = "< %" ascii wide
-	
+
 	condition:
-		filesize < 10KB and ( 
+		filesize < 10KB and (
         $cjsp_short1 at 0 or
 			any of ( $cjsp_long* ) or
 			$cjsp_short2 in ( filesize-100..filesize ) or
         (
             $cjsp_short2 and (
                 $cjsp_short1 in ( 0..1000 ) or
-                $cjsp_short1 in ( filesize-1000..filesize ) 
+                $cjsp_short1 in ( filesize-1000..filesize )
             )
-        ) 
+        )
 		)
 		and all of ( $jh* )
 }
@@ -5122,7 +5122,7 @@ rule webshell_jsp_writer_nano
 	strings:
 		$payload1 = ".write" wide ascii
 		$payload2 = "getBytes" fullword wide ascii
-	
+
 		//strings from private rule capa_jsp_input
 		// request.getParameter
 		$input1 = "getParameter" fullword ascii wide
@@ -5133,7 +5133,7 @@ rule webshell_jsp_writer_nano
 		$req1 = "request" fullword ascii wide
 		$req2 = "HttpServletRequest" fullword ascii wide
 		$req3 = "getRequest" fullword ascii wide
-	
+
 		//strings from private rule capa_jsp_safe
 		$cjsp_short1 = "<%" ascii wide
 		$cjsp_short2 = "%>" wide ascii
@@ -5145,22 +5145,22 @@ rule webshell_jsp_writer_nano
 		$cjsp_long5 = "<%@ " nocase ascii wide
 		$cjsp_long6 = "<% " ascii wide
 		$cjsp_long7 = "< %" ascii wide
-	
+
 	condition:
-		filesize < 200 and ( 
+		filesize < 200 and (
 			any of ( $input* ) and
-			any of ( $req* ) 
+			any of ( $req* )
 		)
-		and ( 
+		and (
         $cjsp_short1 at 0 or
 			any of ( $cjsp_long* ) or
 			$cjsp_short2 in ( filesize-100..filesize ) or
         (
             $cjsp_short2 and (
                 $cjsp_short1 in ( 0..1000 ) or
-                $cjsp_short1 in ( filesize-1000..filesize ) 
+                $cjsp_short1 in ( filesize-1000..filesize )
             )
-        ) 
+        )
 		)
 		and 2 of ( $payload* )
 }
@@ -5181,7 +5181,7 @@ rule webshell_jsp_generic_tiny
 		$payload_rt1 = "Runtime" fullword wide ascii
 		$payload_rt2 = "getRuntime" fullword wide ascii
 		$payload_rt3 = "exec" fullword wide ascii
-	
+
 		//strings from private rule capa_jsp_safe
 		$cjsp_short1 = "<%" ascii wide
 		$cjsp_short2 = "%>" wide ascii
@@ -5193,7 +5193,7 @@ rule webshell_jsp_generic_tiny
 		$cjsp_long5 = "<%@ " nocase ascii wide
 		$cjsp_long6 = "<% " ascii wide
 		$cjsp_long7 = "< %" ascii wide
-	
+
 		//strings from private rule capa_jsp_input
 		// request.getParameter
 		$input1 = "getParameter" fullword ascii wide
@@ -5204,24 +5204,24 @@ rule webshell_jsp_generic_tiny
 		$req1 = "request" fullword ascii wide
 		$req2 = "HttpServletRequest" fullword ascii wide
 		$req3 = "getRequest" fullword ascii wide
-	
+
 	condition:
-		filesize < 250 and ( 
+		filesize < 250 and (
         $cjsp_short1 at 0 or
 			any of ( $cjsp_long* ) or
 			$cjsp_short2 in ( filesize-100..filesize ) or
         (
             $cjsp_short2 and (
                 $cjsp_short1 in ( 0..1000 ) or
-                $cjsp_short1 in ( filesize-1000..filesize ) 
+                $cjsp_short1 in ( filesize-1000..filesize )
             )
-        ) 
+        )
 		)
-		and ( 
+		and (
 			any of ( $input* ) and
-			any of ( $req* ) 
+			any of ( $req* )
 		)
-		and 
+		and
 		( 1 of ( $payload* ) or all of ( $payload_rt* ) )
 }
 
@@ -5247,11 +5247,11 @@ rule webshell_jsp_generic
 		$susp7 = "\"</pre>" ascii wide
 
         $fp1 = "command = \"cmd.exe /c set\";"
-	
+
 		//strings from private rule capa_bin_files
         $dex   = { 64 65 ( 78 | 79 ) 0a 30 }
         $pack  = { 50 41 43 4b 00 00 00 02 00 }
-	
+
 		//strings from private rule capa_jsp_safe
 		$cjsp_short1 = "<%" ascii wide
 		$cjsp_short2 = "%>" wide ascii
@@ -5263,7 +5263,7 @@ rule webshell_jsp_generic
 		$cjsp_long5 = "<%@ " nocase ascii wide
 		$cjsp_long6 = "<% " ascii wide
 		$cjsp_long7 = "< %" ascii wide
-	
+
 		//strings from private rule capa_jsp_input
 		// request.getParameter
 		$input1 = "getParameter" fullword ascii wide
@@ -5274,7 +5274,7 @@ rule webshell_jsp_generic
 		$req1 = "request" fullword ascii wide
 		$req2 = "HttpServletRequest" fullword ascii wide
 		$req3 = "getRequest" fullword ascii wide
-	
+
 		//strings from private rule capa_jsp_payload
 		$payload1 = "ProcessBuilder" fullword ascii wide
 		$payload2 = "processCmd" fullword ascii wide
@@ -5282,33 +5282,33 @@ rule webshell_jsp_generic
 		$rt_payload1 = "Runtime" fullword ascii wide
 		$rt_payload2 = "getRuntime" fullword ascii wide
 		$rt_payload3 = "exec" fullword ascii wide
-	
+
 	condition:
-		filesize < 300KB and not ( 
-        uint16(0) == 0x5a4d or 
-        $dex at 0 or 
-        $pack at 0 or 
+		filesize < 300KB and not (
+        uint16(0) == 0x5a4d or
+        $dex at 0 or
+        $pack at 0 or
         // fp on jar with zero compression
-        uint16(0) == 0x4b50 
+        uint16(0) == 0x4b50
 		)
-		and ( 
+		and (
         $cjsp_short1 at 0 or
 			any of ( $cjsp_long* ) or
 			$cjsp_short2 in ( filesize-100..filesize ) or
         (
             $cjsp_short2 and (
                 $cjsp_short1 in ( 0..1000 ) or
-                $cjsp_short1 in ( filesize-1000..filesize ) 
+                $cjsp_short1 in ( filesize-1000..filesize )
             )
-        ) 
+        )
 		)
-		and ( 
+		and (
 			any of ( $input* ) and
-			any of ( $req* ) 
+			any of ( $req* )
 		)
-		and ( 
+		and (
         1 of ( $payload* ) or
-        all of ( $rt_payload* ) 
+        all of ( $rt_payload* )
 		)
 		and not any of ( $fp* ) and any of ( $susp* )
 }
@@ -5346,7 +5346,7 @@ rule webshell_jsp_generic_base64
 		$three5 = "TAGMAcgBpAHAAdABFAG4AZwBpAG4AZQBGAGEAYwB0AG8AcgB5A" wide ascii
 		$three6 = "UwBjAHIAaQBwAHQARQBuAGcAaQBuAGUARgBhAGMAdABvAHIAeQ" wide ascii
 
-	
+
 		//strings from private rule capa_jsp_safe
 		$cjsp_short1 = "<%" ascii wide
 		$cjsp_short2 = "%>" wide ascii
@@ -5358,31 +5358,31 @@ rule webshell_jsp_generic_base64
 		$cjsp_long5 = "<%@ " nocase ascii wide
 		$cjsp_long6 = "<% " ascii wide
 		$cjsp_long7 = "< %" ascii wide
-	
+
 		//strings from private rule capa_bin_files
         $dex   = { 64 65 ( 78 | 79 ) 0a 30 }
         $pack  = { 50 41 43 4b 00 00 00 02 00 }
-	
+
 	condition:
-		( 
+		(
         $cjsp_short1 at 0 or
 			any of ( $cjsp_long* ) or
 			$cjsp_short2 in ( filesize-100..filesize ) or
         (
             $cjsp_short2 and (
                 $cjsp_short1 in ( 0..1000 ) or
-                $cjsp_short1 in ( filesize-1000..filesize ) 
+                $cjsp_short1 in ( filesize-1000..filesize )
             )
-        ) 
+        )
 		)
-		and not ( 
-        uint16(0) == 0x5a4d or 
-        $dex at 0 or 
-        $pack at 0 or 
+		and not (
+        uint16(0) == 0x5a4d or
+        $dex at 0 or
+        $pack at 0 or
         // fp on jar with zero compression
-        uint16(0) == 0x4b50 
+        uint16(0) == 0x4b50
 		)
-		and filesize < 300KB and 
+		and filesize < 300KB and
 		( any of ( $one* ) and any of ( $two* ) or any of ( $three* ) )
 }
 
@@ -5399,7 +5399,7 @@ rule webshell_jsp_generic_processbuilder
 	strings:
 		$exec = "ProcessBuilder" fullword wide ascii
 		$start = "start" fullword wide ascii
-	
+
 		//strings from private rule capa_jsp_input
 		// request.getParameter
 		$input1 = "getParameter" fullword ascii wide
@@ -5410,11 +5410,11 @@ rule webshell_jsp_generic_processbuilder
 		$req1 = "request" fullword ascii wide
 		$req2 = "HttpServletRequest" fullword ascii wide
 		$req3 = "getRequest" fullword ascii wide
-	
+
 	condition:
-		filesize < 2000 and ( 
+		filesize < 2000 and (
 			any of ( $input* ) and
-			any of ( $req* ) 
+			any of ( $req* )
 		)
 		and $exec and $start
 }
@@ -5432,7 +5432,7 @@ rule webshell_jsp_generic_reflection
 		$ws_exec = "invoke" fullword wide ascii
 		$ws_class = "Class" fullword wide ascii
 		$fp = "SOAPConnection"
-	
+
 		//strings from private rule capa_jsp_safe
 		$cjsp_short1 = "<%" ascii wide
 		$cjsp_short2 = "%>" wide ascii
@@ -5444,7 +5444,7 @@ rule webshell_jsp_generic_reflection
 		$cjsp_long5 = "<%@ " nocase ascii wide
 		$cjsp_long6 = "<% " ascii wide
 		$cjsp_long7 = "< %" ascii wide
-	
+
 		//strings from private rule capa_jsp_input
 		// request.getParameter
 		$input1 = "getParameter" fullword ascii wide
@@ -5455,22 +5455,22 @@ rule webshell_jsp_generic_reflection
 		$req1 = "request" fullword ascii wide
 		$req2 = "HttpServletRequest" fullword ascii wide
 		$req3 = "getRequest" fullword ascii wide
-	
+
 	condition:
-		filesize < 10KB and all of ( $ws_* ) and ( 
+		filesize < 10KB and all of ( $ws_* ) and (
         $cjsp_short1 at 0 or
 			any of ( $cjsp_long* ) or
 			$cjsp_short2 in ( filesize-100..filesize ) or
         (
             $cjsp_short2 and (
                 $cjsp_short1 in ( 0..1000 ) or
-                $cjsp_short1 in ( filesize-1000..filesize ) 
+                $cjsp_short1 in ( filesize-1000..filesize )
             )
-        ) 
+        )
 		)
-		and ( 
+		and (
 			any of ( $input* ) and
-			any of ( $req* ) 
+			any of ( $req* )
 		)
 		and not $fp
 }
@@ -5487,7 +5487,7 @@ rule webshell_jsp_generic_classloader
 	strings:
 		$exec = "extends ClassLoader" wide ascii
 		$class = "defineClass" fullword wide ascii
-	
+
 		//strings from private rule capa_jsp_safe
 		$cjsp_short1 = "<%" ascii wide
 		$cjsp_short2 = "%>" wide ascii
@@ -5499,7 +5499,7 @@ rule webshell_jsp_generic_classloader
 		$cjsp_long5 = "<%@ " nocase ascii wide
 		$cjsp_long6 = "<% " ascii wide
 		$cjsp_long7 = "< %" ascii wide
-	
+
 		//strings from private rule capa_jsp_input
 		// request.getParameter
 		$input1 = "getParameter" fullword ascii wide
@@ -5510,22 +5510,22 @@ rule webshell_jsp_generic_classloader
 		$req1 = "request" fullword ascii wide
 		$req2 = "HttpServletRequest" fullword ascii wide
 		$req3 = "getRequest" fullword ascii wide
-	
+
 	condition:
-		filesize < 10KB and ( 
+		filesize < 10KB and (
         $cjsp_short1 at 0 or
 			any of ( $cjsp_long* ) or
 			$cjsp_short2 in ( filesize-100..filesize ) or
         (
             $cjsp_short2 and (
                 $cjsp_short1 in ( 0..1000 ) or
-                $cjsp_short1 in ( filesize-1000..filesize ) 
+                $cjsp_short1 in ( filesize-1000..filesize )
             )
-        ) 
+        )
 		)
-		and ( 
+		and (
 			any of ( $input* ) and
-			any of ( $req* ) 
+			any of ( $req* )
 		)
 		and $exec and $class
 }
@@ -5573,7 +5573,7 @@ rule webshell_jsp_netspy
 		$write2 = "FileOutputStream" fullword wide ascii
 		$write3 = "PrintWriter" fullword wide ascii
 		$http = "java.net.HttpURLConnection" fullword wide ascii
-	
+
 		//strings from private rule capa_jsp_safe
 		$cjsp_short1 = "<%" ascii wide
 		$cjsp_short2 = "%>" wide ascii
@@ -5585,7 +5585,7 @@ rule webshell_jsp_netspy
 		$cjsp_long5 = "<%@ " nocase ascii wide
 		$cjsp_long6 = "<% " ascii wide
 		$cjsp_long7 = "< %" ascii wide
-	
+
 		//strings from private rule capa_jsp_input
 		// request.getParameter
 		$input1 = "getParameter" fullword ascii wide
@@ -5596,22 +5596,22 @@ rule webshell_jsp_netspy
 		$req1 = "request" fullword ascii wide
 		$req2 = "HttpServletRequest" fullword ascii wide
 		$req3 = "getRequest" fullword ascii wide
-	
+
 	condition:
-		filesize < 30KB and ( 
+		filesize < 30KB and (
         $cjsp_short1 at 0 or
 			any of ( $cjsp_long* ) or
 			$cjsp_short2 in ( filesize-100..filesize ) or
         (
             $cjsp_short2 and (
                 $cjsp_short1 in ( 0..1000 ) or
-                $cjsp_short1 in ( filesize-1000..filesize ) 
+                $cjsp_short1 in ( filesize-1000..filesize )
             )
-        ) 
+        )
 		)
-		and ( 
+		and (
 			any of ( $input* ) and
-			any of ( $req* ) 
+			any of ( $req* )
 		)
 		and 4 of ( $scan* ) and 1 of ( $write* ) and $http
 }
@@ -5644,7 +5644,7 @@ rule webshell_jsp_by_string
 		$jstring14 = "session set &lt;key&gt; &lt;value&gt; [class]<br>"  wide ascii
 		$jstring15 = "Runtime.getRuntime().exec(request.getParameter(" nocase wide ascii
 		$jstring16 = "GIF98a<%@page" wide ascii
-	
+
 		//strings from private rule capa_jsp_safe
 		$cjsp_short1 = "<%" ascii wide
 		$cjsp_short2 = "%>" wide ascii
@@ -5656,29 +5656,29 @@ rule webshell_jsp_by_string
 		$cjsp_long5 = "<%@ " nocase ascii wide
 		$cjsp_long6 = "<% " ascii wide
 		$cjsp_long7 = "< %" ascii wide
-	
+
 		//strings from private rule capa_bin_files
         $dex   = { 64 65 ( 78 | 79 ) 0a 30 }
         $pack  = { 50 41 43 4b 00 00 00 02 00 }
-	
+
 	condition:
-		filesize < 100KB and ( 
+		filesize < 100KB and (
         $cjsp_short1 at 0 or
 			any of ( $cjsp_long* ) or
 			$cjsp_short2 in ( filesize-100..filesize ) or
         (
             $cjsp_short2 and (
                 $cjsp_short1 in ( 0..1000 ) or
-                $cjsp_short1 in ( filesize-1000..filesize ) 
+                $cjsp_short1 in ( filesize-1000..filesize )
             )
-        ) 
+        )
 		)
-		and not ( 
-        uint16(0) == 0x5a4d or 
-        $dex at 0 or 
-        $pack at 0 or 
+		and not (
+        uint16(0) == 0x5a4d or
+        $dex at 0 or
+        $pack at 0 or
         // fp on jar with zero compression
-        uint16(0) == 0x4b50 
+        uint16(0) == 0x4b50
 		)
 		and any of ( $jstring* )
 }
@@ -5698,7 +5698,7 @@ rule webshell_jsp_input_upload_write
 		$upload = "upload" nocase wide ascii
 		$write1 = "os.write" fullword wide ascii
 		$write2 = "FileOutputStream" fullword wide ascii
-	
+
 		//strings from private rule capa_jsp_safe
 		$cjsp_short1 = "<%" ascii wide
 		$cjsp_short2 = "%>" wide ascii
@@ -5710,7 +5710,7 @@ rule webshell_jsp_input_upload_write
 		$cjsp_long5 = "<%@ " nocase ascii wide
 		$cjsp_long6 = "<% " ascii wide
 		$cjsp_long7 = "< %" ascii wide
-	
+
 		//strings from private rule capa_jsp_input
 		// request.getParameter
 		$input1 = "getParameter" fullword ascii wide
@@ -5721,22 +5721,22 @@ rule webshell_jsp_input_upload_write
 		$req1 = "request" fullword ascii wide
 		$req2 = "HttpServletRequest" fullword ascii wide
 		$req3 = "getRequest" fullword ascii wide
-	
+
 	condition:
-		filesize < 10KB and ( 
+		filesize < 10KB and (
         $cjsp_short1 at 0 or
 			any of ( $cjsp_long* ) or
 			$cjsp_short2 in ( filesize-100..filesize ) or
         (
             $cjsp_short2 and (
                 $cjsp_short1 in ( 0..1000 ) or
-                $cjsp_short1 in ( filesize-1000..filesize ) 
+                $cjsp_short1 in ( filesize-1000..filesize )
             )
-        ) 
+        )
 		)
-		and ( 
+		and (
 			any of ( $input* ) and
-			any of ( $req* ) 
+			any of ( $req* )
 		)
 		and $upload and 1 of ( $write* )
 }
@@ -5753,7 +5753,7 @@ rule webshell_generic_os_strings
 	strings:
 		$fp1 = "http://evil.com/" wide ascii
 		$fp2 = "denormalize('/etc/shadow" wide ascii
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -5778,7 +5778,7 @@ rule webshell_generic_os_strings
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -5807,8 +5807,8 @@ rule webshell_generic_os_strings
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -5816,14 +5816,14 @@ rule webshell_generic_os_strings
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 		//strings from private rule capa_jsp_safe
 		$cjsp_short1 = "<%" ascii wide
 		$cjsp_short2 = "%>" wide ascii
@@ -5835,7 +5835,7 @@ rule webshell_generic_os_strings
 		$cjsp_long5 = "<%@ " nocase ascii wide
 		$cjsp_long6 = "<% " ascii wide
 		$cjsp_long7 = "< %" ascii wide
-	
+
 		//strings from private rule capa_os_strings
 		// windows = nocase
 		$w1 = "net localgroup administrators" nocase wide ascii
@@ -5846,61 +5846,61 @@ rule webshell_generic_os_strings
 		$l2 = "/etc/ssh/sshd_config" wide ascii
 		$take_two1 = "net user" nocase wide ascii
 		$take_two2 = "/add" nocase wide ascii
-	
+
 	condition:
-		filesize < 70KB and 
-		( ( 
+		filesize < 70KB and
+		( (
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		or ( 
+		or (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
-		or ( 
+		or (
         $cjsp_short1 at 0 or
 			any of ( $cjsp_long* ) or
 			$cjsp_short2 in ( filesize-100..filesize ) or
         (
             $cjsp_short2 and (
                 $cjsp_short1 in ( 0..1000 ) or
-                $cjsp_short1 in ( filesize-1000..filesize ) 
+                $cjsp_short1 in ( filesize-1000..filesize )
             )
-        ) 
+        )
 		)
-		) and ( 
-			filesize < 300KB and 
+		) and (
+			filesize < 300KB and
         not uint16(0) == 0x5a4d and (
             all of ( $w* ) or
             all of ( $l* ) or
-            2 of ( $take_two* ) 
-        ) 
+            2 of ( $take_two* )
+        )
 		)
 		and not any of ( $fp* )
 }
@@ -5923,7 +5923,7 @@ rule webshell_in_image
         // MS access
         $mdb = { 00 01 00 00 53 74 }
         //$mdb = { 00 01 00 00 53 74 61 6E 64 61 72 64 20 4A 65 74 20 44 42 }
-	
+
 		//strings from private rule capa_php_old_safe
 		$php_short = "<?" wide ascii
 		// prevent xml and asp from hitting with the short tag
@@ -5931,14 +5931,14 @@ rule webshell_in_image
 		$no_xml2 = "<?xml-stylesheet" nocase wide ascii
 		$no_asp1 = "<%@LANGUAGE" nocase wide ascii
 		$no_asp2 = /<script language="(vb|jscript|c#)/ nocase wide ascii
-		$no_pdf = "<?xpacket" 
+		$no_pdf = "<?xpacket"
 
 		// of course the new tags should also match
         // already matched by "<?"
 		$php_new1 = /<\?=[^?]/ wide ascii
 		$php_new2 = "<?php" nocase wide ascii
 		$php_new3 = "<script language=\"php" nocase wide ascii
-	
+
 		//strings from private rule capa_php_payload
 		// \([^)] to avoid matching on e.g. eval() in comments
 		$cpayload1 = /\beval[\t ]*\([^)]/ nocase wide ascii
@@ -5959,19 +5959,19 @@ rule webshell_in_image
 		$m_cpayload_preg_filter1 = /\bpreg_filter[\t ]*\([^\)]/ nocase wide ascii
 		$m_cpayload_preg_filter2 = "'|.*|e'" nocase wide ascii
 		// TODO backticks
-	
+
 		//strings from private rule capa_php_write_file
 		$php_multi_write1 = "fopen(" wide ascii
 		$php_multi_write2 = "fwrite(" wide ascii
 		$php_write1 = "move_uploaded_file" fullword wide ascii
-	
+
 		//strings from private rule capa_jsp
 		$cjsp1 = "<%" ascii wide
 		$cjsp2 = "<jsp:" ascii wide
 		$cjsp3 = /language=[\"']java[\"\']/ ascii wide
 		// JSF
 		$cjsp4 = "/jstl/core" ascii wide
-	
+
 		//strings from private rule capa_jsp_payload
 		$payload1 = "ProcessBuilder" fullword ascii wide
 		$payload2 = "processCmd" fullword ascii wide
@@ -5979,7 +5979,7 @@ rule webshell_in_image
 		$rt_payload1 = "Runtime" fullword ascii wide
 		$rt_payload2 = "getRuntime" fullword ascii wide
 		$rt_payload3 = "exec" fullword ascii wide
-	
+
 		//strings from private rule capa_asp
 		$tagasp_short1 = /<%[^"]/ wide ascii
         // also looking for %> to reduce fp (yeah, short atom but seldom since special chars)
@@ -6004,7 +6004,7 @@ rule webshell_in_image
         // <%@ WebService Language="C#" Class="Service" %>
 
         // <%@Page Language="Jscript"%>
-        // <%@ Page Language = Jscript %>           
+        // <%@ Page Language = Jscript %>
         // <%@PAGE LANGUAGE=JSCRIPT%>
         // <%@ Page Language="Jscript" validateRequest="false" %>
         // <%@ Page Language = Jscript %>
@@ -6033,8 +6033,8 @@ rule webshell_in_image
         $jsp7 = "getBytes" fullword wide ascii
 
         $perl1 = "PerlScript" fullword
-        
-	
+
+
 		//strings from private rule capa_asp_payload
 		$asp_payload0  = "eval_r" fullword nocase wide ascii
 		$asp_payload1  = /\beval\s/ nocase wide ascii
@@ -6068,7 +6068,7 @@ rule webshell_in_image
 		$asp_multi_payload_five3 = ".Filename" nocase wide ascii
 		$asp_multi_payload_five4 = ".Arguments" nocase wide ascii
 
-	
+
 		//strings from private rule capa_asp_write_file
 		// $asp_write1 = "ADODB.Stream" wide ascii # just a string, can be easily obfuscated
 		$asp_always_write1 = /\.write/ nocase wide ascii
@@ -6080,79 +6080,78 @@ rule webshell_in_image
 		$asp_cr_write2 = "CreateObject (" fullword nocase wide ascii
 		$asp_streamwriter1 = "streamwriter" fullword nocase wide ascii
 		$asp_streamwriter2 = "filestream" fullword nocase wide ascii
-	
+
 	condition:
-		( $png at 0 or $jpg at 0 or $gif at 0 or $gif2 at 0 or $mdb at 0 ) and 
-		( ( ( 
+		( $png at 0 or $jpg at 0 or $gif at 0 or $gif2 at 0 or $mdb at 0 ) and
+		( ( (
 			(
-				( 
-						$php_short in (0..100) or 
+				(
+						$php_short in (0..100) or
 						$php_short in (filesize-1000..filesize)
 				)
 				and not any of ( $no_* )
-			) 
-			or any of ( $php_new* ) 
+			)
+			or any of ( $php_new* )
 		)
-		and 
-		( ( 
+		and
+		( (
 			any of ( $cpayload* ) or
-        all of ( $m_cpayload_preg_filter* ) 
+        all of ( $m_cpayload_preg_filter* )
 		)
-		or ( 
+		or (
         any of ( $php_write* ) or
-        all of ( $php_multi_write* ) 
+        all of ( $php_multi_write* )
 		)
-		) ) or 
-		( ( 
-			any of ( $cjsp* ) 
+		) ) or
+		( (
+			any of ( $cjsp* )
 		)
-		and ( 
+		and (
         1 of ( $payload* ) or
-        all of ( $rt_payload* ) 
+        all of ( $rt_payload* )
 		)
-		) or 
-		( ( 
+		) or
+		( (
         (
             any of ( $tagasp_long* ) or
             // TODO :  yara_push_private_rules.py doesn't do private rules in private rules yet
             any of ( $tagasp_classid* ) or
             (
                 $tagasp_short1 and
-                $tagasp_short2 in ( filesize-100..filesize ) 
+                $tagasp_short2 in ( filesize-100..filesize )
             ) or (
                 $tagasp_short2 and (
                     $tagasp_short1 in ( 0..1000 ) or
-                    $tagasp_short1 in ( filesize-1000..filesize ) 
+                    $tagasp_short1 in ( filesize-1000..filesize )
                 )
-            ) 
-        ) and not ( 
+            )
+        ) and not (
             (
                 any of ( $perl* ) or
                 $php1 at 0 or
-                $php2 at 0 
+                $php2 at 0
             ) or (
                 ( #jsp1 + #jsp2 + #jsp3 ) > 0 and ( #jsp4 + #jsp5 + #jsp6 + #jsp7 ) > 0
                 )
-        ) 
+        )
 		)
-		and 
-		( ( 
+		and
+		( (
 			any of ( $asp_payload* ) or
         all of ( $asp_multi_payload_one* ) or
         all of ( $asp_multi_payload_two* ) or
         all of ( $asp_multi_payload_three* ) or
         all of ( $asp_multi_payload_four* ) or
-        all of ( $asp_multi_payload_five* ) 
+        all of ( $asp_multi_payload_five* )
 		)
-		or ( 
+		or (
         any of ( $asp_always_write* ) and
         (
             any of ( $asp_write_way_one* ) and
             any of ( $asp_cr_write* )
         ) or (
             any of ( $asp_streamwriter* )
-        ) 
+        )
 		)
 		) ) )
 }
-

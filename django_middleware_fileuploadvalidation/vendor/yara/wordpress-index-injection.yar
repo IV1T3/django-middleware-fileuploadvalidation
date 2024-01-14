@@ -22,4 +22,3 @@ rule possible_injected_wordpress_index {
    condition:
          ( all of them )
 }
-

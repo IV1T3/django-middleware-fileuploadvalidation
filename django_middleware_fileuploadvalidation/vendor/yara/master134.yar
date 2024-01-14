@@ -21,4 +21,3 @@ rule Master134_Malvertising {
    condition:
       all of them
 }
-

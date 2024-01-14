@@ -42,4 +42,3 @@ rule _infected_05_30_18_drupal_coinhive_malware {
          ( 1 of ($x*) and 4 of them )
       ) or ( all of them )
 }
-

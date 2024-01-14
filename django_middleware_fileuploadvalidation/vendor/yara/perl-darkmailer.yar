@@ -69,4 +69,3 @@ rule infected_08_25_18_darkmailer__proba_send2 {
          ( all of them )
       ) or ( all of them )
 }
-

@@ -42,4 +42,3 @@ rule case131_scan_weeman {
          ( 8 of them )
       ) or ( all of them )
 }
-

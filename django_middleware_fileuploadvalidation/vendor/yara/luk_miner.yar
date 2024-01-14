@@ -151,4 +151,3 @@ rule _luk_cpu_luk_ocl_luk_phi_0 {
         filesize < 8000KB and ( 1 of ($x*) and 4 of them )
       ) or ( all of them )
 }
-

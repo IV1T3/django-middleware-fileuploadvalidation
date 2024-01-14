@@ -7,9 +7,21 @@
 
 from typing import List
 
+from django.http import HttpResponseForbidden
+
+
 def file_upload_config(**config_options):
-    default_config: dict[str, bool | str | List | None] = {
+    default_config: dict[
+        str,
+        bool | str | List | None | dict[str, HttpResponseForbidden | str | int | bool],
+    ] = {
         "clamav": False,
+        "response_config": {
+            "error_func": HttpResponseForbidden,
+            "message": "File upload blocked",
+            "redirect_on_block": None,
+            "status": 403,
+        },
         "file_size_limit": None,
         "filename_length_limit": None,
         "keep_original_filename": False,
@@ -23,10 +35,11 @@ def file_upload_config(**config_options):
 
     def decorator(view_func):
         def _wrapped_view(request, *args, **kwargs):
-
             setattr(request, "_file_upload_config", default_config)
 
             return view_func(request, *args, **kwargs)
+
         _wrapped_view._file_upload_config = default_config
         return _wrapped_view
+
     return decorator

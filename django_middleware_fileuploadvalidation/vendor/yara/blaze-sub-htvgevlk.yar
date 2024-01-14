@@ -19,8 +19,7 @@ rule htvgevlk {
       $s1 = "($_COOKIE, $_POST)"
       $s2 = "jrnbyij"
       $s3 = "pklpyhc"
-      
+
    condition:
       	$s1 and (#s2 > 5 or #s3 > 2)
 }
-

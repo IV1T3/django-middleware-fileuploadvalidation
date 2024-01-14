@@ -2,6 +2,7 @@ import io
 import logging
 
 from PIL import Image as ImageP
+
 # from wand.image import Image as ImageW
 
 
@@ -9,7 +10,6 @@ def check_integrity(file):
     logging.debug("[Validation module] - Starting image integrity check")
 
     try:
-
         with ImageP.open(io.BytesIO(file.content)) as image:
             image.verify()
     except Exception as e:
@@ -19,7 +19,6 @@ def check_integrity(file):
         return False
 
     try:
-
         with ImageP.open(io.BytesIO(file.content)) as image:
             image.transpose(ImageP.FLIP_LEFT_RIGHT)
     except Exception as e:

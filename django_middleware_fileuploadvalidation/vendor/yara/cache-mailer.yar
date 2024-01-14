@@ -6,7 +6,7 @@ rule cache_mailer
 	   info = " php mailer script "
 
 	strings:
-	
+
 	$s1="if (mail(stripslashes(base64_decode($fr[0]))"
 
 	condition:

@@ -62,4 +62,3 @@ rule infected_08_25_18_redirect_bienvenue_index {
          ( all of them )
       ) or ( all of them )
 }
-

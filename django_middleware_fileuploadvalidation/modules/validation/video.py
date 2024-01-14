@@ -12,7 +12,7 @@
 #         - bitstream: detects bitstream specification deviations
 #         - buffer: detects improper bitstream length
 #         - explode: aborts decoding on minor error detection
-        
+
 #         optional:
 #         - careful: consider things that violate specifications and have not been
 #                     seen in the wild as errors

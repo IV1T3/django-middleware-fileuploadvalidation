@@ -6,7 +6,7 @@ rule generic_php_injection_0
        info = " drupal injection "
 
     strings:
-    
+
     $s1="$GLOBALS"
     $s2="Array();global"
     $s3="eval"

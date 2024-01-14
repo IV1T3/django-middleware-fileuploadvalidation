@@ -43,4 +43,3 @@ rule infected_12_09_18_zduF {
          ( 1 of ($x*) and 4 of them )
       ) or ( all of them )
 }
-

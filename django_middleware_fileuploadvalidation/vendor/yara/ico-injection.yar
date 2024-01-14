@@ -6,7 +6,7 @@ rule ico_injection_detected
        info = " general ico injection 05/18/18 "
 
     strings:
-    
+
 	$s1="<?php"
 	$s2="@include"
 	$s3="ic\x6f"
@@ -14,4 +14,3 @@ rule ico_injection_detected
     condition:
     all of them
 }
-

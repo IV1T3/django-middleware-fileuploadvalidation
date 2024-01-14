@@ -12,4 +12,3 @@ rule CPREA57_Webshell
         condition:
                 all of them
 }
-

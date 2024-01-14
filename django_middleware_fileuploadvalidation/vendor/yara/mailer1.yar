@@ -6,7 +6,7 @@ rule php_mailer_1
 	   info = " php mailer script "
 
 	strings:
-	
+
 	$s1="$_COOKIE [str_replace('.', '_', $_SERVER['HTTP_HOST'])])"
 
 	condition:

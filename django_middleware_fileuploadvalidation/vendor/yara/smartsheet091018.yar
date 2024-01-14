@@ -114,4 +114,3 @@ rule infected_09_10_18_phishing_smartsheet_htaccess {
          ( 8 of them )
       ) or ( all of them )
 }
-

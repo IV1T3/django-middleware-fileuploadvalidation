@@ -37,4 +37,3 @@ rule infected_05_29_18_pythonsymlinker_sym {
          ( 8 of them )
       ) or ( all of them )
 }
-

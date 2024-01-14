@@ -564,4 +564,3 @@ rule _backdoor_wp_code_backdoor_wp_update_0 {
         filesize < 50KB and ( 8 of them )
       ) or ( all of them )
 }
-

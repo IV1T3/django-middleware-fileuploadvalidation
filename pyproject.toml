@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-middleware-fileuploadvalidation"
-version = "1.0.2"
+version = "1.1.0"
 description = "A Django middleware to validate user file uploads and detect malicious content."
 authors = ["IV1T3 <alexander.groddeck@uni-hamburg.de>"]
 readme = "README.md"
@@ -27,6 +27,7 @@ pytest-cov = "*"
 mypy = "*"
 pip-audit = "*"
 ruff = "*"
+pre-commit = "^3.6.0"
 
 [build-system]
 requires = ["poetry-core"]

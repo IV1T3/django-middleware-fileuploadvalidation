@@ -39,4 +39,3 @@ rule bot_script {
          ( 4 of them )
       ) or ( all of them )
 }
-

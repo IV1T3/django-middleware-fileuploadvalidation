@@ -32,4 +32,3 @@ rule drupal_injection_06_09_18_case128_index {
          ( all of them )
       ) or ( all of them )
 }
-

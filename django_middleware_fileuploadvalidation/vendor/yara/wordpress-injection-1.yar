@@ -6,7 +6,7 @@ rule wordpress0_ico_injection_detected
        info = " general ico injection 05/21/18 "
 
     strings:
-    
+
 	$s1="<?php"
 	$s2="Front to the WordPress application"
 	$s3="@ini_set(\"error_log\",NULL)"
@@ -15,4 +15,3 @@ rule wordpress0_ico_injection_detected
     condition:
     all of them
 }
-

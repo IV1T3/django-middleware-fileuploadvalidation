@@ -1,7 +1,7 @@
-import clamd
 import logging
-
 from io import BytesIO
+
+import clamd
 
 from . import basic, image, quicksand
 
@@ -21,7 +21,6 @@ def validate(files, upload_config):
     block_upload = False
 
     for file_name, file in files.items():
-
         if not block_upload:
             if upload_config["clamav"]:
                 clamav_res = get_clamAV_results(file)
@@ -34,12 +33,10 @@ def validate(files, upload_config):
                     )
 
             if not file.block:
-
                 # Perform basic file validation
                 file = basic.validate_file(file, upload_config)
 
                 if not file.block:
-
                     # Perform quicksand scan
                     file = quicksand.validate_file(file, upload_config)
 

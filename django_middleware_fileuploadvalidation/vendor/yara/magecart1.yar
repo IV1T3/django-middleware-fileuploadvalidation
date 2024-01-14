@@ -80,4 +80,3 @@ rule magecart {
    condition:
        any of them
 }
-

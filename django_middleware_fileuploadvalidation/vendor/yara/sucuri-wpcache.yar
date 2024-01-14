@@ -20,7 +20,7 @@ rule infected_11_10_18_wp_cache {
       $s1 = "Array('str_' .'rot13','pack','st' .'rrev'" fullword ascii
       $s2 = "php function _1178619035" fullword ascii
       $s3 = "return isset($_COOKIE" fullword ascii
-      $s4 = "$GLOBALS['_79565595_']" fullword ascii  
+      $s4 = "$GLOBALS['_79565595_']" fullword ascii
    condition:
       ( uint16(0) == 0x3f3c and
          filesize < 1KB and

@@ -42,4 +42,3 @@ rule infected_10_11_18_620ad_js {
          ( 8 of them )
       ) or ( all of them )
 }
-

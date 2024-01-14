@@ -30,4 +30,3 @@ rule infected_09_30_18_shell_1 {
          ( all of them )
       ) or ( all of them )
 }
-

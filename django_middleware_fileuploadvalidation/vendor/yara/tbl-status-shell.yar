@@ -32,4 +32,3 @@ rule tbl_status_webshell {
          ( all of them )
       ) or ( all of them )
 }
-

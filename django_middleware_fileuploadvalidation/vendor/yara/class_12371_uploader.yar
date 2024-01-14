@@ -14,5 +14,5 @@ rule class_12371 {
       $s6 = "@include($_FILES['u']['tmp_name']);" fullword ascii
       $s7 = "$t1 = $m ? stripslashes($_REQUEST[\"t1\"]) : $_REQUEST[\"t1\"];" fullword ascii
    condition:
-      all of them 
+      all of them
 }

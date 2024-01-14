@@ -40,4 +40,3 @@ rule infected_12_31_18_Z605 {
          ( 8 of them )
       ) or ( all of them )
 }
-

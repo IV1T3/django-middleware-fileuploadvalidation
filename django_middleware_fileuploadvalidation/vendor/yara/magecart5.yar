@@ -44,4 +44,3 @@ rule magecart_5 {
    condition:
        any of them
 }
-

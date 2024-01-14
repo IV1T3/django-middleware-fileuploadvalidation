@@ -23,4 +23,3 @@ rule case139_main_js_malvertising {
          ( all of them )
       ) or ( all of them )
 }
-

@@ -78,4 +78,3 @@ rule wp_newsletter_v1 {
          ( 1 of ($x*) and 4 of them )
       ) or ( all of them )
 }
-

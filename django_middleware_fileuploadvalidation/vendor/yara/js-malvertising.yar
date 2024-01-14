@@ -9,6 +9,5 @@ rule _06_04_18_case119_js_malvertising {
       $s2 = "document"
       $s3 = "_0x2515" ascii
    condition:
-      all of them 
+      all of them
 }
-

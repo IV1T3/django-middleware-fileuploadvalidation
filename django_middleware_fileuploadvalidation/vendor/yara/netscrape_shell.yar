@@ -69,4 +69,3 @@ rule _infected_05_30_18_obfuscated_netscrape_shell {
 }
 
 /* Super Rules ------------------------------------------------------------- */
-

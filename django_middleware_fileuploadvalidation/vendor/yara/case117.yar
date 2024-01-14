@@ -81,4 +81,3 @@ rule infected_09_25_18_webr00tv3 {
          ( 1 of ($x*) and 4 of them )
       ) or ( all of them )
 }
-

@@ -1,6 +1,6 @@
 rule drupal_CVE_2018_7600_RCE_0
 {
-	meta: 
+	meta:
 	author= "Brian Laskowski"
 	info= " Drupal RCE shell"
 
@@ -8,8 +8,7 @@ rule drupal_CVE_2018_7600_RCE_0
 		$a = "echo"
 		$b = "<pre>"
 		$c = ";system($_GET['c'])"
-	
+
 	condition:
 		all of them
 }
-

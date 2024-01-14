@@ -47,4 +47,3 @@ rule infected_08_23_18_citi_phish_INDPBANK_phishing_Log {
          ( all of them )
       ) or ( all of them )
 }
-

@@ -42,4 +42,3 @@ rule infected_09_20_18_challenge_acme {
          ( 8 of them )
       ) or ( all of them )
 }
-

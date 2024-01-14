@@ -25,4 +25,3 @@ rule infected_case23_db {
          ( all of them )
       ) or ( all of them )
 }
-

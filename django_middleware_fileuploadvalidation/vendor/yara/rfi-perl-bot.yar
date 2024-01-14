@@ -6,7 +6,7 @@ rule rfi_perl_bot
        info = " rfi perl bot 05/21/18 "
 
     strings:
-    
+
 	$s1="/usr/bin/perl"
 	$s2="RFI Scanner Bot"
 	$s3="FeeLCoMz"
@@ -14,4 +14,3 @@ rule rfi_perl_bot
     condition:
     all of them
 }
-

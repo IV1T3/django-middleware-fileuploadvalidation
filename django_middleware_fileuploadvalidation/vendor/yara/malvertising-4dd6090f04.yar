@@ -40,6 +40,5 @@ rule sig_4dd6090f04 {
       $s3 = "define( 'PCLZIP_ERR_USER_ABORTED'" fullword ascii
       $s4 = "$data = base64_decode("
    condition:
-       all of them 
+       all of them
 }
-

@@ -10,7 +10,6 @@ def evaluate(files, request):
     sanitization_active = request.upload_config["sanitization"]
 
     for file_name, file in files.items():
-
         #############################
         # Handle validation results #
         #############################
@@ -60,6 +59,5 @@ def evaluate(files, request):
             logging.warning("[Evaluator module] - Blocking: YARA evaluation FAILED")
         else:
             logging.info("[Evaluator module] - YARA evaluation PASSED")
-        
 
     return files, block_upload

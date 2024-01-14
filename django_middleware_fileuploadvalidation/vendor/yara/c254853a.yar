@@ -27,4 +27,3 @@ rule c254853a {
          ( all of them )
       ) or ( all of them )
 }
-

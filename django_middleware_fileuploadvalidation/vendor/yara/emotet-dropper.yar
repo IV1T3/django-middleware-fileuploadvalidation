@@ -145,4 +145,3 @@ rule _home_hawk_infected_12_22_19_user_emotet {
          ( 2 of them )
       ) or ( all of them )
 }
-

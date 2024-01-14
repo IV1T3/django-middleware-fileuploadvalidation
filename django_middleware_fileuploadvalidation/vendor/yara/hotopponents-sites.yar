@@ -90,4 +90,3 @@ rule infected_10_29_18_backdoors_script4 {
          ( all of them )
       ) or ( all of them )
 }
-

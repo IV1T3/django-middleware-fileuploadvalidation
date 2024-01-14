@@ -6,7 +6,7 @@ rule data_chaos_backdoor_shell
        info = " perl backdoor shell 05/21/18 "
 
     strings:
-    
+
 	$s1="/usr/bin/perl"
 	$s2="Data Cha0s Connect Back Backdoor"
 	$s3="use Socket"
@@ -14,4 +14,3 @@ rule data_chaos_backdoor_shell
     condition:
     all of them
 }
-

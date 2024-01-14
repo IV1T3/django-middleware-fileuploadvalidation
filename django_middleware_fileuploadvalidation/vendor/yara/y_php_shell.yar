@@ -32,4 +32,3 @@ rule _infected_case122_y_php_shell {
          filesize < 30KB and
            all of them )
 }
-

@@ -6,7 +6,7 @@ rule alfa_webshell
        info = " general php injection 05/16/18 "
 
     strings:
-    
+
     	$s1="Alfa_User"
     	$s2="Alfa_Pass"
 	$s3="Alfa_Protect_Shell"
@@ -14,4 +14,3 @@ rule alfa_webshell
     condition:
     all of them
 }
-

@@ -45,4 +45,3 @@ rule infected_09_03_18_phish_server {
    condition:
        ( all of them )
 }
-

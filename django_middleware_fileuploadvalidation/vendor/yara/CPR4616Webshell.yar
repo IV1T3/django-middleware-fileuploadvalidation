@@ -15,4 +15,3 @@ rule CPR4616_Webshell
         condition:
                 all of them
 }
-

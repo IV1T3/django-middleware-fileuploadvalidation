@@ -25,4 +25,3 @@ rule _case110_annizod_XMR_MINER {
          ( all of them )
       ) or ( all of them )
 }
-
